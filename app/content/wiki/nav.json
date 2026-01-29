@@ -1,0 +1,310 @@
+{
+  "pages": [
+    {
+      "path": "",
+      "title": "女性健康知识百科"
+    },
+    {
+      "path": "aub/adolescent-menstrual-disorders",
+      "title": "青春期"
+    },
+    {
+      "path": "aub/adolescent-menstrual-disorders_QA",
+      "title": "青春期月经不规律QA"
+    },
+    {
+      "path": "aub/hmb",
+      "title": "月经量过多"
+    },
+    {
+      "path": "aub/hmb_QA",
+      "title": "月经过多QA"
+    },
+    {
+      "path": "aub/reproductive-age-disorders",
+      "title": "育龄期"
+    },
+    {
+      "path": "aub/reproductive-age-disorders_QA",
+      "title": "育龄期子宫异常出血QA"
+    },
+    {
+      "path": "aub/scanty-menstruation",
+      "title": "月经量过少"
+    },
+    {
+      "path": "aub/scanty-menstruation_QA",
+      "title": "月经过少QA"
+    },
+    {
+      "path": "basic/menstrual-basic",
+      "title": "月经基础知识"
+    },
+    {
+      "path": "basic/no-s",
+      "title": "月经不是什么"
+    },
+    {
+      "path": "basic/yes-s",
+      "title": "月经是什么"
+    },
+    {
+      "path": "how-to-participate",
+      "title": "想一起共创？"
+    },
+    {
+      "path": "otherbleed/ectopic-pregnancy",
+      "title": "子宫异位妊娠"
+    },
+    {
+      "path": "otherbleed/ectopic-pregnancy_QA",
+      "title": "异位妊娠QA"
+    },
+    {
+      "path": "otherbleed/female-hemophilia",
+      "title": "女性血友病"
+    },
+    {
+      "path": "physiology/adenomyosis",
+      "title": "子宫腺肌症"
+    },
+    {
+      "path": "physiology/adenomyosis_QA",
+      "title": "子宫腺肌病QA"
+    },
+    {
+      "path": "physiology/adolescent-ovulation-disorder",
+      "title": "青春期排卵障碍"
+    },
+    {
+      "path": "physiology/adolescent-ovulation-disorder_QA",
+      "title": "青春期排卵障碍QA"
+    },
+    {
+      "path": "physiology/corpus-luteum-cysts",
+      "title": "黄体囊肿（破裂）"
+    },
+    {
+      "path": "physiology/corpus-luteum-cysts_QA",
+      "title": "黄体囊肿破裂QA"
+    },
+    {
+      "path": "physiology/dysfunctional-uterine-bleeding",
+      "title": "功能失调性子宫出血"
+    },
+    {
+      "path": "physiology/dysfunctional-uterine-bleeding_QA",
+      "title": "功能失调性子宫出血QA"
+    },
+    {
+      "path": "physiology/endometrial-polyps",
+      "title": "子宫内膜息肉"
+    },
+    {
+      "path": "physiology/endometrial-polyps_QA",
+      "title": "子宫内膜息肉QA"
+    },
+    {
+      "path": "physiology/endometriosis",
+      "title": "子宫内膜异位症"
+    },
+    {
+      "path": "physiology/endometriosis_QA",
+      "title": "子宫内膜异位症QA"
+    },
+    {
+      "path": "physiology/hpv-infection",
+      "title": "HPV感染"
+    },
+    {
+      "path": "physiology/pcos",
+      "title": "多囊卵巢综合征"
+    },
+    {
+      "path": "physiology/uterine-fibroids",
+      "title": "子宫肌瘤"
+    },
+    {
+      "path": "physiology/uterine-fibroids_QA",
+      "title": "子宫肌瘤QA"
+    },
+    {
+      "path": "symptom/period-pain",
+      "title": "痛经"
+    },
+    {
+      "path": "symptom/period-pain_QA",
+      "title": "痛经QA"
+    }
+  ],
+  "nav": [
+    {
+      "key": "symptom",
+      "title": "常见症状",
+      "items": [
+        {
+          "path": "symptom/period-pain",
+          "title": "痛经"
+        },
+        {
+          "path": "symptom/period-pain_QA",
+          "title": "痛经QA"
+        }
+      ]
+    },
+    {
+      "key": "how-to-participate",
+      "title": "共创",
+      "items": [
+        {
+          "path": "how-to-participate",
+          "title": "想一起共创？"
+        }
+      ]
+    },
+    {
+      "key": "basic",
+      "title": "基础知识",
+      "items": [
+        {
+          "path": "basic/no-s",
+          "title": "月经不是什么"
+        },
+        {
+          "path": "basic/menstrual-basic",
+          "title": "月经基础知识"
+        },
+        {
+          "path": "basic/yes-s",
+          "title": "月经是什么"
+        }
+      ]
+    },
+    {
+      "key": "otherbleed",
+      "title": "其他出血",
+      "items": [
+        {
+          "path": "otherbleed/female-hemophilia",
+          "title": "女性血友病"
+        },
+        {
+          "path": "otherbleed/ectopic-pregnancy_QA",
+          "title": "异位妊娠QA"
+        },
+        {
+          "path": "otherbleed/ectopic-pregnancy",
+          "title": "子宫异位妊娠"
+        }
+      ]
+    },
+    {
+      "key": "aub",
+      "title": "异常子宫出血（AUB）",
+      "items": [
+        {
+          "path": "aub/adolescent-menstrual-disorders",
+          "title": "青春期"
+        },
+        {
+          "path": "aub/adolescent-menstrual-disorders_QA",
+          "title": "青春期月经不规律QA"
+        },
+        {
+          "path": "aub/reproductive-age-disorders",
+          "title": "育龄期"
+        },
+        {
+          "path": "aub/reproductive-age-disorders_QA",
+          "title": "育龄期子宫异常出血QA"
+        },
+        {
+          "path": "aub/hmb_QA",
+          "title": "月经过多QA"
+        },
+        {
+          "path": "aub/scanty-menstruation_QA",
+          "title": "月经过少QA"
+        },
+        {
+          "path": "aub/hmb",
+          "title": "月经量过多"
+        },
+        {
+          "path": "aub/scanty-menstruation",
+          "title": "月经量过少"
+        }
+      ]
+    },
+    {
+      "key": "physiology",
+      "title": "月经相关疾病",
+      "items": [
+        {
+          "path": "physiology/pcos",
+          "title": "多囊卵巢综合征"
+        },
+        {
+          "path": "physiology/dysfunctional-uterine-bleeding",
+          "title": "功能失调性子宫出血"
+        },
+        {
+          "path": "physiology/dysfunctional-uterine-bleeding_QA",
+          "title": "功能失调性子宫出血QA"
+        },
+        {
+          "path": "physiology/corpus-luteum-cysts",
+          "title": "黄体囊肿（破裂）"
+        },
+        {
+          "path": "physiology/corpus-luteum-cysts_QA",
+          "title": "黄体囊肿破裂QA"
+        },
+        {
+          "path": "physiology/adolescent-ovulation-disorder",
+          "title": "青春期排卵障碍"
+        },
+        {
+          "path": "physiology/adolescent-ovulation-disorder_QA",
+          "title": "青春期排卵障碍QA"
+        },
+        {
+          "path": "physiology/uterine-fibroids",
+          "title": "子宫肌瘤"
+        },
+        {
+          "path": "physiology/uterine-fibroids_QA",
+          "title": "子宫肌瘤QA"
+        },
+        {
+          "path": "physiology/endometrial-polyps",
+          "title": "子宫内膜息肉"
+        },
+        {
+          "path": "physiology/endometrial-polyps_QA",
+          "title": "子宫内膜息肉QA"
+        },
+        {
+          "path": "physiology/endometriosis",
+          "title": "子宫内膜异位症"
+        },
+        {
+          "path": "physiology/endometriosis_QA",
+          "title": "子宫内膜异位症QA"
+        },
+        {
+          "path": "physiology/adenomyosis_QA",
+          "title": "子宫腺肌病QA"
+        },
+        {
+          "path": "physiology/adenomyosis",
+          "title": "子宫腺肌症"
+        },
+        {
+          "path": "physiology/hpv-infection",
+          "title": "HPV感染"
+        }
+      ]
+    }
+  ]
+}

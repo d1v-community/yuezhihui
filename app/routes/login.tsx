@@ -9,7 +9,7 @@ import { getUserFromRequest } from "~/utils/auth.server";
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUserFromRequest(request);
   if (user) {
-    return redirect("/");
+    return redirect("/app");
   }
   return null;
 }
@@ -33,7 +33,7 @@ export default function Login() {
         .then((r) => r.json())
         .then((d) => {
           if (d?.authenticated) {
-            navigate("/", { replace: true });
+            navigate("/app", { replace: true });
           }
         })
         .catch(() => {
@@ -118,7 +118,7 @@ export default function Login() {
         // noop: 静默处理同步 cookie 失败
       }
 
-      navigate("/");
+      navigate("/app");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed");
     } finally {

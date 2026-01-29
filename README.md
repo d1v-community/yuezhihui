@@ -14,6 +14,19 @@ A production-ready starter template for building web applications with email ver
 
 </div>
 
+## 🧱 Repo Layout (Current)
+
+- Remix (backend + landing): repo root (`app/`, `app/routes/api.*`)
+- Taro app (H5 + WeChat mini-program): `apps/app`
+- Taro H5 build output is configured to emit into Remix static assets: `public/app` (served at `/app`)
+
+This enables a single Vercel deployment to serve:
+- `/` (landing, Remix)
+- `/api/*` (backend, Remix)
+- `/app/*` (product H5 SPA, Taro)
+
+See also: `docs/architecture/DEPLOYMENT_VERCEL_SINGLE.md`.
+
 ## ✨ Features
 
 - 🔐 **Email Verification Login** - Secure authentication without passwords
@@ -184,6 +197,7 @@ pnpm run db:migrate
 
 ```bash
 pnpm run dev          # Start development server
+pnpm run dev:all      # Start Remix + Taro together (default: H5)
 pnpm run build        # Build for production
 pnpm run start        # Start production server
 pnpm run typecheck    # Run TypeScript type checks (no emit)
@@ -195,6 +209,41 @@ pnpm run db:migrate:api  # Apply migrations via Neon API
 pnpm run db:seed      # Seed database with demo data
 pnpm run db:seed:api  # Seed database via Neon API
 ```
+
+## 📦 Build: Taro H5 / WeChat Mini-Program
+
+## ▶️ Dev: Start Remix + Taro with One Command
+
+- Remix + Taro H5:
+  - `pnpm run dev:all`
+- Remix + Taro weapp (watch):
+  - `TARO_TARGET=weapp pnpm run dev:all`
+
+### Build H5 (web SPA)
+
+Commands
+- Build H5 only: `pnpm -C apps/app build:h5`
+- Build H5 + Remix (recommended for deploy): `pnpm run build`
+
+Output
+- H5 artifacts: `public/app/`
+  - entry: `public/app/index.html`
+  - assets: `public/app/js/*`, `public/app/css/*`
+
+Access (local/prod)
+- Served at `/app/` (Vercel routes rewrite `/app/*` to `/app/index.html`).
+
+### Build WeChat mini-program (weapp)
+
+Command
+- `pnpm -C apps/app build:weapp`
+
+Output
+- Mini-program artifacts: `apps/app/dist/`
+- WeChat DevTools config: `apps/app/project.config.json` (open this directory in DevTools)
+
+Notes
+- Taro build uses a cache directory under the user home (e.g. `~/.taro4.0`). In CI/Vercel this is OK; locally you may see it created on first build.
 
 ## 🗃️ Database: API Mode (Default)
 

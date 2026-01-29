@@ -3,14 +3,17 @@
   "sideEffects": false,
   "name": "with-remix",
   "scripts": {
-    "build": "remix vite:build",
+    "build": "pnpm rebuild && pnpm -C apps/app build:h5 && remix vite:build",
     "dev": "remix vite:dev",
+    "dev:all": "node scripts/dev-all.mjs",
+    "dev:app:h5": "pnpm -C apps/app dev:h5",
+    "dev:app:weapp": "pnpm -C apps/app dev:weapp",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc --noEmit --pretty",
+    "typecheck": "tsc --noEmit --pretty -p tsconfig.json && tsc --noEmit --pretty -p apps/app/tsconfig.json",
     "typecheck:watch": "tsc --noEmit --watch",
     "db:migrate": "node scripts/migrate.mjs",
     "db:migrate:api": "node scripts/migrate_via_api.mjs",
@@ -53,6 +56,19 @@
     "typescript": "~5.9.3",
     "vite": "^5.1.0",
     "vite-tsconfig-paths": "^4.2.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core",
+      "@tarojs/binding",
+      "@tarojs/cli",
+      "core-js",
+      "core-js-pure",
+      "esbuild",
+      "less",
+      "unrs-resolver"
+    ]
   },
   "engines": {
     "node": ">=20.0.0"

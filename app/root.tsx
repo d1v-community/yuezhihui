@@ -10,13 +10,13 @@ export const links = () => [
 export const meta = () => {
   return [
     { title: APP_TITLE },
-    { name: "description", content: "Email verification login with Remix and Neon" },
+    { name: "description", content: "女性月经精细化管理：记录、计算、理解你的身体节律。" },
   ];
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,7 +65,7 @@ export function ErrorBoundary() {
   const error = useRouteError();
   if (isRouteErrorResponse(error)) {
     return (
-      <html lang="en">
+      <html lang="zh-CN">
         <head>
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -83,7 +83,7 @@ export function ErrorBoundary() {
     );
   }
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
