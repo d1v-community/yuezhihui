@@ -110,3 +110,51 @@ export async function getWikiPage(routePath: string) {
   };
 }
 
+function renderCategoryIndexHtml(group: WikiNavGroup) {
+  const items = group.items
+    .map((it) => {
+      const prefix = `${group.key}/`;
+      const href =
+        it.path === group.key
+          ? "./"
+          : it.path.startsWith(prefix)
+            ? `${it.path.slice(prefix.length)}/`
+            : `/wiki/${it.path}`;
+      return `<li><a href="${href}">${it.title}</a></li>`;
+    })
+    .join("\n");
+
+  return `
+<h1>${group.title}</h1>
+<p>按主题浏览本分类下的条目。</p>
+<ul>
+${items}
+</ul>
+`.trim();
+}
+
+/**
+ * Returns:
+ * - a real wiki page when available (imported from MkDocs)
+ * - otherwise, a generated "category index" for top-level sections like /wiki/basic
+ */
+export async function getWikiContent(routePath: string) {
+  const nav = await getWikiNav();
+
+  const page = await getWikiPage(routePath);
+  if (page) return page;
+
+  // Auto category index pages like /wiki/basic, /wiki/aub, ...
+  if (routePath && !routePath.includes("/")) {
+    const group = nav.nav.find((g) => g.key === routePath) ?? null;
+    if (group) {
+      return {
+        path: routePath,
+        title: group.title,
+        html: rewriteWikiHtml(renderCategoryIndexHtml(group), routePath),
+      };
+    }
+  }
+
+  return null;
+}

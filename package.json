@@ -3,7 +3,8 @@
   "sideEffects": false,
   "name": "with-remix",
   "scripts": {
-    "build": "pnpm rebuild && pnpm -C apps/app build:h5 && remix vite:build",
+    "build": "pnpm run rebuild:ci && node scripts/build-taro-h5.mjs && remix vite:build",
+    "rebuild:ci": "pnpm rebuild esbuild @tarojs/binding less unrs-resolver",
     "dev": "remix vite:dev",
     "dev:all": "node scripts/dev-all.mjs",
     "dev:app:h5": "pnpm -C apps/app dev:h5",

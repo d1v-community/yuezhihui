@@ -8,3 +8,4 @@ node_modules
 # Taro build outputs (generated during `pnpm -C apps/app build:h5`)
 /public/app
 /apps/app/dist
+/.taro-home

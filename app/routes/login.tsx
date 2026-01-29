@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@remix-run/react";
 import { ThemeToggleButton } from "~/components/ThemeToggleButton";
 import { ClientOnly } from "~/components/ClientOnly";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { getUserFromRequest } from "~/utils/auth.server";
 
+const APP_H5_PATH = "/app/";
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUserFromRequest(request);
   if (user) {
-    return redirect("/app");
+    return redirect(APP_H5_PATH);
   }
   return null;
 }
 
 export default function Login() {
-  const navigate = useNavigate();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -33,7 +33,7 @@ export default function Login() {
         .then((r) => r.json())
         .then((d) => {
           if (d?.authenticated) {
-            navigate("/app", { replace: true });
+            window.location.assign(APP_H5_PATH);
           }
         })
         .catch(() => {
@@ -42,7 +42,7 @@ export default function Login() {
     } catch {
       // noop: 静默处理初始化错误
     }
-  }, [navigate]);
+  }, []);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +118,7 @@ export default function Login() {
         // noop: 静默处理同步 cookie 失败
       }
 
-      navigate("/app");
+      window.location.assign(APP_H5_PATH);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed");
     } finally {

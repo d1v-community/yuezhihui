@@ -53,9 +53,12 @@ export function WikiLayout({ nav, routePath, title, html }: WikiLayoutProps) {
 
               {nav.map((g) => (
                 <div key={g.key} className="mt-3">
-                  <div className="px-3 py-1 text-xs font-medium tracking-[0.12em] uppercase text-brand-muted">
+                  <Link
+                    to={`/wiki/${g.key}`}
+                    className="block px-3 py-1 text-xs font-medium tracking-[0.12em] uppercase text-brand-muted hover:text-brand-text transition-colors"
+                  >
                     {g.title}
-                  </div>
+                  </Link>
                   <div className="mt-1 flex flex-col gap-1">
                     {g.items.map((it) => {
                       const to = it.path ? `/wiki/${it.path}` : "/wiki";
@@ -88,4 +91,3 @@ export function WikiLayout({ nav, routePath, title, html }: WikiLayoutProps) {
     </div>
   );
 }
-

@@ -2,7 +2,7 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from "@remix-run/nod
 import { useLoaderData } from "@remix-run/react";
 import { getUserFromRequest } from "~/utils/auth.server";
 import { getEnvWarningMessage } from "~/utils/env.server";
-import { getWikiNav, getWikiPage } from "~/utils/wiki.server";
+import { getWikiNav, getWikiContent } from "~/utils/wiki.server";
 import { WikiShell } from "~/components/wiki/WikiShell";
 import { WikiLayout } from "~/components/wiki/WikiLayout";
 import { APP_TITLE } from "~/constants/app";
@@ -24,7 +24,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   const nav = await getWikiNav();
-  const page = await getWikiPage(routePath);
+  const page = await getWikiContent(routePath);
   if (!page) throw new Response("Not Found", { status: 404 });
 
   return json({ user, envWarning, nav: nav.nav, page, routePath });
@@ -39,4 +39,3 @@ export default function WikiSplatRoute() {
     </WikiShell>
   );
 }
-

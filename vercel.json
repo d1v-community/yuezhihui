@@ -1,8 +1,9 @@
 {
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/app$", "dest": "/app/index.html" },
-    { "src": "/app/(.*)", "dest": "/app/index.html" }
+  "buildCommand": "pnpm run build",
+  "framework": "remix",
+  "rewrites": [
+    { "source": "/app", "destination": "/app/index.html" },
+    { "source": "/app/(.*)", "destination": "/app/index.html" }
   ]
 }

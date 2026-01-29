@@ -243,7 +243,7 @@ Output
 - WeChat DevTools config: `apps/app/project.config.json` (open this directory in DevTools)
 
 Notes
-- Taro build uses a cache directory under the user home (e.g. `~/.taro4.0`). In CI/Vercel this is OK; locally you may see it created on first build.
+- Our `pnpm run build` runs Taro H5 build with `HOME` redirected into `./.taro-home` (repo-local), to avoid writing to the real user home during CI/Vercel builds.
 
 ## 🗃️ Database: API Mode (Default)
 
