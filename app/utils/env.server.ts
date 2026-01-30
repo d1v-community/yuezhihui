@@ -7,6 +7,17 @@ const envSchema = z.object({
   LOG_LEVEL: z.string().default("info"),
   RESEND_API_KEY: z.string().optional(),
   JWT_SECRET: z.string().default("your-secret-key-change-in-production"),
+
+  // WeChat Configuration
+  WECHAT_APPID: z.string().optional(),
+  WECHAT_SECRET: z.string().optional(),
+
+  // WeChat Pay Configuration
+  WECHAT_PAY_MCHID: z.string().optional(),
+  WECHAT_PAY_SERIAL_NO: z.string().optional(),
+  WECHAT_PAY_API_V3_KEY: z.string().optional(),
+  WECHAT_PAY_PRIVATE_KEY_PATH: z.string().default("certs/apiclient_key.pem"),
+  WECHAT_PAY_NOTIFY_URL: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -32,6 +43,31 @@ export const env = {
   JWT_SECRET: parsed.success
     ? parsed.data.JWT_SECRET
     : (process.env.JWT_SECRET ?? "your-secret-key-change-in-production"),
+
+  // WeChat Configuration
+  WECHAT_APPID: parsed.success
+    ? parsed.data.WECHAT_APPID
+    : process.env.WECHAT_APPID,
+  WECHAT_SECRET: parsed.success
+    ? parsed.data.WECHAT_SECRET
+    : process.env.WECHAT_SECRET,
+
+  // WeChat Pay Configuration
+  WECHAT_PAY_MCHID: parsed.success
+    ? parsed.data.WECHAT_PAY_MCHID
+    : process.env.WECHAT_PAY_MCHID,
+  WECHAT_PAY_SERIAL_NO: parsed.success
+    ? parsed.data.WECHAT_PAY_SERIAL_NO
+    : process.env.WECHAT_PAY_SERIAL_NO,
+  WECHAT_PAY_API_V3_KEY: parsed.success
+    ? parsed.data.WECHAT_PAY_API_V3_KEY
+    : process.env.WECHAT_PAY_API_V3_KEY,
+  WECHAT_PAY_PRIVATE_KEY_PATH: parsed.success
+    ? parsed.data.WECHAT_PAY_PRIVATE_KEY_PATH
+    : (process.env.WECHAT_PAY_PRIVATE_KEY_PATH ?? "certs/apiclient_key.pem"),
+  WECHAT_PAY_NOTIFY_URL: parsed.success
+    ? parsed.data.WECHAT_PAY_NOTIFY_URL
+    : process.env.WECHAT_PAY_NOTIFY_URL,
 };
 
 export const isProd = env.NODE_ENV === "production";
