@@ -4,6 +4,7 @@
 - [x] 约定统一入口：`http://localhost:5173/`（Remix landing）与 `http://localhost:5173/app`（Taro H5）
 - [x] `/app` 在 Taro 首次未产出 `public/app/index.html` 时给出“正在构建…”占位页
 - [x] `pnpm run dev` 同时启动 Remix dev + Taro H5 静态构建 watcher（不依赖 Taro dev server）
+- [x] 规避 Taro 构建阶段的 `system-configuration` Rust panic：H5/小程序构建统一加 `--no-check`
 - [ ] 修复/确认 Remix landing 样式稳定加载（Tailwind CSS 不受 `/app/*` 规则影响）
 - [ ] 验证：修改 Taro 页面样式后刷新 `http://localhost:5173/app` 可见最新变化
 
