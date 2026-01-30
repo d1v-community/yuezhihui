@@ -23,7 +23,10 @@ function formatEventLabel(e: DailyRecordEvent) {
   const parts: string[] = [who]
   if (e.productType) parts.push(e.productType)
   if (e.model) parts.push(e.model)
-  if (e.color) parts.push(e.color)
+  if (e.color) {
+    const map: Record<string, string> = { pink: '粉', red: '红', rust: '锈红', dark: '深红', brown: '棕' }
+    parts.push(map[e.color] || e.color)
+  }
   if (typeof e.volumeMl === 'number') parts.push(`${e.volumeMl}mL`)
   return parts.join('·')
 }
@@ -76,6 +79,11 @@ export default function HomePage() {
   const dirty = useMemo(() => JSON.stringify(record) !== snapshot, [record, snapshot])
   const totalVolume = useMemo(() => sumVolumeMl(record.events), [record.events])
   const hasSubmitted = submittedAt != null
+  const volumeFill = useMemo(() => {
+    // UI-only: map "today volume" to a soft progress fill.
+    const max = 40
+    return Math.max(0, Math.min(1, totalVolume / max))
+  }, [totalVolume])
 
   const loadForDate = async (date: string) => {
     setLoading(true)
@@ -195,37 +203,61 @@ export default function HomePage() {
 
   return (
     <View className="page">
-      <View className="card">
-        <View className="row">
-          <Text className="title">日期</Text>
-          <Picker mode="date" value={selectedDate} start={minDate} end={today} onChange={(e) => selectDate(String(e.detail.value))}>
-            <View className="pickerBtn">
-              <Text>{selectedDate}</Text>
-            </View>
-          </Picker>
-        </View>
-        <View className="divider" />
-        <View className="row section">
-          <View>
-            <Text className="title">有出血吗？</Text>
-            <Text className="muted">只允许记录今天及之前的日期</Text>
-          </View>
-          <Switch checked={record.hasBleeding} onChange={(e) => toggleBleeding(Boolean(e.detail.value))} />
-        </View>
-
-        <View className="section">
+      <View className="wrap">
+        <View className="card">
           <View className="row">
-            <Text className="title">实时血量（示意）</Text>
-            <Text className="muted">{totalVolume} mL</Text>
+            <Text className="title">按日记录</Text>
+            <Picker
+              mode="date"
+              value={selectedDate}
+              start={minDate}
+              end={today}
+              onChange={(e) => selectDate(String(e.detail.value))}
+            >
+              <View className="pickerBtn">
+                <Text>{selectedDate}</Text>
+              </View>
+            </Picker>
           </View>
-          <Text className="muted">每次“添加”都会生成事件标签；提交后可二次编辑。</Text>
-        </View>
 
-        <View className="divider" />
+          <View className="pillRow">
+            <View className={`pill ${hasSubmitted ? 'pillActive' : ''}`}>
+              <Text>{hasSubmitted ? '已提交' : '未提交'}</Text>
+            </View>
+            <View className={`pill ${dirty ? 'pillActive' : ''}`}>
+              <Text>{dirty ? '有改动' : '未改动'}</Text>
+            </View>
+            <View className="pill">
+              <Text>仅可记录今天及之前</Text>
+            </View>
+          </View>
 
-        <View className="section">
-          <Text className="title">卫生巾</Text>
+          <View className="divider" />
+
           <View className="row section">
+            <View>
+              <Text className="title">有出血吗？</Text>
+              <Text className="muted">关闭将清空当日事件；开启后可继续添加用品/症状。</Text>
+            </View>
+            <Switch checked={record.hasBleeding} onChange={(e) => toggleBleeding(Boolean(e.detail.value))} />
+          </View>
+
+          <View className="section">
+            <View className="row">
+              <Text className="title">实时血量（示意）</Text>
+              <Text className="muted">{totalVolume} mL</Text>
+            </View>
+            <View className="volumeBar">
+              <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
+            </View>
+            <Text className="muted">每次“添加”都会生成事件标签；提交后再改动会变为「确认更改」。</Text>
+          </View>
+
+          <View className="divider" />
+
+          <View className="section">
+            <Text className="title">卫生巾</Text>
+            <View className="optRow">
             <Picker
               mode="selector"
               range={PAD_TYPES.map((x) => x.label)}
@@ -256,8 +288,8 @@ export default function HomePage() {
                 <Text>{VOLUMES[volumeIndex]?.label || '量级'}</Text>
               </View>
             </Picker>
-          </View>
-          <View className="row section">
+            </View>
+            <View className="row section">
             <Button
               size="mini"
               type="primary"
@@ -273,14 +305,15 @@ export default function HomePage() {
             >
               添加/片
             </Button>
+              <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
+            </View>
           </View>
-        </View>
 
-        <View className="divider" />
+          <View className="divider" />
 
-        <View className="section">
-          <Text className="title">卫生棉条</Text>
-          <View className="row section">
+          <View className="section">
+            <Text className="title">卫生棉条</Text>
+            <View className="optRow">
             <Picker
               mode="selector"
               range={TAMPON_MODELS.map((x) => x.label)}
@@ -311,8 +344,8 @@ export default function HomePage() {
                 <Text>{VOLUMES[volumeIndex]?.label || '量级'}</Text>
               </View>
             </Picker>
-          </View>
-          <View className="row section">
+            </View>
+            <View className="row section">
             <Button
               size="mini"
               type="primary"
@@ -328,14 +361,15 @@ export default function HomePage() {
             >
               添加/条
             </Button>
+              <Text className="muted">与卫生巾一样：更换时记一条事件。</Text>
+            </View>
           </View>
-        </View>
 
-        <View className="divider" />
+          <View className="divider" />
 
-        <View className="section">
-          <Text className="title">症状（示意）</Text>
-          <View className="row section">
+          <View className="section">
+            <Text className="title">症状（示意）</Text>
+            <View className="optRow">
             {(['小血块', '大血块'] as const).map((name) => (
               <Button
                 key={name}
@@ -345,39 +379,39 @@ export default function HomePage() {
                 {name}
               </Button>
             ))}
+            </View>
+            <Text className="muted">症状也会成为时间轴上的“数据点”。</Text>
+          </View>
+
+          <View className="divider" />
+
+          <View className="section">
+            <Text className="title">事件标签</Text>
+            {record.events.length === 0 ? (
+              <Text className="muted">今天的身体还没有被记录。</Text>
+            ) : (
+              <View className="tagRow">
+                {record.events.map((e) => (
+                  <View key={e.id} className="tag">
+                    <Text className="tagText">{formatEventLabel(e)}</Text>
+                    <View className="tagDel" onClick={() => removeEvent(e.id)}>
+                      <Text>×</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </View>
 
-        <View className="section">
-          <Text className="title">事件标签</Text>
-          {record.events.length === 0 ? (
-            <Text className="muted">今天的身体还没有被记录。</Text>
-          ) : (
-            <View className="tagRow">
-              {record.events.map((e) => (
-                <View key={e.id} className="tag" onClick={() => removeEvent(e.id)}>
-                  <Text>{formatEventLabel(e)}</Text>
-                  <Text className="tagDel">×</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-      </View>
-
-      <View className="spacer" />
-
-      <View className="actions">
-        <Button
-          type="primary"
-          loading={submitting}
-          disabled={hasSubmitted && !dirty}
-          onClick={submit}
-        >
-          {submitting ? '提交中...' : hasSubmitted && dirty ? '确认更改' : '提交'}
-        </Button>
-        <View className="muted" style={{ marginTop: '8px' }}>
-          {hasSubmitted && !dirty ? '该日已提交，未检测到改动。' : dirty ? '有未提交改动。' : '可继续记录或切换日期。'}
+        <View className="actionsSpacer" />
+        <View className="actionsBar">
+          <Button type="primary" loading={submitting} disabled={hasSubmitted && !dirty} onClick={submit}>
+            {submitting ? '提交中...' : hasSubmitted && dirty ? '确认更改' : '提交'}
+          </Button>
+          <Text className="actionsHint">
+            {hasSubmitted && !dirty ? '该日已提交，未检测到改动。' : dirty ? '有未提交改动。' : '可继续记录或切换日期。'}
+          </Text>
         </View>
       </View>
     </View>

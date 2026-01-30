@@ -5,7 +5,8 @@
   "scripts": {
     "build": "pnpm run rebuild:ci && node scripts/build-taro-h5.mjs && remix vite:build",
     "rebuild:ci": "pnpm rebuild esbuild @tarojs/binding less unrs-resolver",
-    "dev": "remix vite:dev",
+    "dev:remix": "remix vite:dev --port 5173 --strictPort",
+    "dev": "node scripts/dev-all.mjs",
     "dev:all": "node scripts/dev-all.mjs",
     "dev:app:h5": "pnpm -C apps/app dev:h5",
     "dev:app:weapp": "pnpm -C apps/app dev:weapp",

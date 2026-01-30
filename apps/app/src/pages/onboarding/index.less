@@ -1,26 +1,157 @@
+@import '../../styles/ui.less';
+
 .page {
-  padding: 16px;
+  .app-page();
+}
+
+.wrap {
+  .app-container();
+  padding-bottom: 22px;
+  .app-frame();
 }
 
 .topbar {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: rgba(251, 250, 248, 0.55);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.progress {
+.topTitle {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.progressRow {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.progressText {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.55);
 }
 
+.bar {
+  margin-top: 10px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(43, 43, 43, 0.88);
+}
+
+.bg {
+  min-height: 100vh;
+  .app-bg-flow();
+}
+
+.chipsRow {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  .app-chip();
+}
+
+.chipActive {
+  .app-chipActive();
+}
+
+.searchRow {
+  margin-top: 12px;
+}
+
+.searchInput {
+  .app-input();
+}
+
+.grid {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gridItem {
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.78);
+  max-width: 100%;
+  line-height: 18px;
+}
+
+.gridItemActive {
+  background: rgba(200, 182, 166, 0.22);
+  border-color: rgba(139, 94, 94, 0.28);
+  color: rgba(0, 0, 0, 0.86);
+}
+
+.summaryList {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.summaryItem {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.summaryKey {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.50);
+}
+
+.summaryVal {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(0, 0, 0, 0.86);
+}
+
+.summaryEdit {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(43, 43, 43, 0.92);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.86);
+}
+
 .card {
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  padding: 16px;
+  .app-card();
 }
 
 .title {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 24px;
 }
 
@@ -40,18 +171,49 @@
 
 .opt {
   border: 1px solid rgba(0, 0, 0, 0.10);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .optActive {
-  border-color: rgba(0, 0, 0, 0.35);
-  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(139, 94, 94, 0.30);
+  background: rgba(200, 182, 166, 0.18);
+}
+
+.optRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .optLabel {
   font-size: 14px;
   line-height: 20px;
+  flex: 1;
+}
+
+.optMark {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.optMarkActive {
+  border-color: rgba(139, 94, 94, 0.35);
+  background: rgba(139, 94, 94, 0.12);
+}
+
+.optMarkText {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.68);
+  font-weight: 700;
 }
 
 .field {
@@ -59,49 +221,45 @@
 }
 
 .input {
-  width: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 10px;
-  padding: 12px;
-  box-sizing: border-box;
-  background: #fff;
+  .app-input();
 }
 
 .metaRow {
   margin-top: 10px;
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .metaBtn {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.7);
-  padding: 6px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 999px;
-  background: #fff;
+  .app-chip();
 }
 
 .metaBtnActive {
-  border-color: rgba(0, 0, 0, 0.35);
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.actions {
-  margin-top: 16px;
-  display: flex;
-  gap: 10px;
+  .app-chipActive();
 }
 
 .finishTitle {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .finishDesc {
   margin-top: 8px;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.55);
   font-size: 14px;
   line-height: 20px;
 }
 
+.actionsBar {
+  .app-actionsBar();
+}
+
+.actionsSpacer {
+  .app-actionsSpacer();
+}
+
+.actionsRow {
+  display: flex;
+  gap: 10px;
+}

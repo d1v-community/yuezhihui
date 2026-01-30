@@ -122,6 +122,7 @@ export default function OnboardingPage() {
   const [answers, setAnswers] = useState<OnboardingV2AnswersMap>({})
   const [currentId, setCurrentId] = useState<OnboardingV2QuestionId | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
+  const [search, setSearch] = useState('')
 
   const visibleIds = useMemo(() => getVisibleQuestionIds(answers), [answers])
   const progress = useMemo(() => {
@@ -129,6 +130,17 @@ export default function OnboardingPage() {
     const idx = visibleIds.indexOf(currentId)
     return { idx: idx >= 0 ? idx : 0, total: visibleIds.length }
   }, [currentId, visibleIds])
+  const progressRatio = useMemo(() => {
+    if (!progress.total) return 0
+    // idx is zero-based; show a more natural "completed" ratio.
+    return Math.max(0, Math.min(1, progress.idx / progress.total))
+  }, [progress.idx, progress.total])
+
+  const estimateMin = useMemo(() => {
+    const remaining = Math.max(0, progress.total - progress.idx)
+    // crude: ~4 questions/min for structured forms
+    return Math.max(1, Math.ceil(remaining / 4))
+  }, [progress.idx, progress.total])
 
   const def = currentId ? QUESTION_DEFS[currentId] : null
 
@@ -158,6 +170,7 @@ export default function OnboardingPage() {
       return
     }
     setDraft(initDraftFromAnswer(currentId, answers))
+    setSearch('')
   }, [currentId, answers])
 
   const submitCurrent = async () => {
@@ -212,6 +225,27 @@ export default function OnboardingPage() {
     }
   }
 
+  const goPrev = async () => {
+    if (!currentId) return
+    const idx = visibleIds.indexOf(currentId)
+    if (idx <= 0) {
+      // "Pause" entry: keep progress server-side and show a calm holding page.
+      await Taro.reLaunch({ url: '/pages/index/index?pause=1' })
+      return
+    }
+    const prevId = visibleIds[idx - 1] || null
+    setSubmitting(true)
+    try {
+      const res = await onboardingV2Position(prevId)
+      if (!res?.success) throw new Error(res?.error || '返回失败')
+      setCurrentId((res.currentQuestionId ?? prevId ?? null) as any)
+    } catch (e) {
+      Taro.showToast({ title: e instanceof Error ? e.message : '返回失败', icon: 'none' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const finalize = async () => {
     setSubmitting(true)
     try {
@@ -231,21 +265,148 @@ export default function OnboardingPage() {
   if (loading) {
     return (
       <View className="page">
-        <Text>Loading...</Text>
+        <View className="bg">
+          <View className="wrap">
+            <View className="card">
+              <Text className="finishTitle">正在加载问卷...</Text>
+              <Text className="finishDesc">请稍候，正在恢复你的进度。</Text>
+            </View>
+          </View>
+        </View>
       </View>
     )
   }
 
+  const formatAnswer = (id: OnboardingV2QuestionId) => {
+    const a = answers[id]
+    const def = QUESTION_DEFS[id]
+    if (!a) return '未填写'
+    if (a.type === 'single') {
+      const opt = def.type === 'single' ? def.options.find((o) => o.value === a.value) : null
+      return opt?.label || a.value
+    }
+    if (a.type === 'multi') {
+      const values = Array.isArray(a.values) ? a.values : []
+      const labels =
+        def.type === 'multi'
+          ? values.map((v) => def.options.find((o) => o.value === v)?.label || v)
+          : values
+      if (labels.length <= 3) return labels.join('、') || '未选择'
+      return `${labels.slice(0, 3).join('、')} 等（${labels.length}项）`
+    }
+    if (a.type === 'number') {
+      if (a.meta?.unknown) return '不确定/记不清'
+      if (a.meta?.no_answer) return '不愿透露'
+      return a.value == null ? '未填写' : String(a.value)
+    }
+    if (a.type === 'date') {
+      if (a.meta?.unknown) return '不确定/记不清'
+      if (a.meta?.no_answer) return '不愿透露'
+      return a.value || '未填写'
+    }
+    if (a.type === 'text') {
+      if (a.meta?.unknown) return '不确定/记不清'
+      if (a.meta?.no_answer) return '不愿透露'
+      return a.value || '未填写'
+    }
+    if (a.type === 'object') {
+      if (id === 'B1_birth_date') {
+        const v = a.value as any
+        if (v?.mode === 'unknown') return '不确定/记不清'
+        if (v?.mode === 'no_answer') return '不愿透露'
+        if (v?.mode === 'year_month') return v?.yearMonth ? `约 ${String(v.yearMonth)}` : '只记得年月'
+        return v?.exactDate ? String(v.exactDate) : '未填写'
+      }
+      return '已填写'
+    }
+    return '未填写'
+  }
+
+  const shortLabel = (id: OnboardingV2QuestionId) => {
+    const map: Partial<Record<OnboardingV2QuestionId, string>> = {
+      A0_consent_research: '研究同意',
+      B1_birth_date: '出生日期',
+      B2_region_level: '常住地区',
+      C1_menarche_ever: '是否来过初潮',
+      C3_menses_last_3m: '近3个月是否有月经',
+      C2_current_status: '当前状态',
+      D5_last_period_start: '上次月经第一天',
+      E1_products: '常用卫生用品',
+      E2_change_frequency_peak: '高峰日更换频率',
+      E3_clots_leakage: '血块与漏',
+      F1_health_conditions: '健康状况',
+      G1_bleeding_history_multi: '出血相关经历',
+      I1_height_cm: '身高',
+      I2_weight_kg: '体重',
+    }
+    return map[id] || id
+  }
+
+  const goEdit = async (id: OnboardingV2QuestionId) => {
+    setSubmitting(true)
+    try {
+      const res = await onboardingV2Position(id)
+      if (!res?.success) throw new Error(res?.error || '跳转失败')
+      setCurrentId((res.currentQuestionId ?? id) as any)
+    } catch (e) {
+      Taro.showToast({ title: e instanceof Error ? e.message : '跳转失败', icon: 'none' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Summary confirmation (before submit): align with root docs.
   if (!currentId) {
+    const summaryIds = visibleIds
+      .filter((id) => id !== 'F2_condition_source_unknown_text')
+      .filter((id) => {
+        const def = QUESTION_DEFS[id]
+        return Boolean(def?.required || answers[id])
+      })
     return (
       <View className="page">
-        <View className="card">
-          <Text className="finishTitle">问卷已完成</Text>
-          <Text className="finishDesc">接下来进入主页面按日记录（今天与历史日期）。</Text>
-          <View className="actions">
-            <Button type="primary" loading={submitting} onClick={finalize}>
-              开始记录
-            </Button>
+        <View className="bg">
+          <View className="wrap">
+            <View className="topbar">
+              <Text className="topTitle">提交前确认</Text>
+              <View className="progressRow">
+                <Text className="progressText">你可以在提交前快速检查与修改。</Text>
+              </View>
+            </View>
+
+            <View className="card">
+              <Text className="title">摘要</Text>
+              <Text className="note">点击「修改」可以回到对应问题。提交后将进入按日记录。</Text>
+
+              <View className="summaryList">
+                {summaryIds.map((id) => (
+                  <View key={id} className="summaryItem">
+                    <Text className="summaryKey">{shortLabel(id)}</Text>
+                    <Text className="summaryVal">{formatAnswer(id)}</Text>
+                    <Text className="summaryEdit" onClick={() => void goEdit(id)}>
+                      修改
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View className="actionsSpacer" />
+            <View className="actionsBar">
+              <View className="actionsRow">
+                <Button
+                  loading={submitting}
+                  onClick={() => {
+                    void Taro.reLaunch({ url: '/pages/index/index?pause=1' })
+                  }}
+                >
+                  稍后继续
+                </Button>
+                <Button type="primary" loading={submitting} onClick={finalize}>
+                  提交并开始记录
+                </Button>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -260,17 +421,37 @@ export default function OnboardingPage() {
     )
   }
 
+  const isExclusiveMultiValue = (v: string) => {
+    // For multi questions, treat these as mutually-exclusive "final" answers.
+    return v === 'none' || v === '都没有' || v === 'unknown' || v === '不确定' || v === 'no_answer'
+  }
+
+  const isTaggyMulti = currentId === 'F1_health_conditions' || currentId === 'G1_bleeding_history_multi'
+  const filteredMultiOptions =
+    def.type === 'multi'
+      ? def.options.filter((o) => (search.trim() ? o.label.includes(search.trim()) : true))
+      : []
+
   return (
     <View className="page">
-      <View className="topbar">
-        <Text className="progress">
-          已完成 {Math.min(progress.idx, progress.total)}/{progress.total}
-        </Text>
-      </View>
+      <View className="bg">
+        <View className="wrap">
+          <View className="topbar">
+            <Text className="topTitle">问卷 Onboarding</Text>
+            <View className="progressRow">
+              <Text className="progressText">
+                已完成 {Math.min(progress.idx, progress.total)}/{progress.total}
+              </Text>
+              <Text className="progressText">预计剩余 {estimateMin} 分钟</Text>
+            </View>
+            <View className="bar">
+              <View className="barFill" style={{ width: `${Math.round(progressRatio * 100)}%` }} />
+            </View>
+          </View>
 
-      <View className="card">
-        <Text className="title">{def.title}</Text>
-        {def.note ? <Text className="note">{def.note}</Text> : null}
+          <View className="card">
+            <Text className="title">{def.title}</Text>
+            {def.note ? <Text className="note">{def.note}</Text> : null}
 
         {def.type === 'single' ? (
           <View className="options">
@@ -282,14 +463,86 @@ export default function OnboardingPage() {
                   className={`opt ${active ? 'optActive' : ''}`}
                   onClick={() => setDraft({ kind: 'single', value: opt.value })}
                 >
-                  <Text className="optLabel">{opt.label}</Text>
+                  <View className="optRow">
+                    <Text className="optLabel">{opt.label}</Text>
+                    <View className={`optMark ${active ? 'optMarkActive' : ''}`}>
+                      <Text className="optMarkText">{active ? '✓' : ''}</Text>
+                    </View>
+                  </View>
                 </View>
               )
             })}
           </View>
         ) : null}
 
-        {def.type === 'multi' ? (
+        {def.type === 'multi' && isTaggyMulti ? (
+          <View>
+            <View className="searchRow">
+              <Input
+                className="searchInput"
+                value={search}
+                onInput={(e) => setSearch(String(e.detail.value || ''))}
+                placeholder="搜索并选择（可多选）"
+                type="text"
+                disabled={submitting}
+              />
+            </View>
+
+            {draft.kind === 'multi' && draft.values.length > 0 ? (
+              <View className="chipsRow">
+                {draft.values.map((v) => (
+                  <Text
+                    key={v}
+                    className="chip chipActive"
+                    onClick={() => {
+                      if (draft.kind !== 'multi') return
+                      const next = draft.values.filter((x) => x !== v)
+                      setDraft({ kind: 'multi', values: next })
+                    }}
+                  >
+                    {v} ×
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <View className="chipsRow">
+                <Text className="chip">还未选择</Text>
+                <Text className="chip">可输入关键词快速筛选</Text>
+              </View>
+            )}
+
+            <View className="grid">
+              {filteredMultiOptions.map((opt) => {
+                const active = draft.kind === 'multi' && draft.values.includes(opt.value)
+                return (
+                  <Text
+                    key={opt.value}
+                    className={`gridItem ${active ? 'gridItemActive' : ''}`}
+                    onClick={() => {
+                      if (draft.kind !== 'multi') return
+                      const next = new Set(draft.values)
+                      if (isExclusiveMultiValue(opt.value)) {
+                        next.clear()
+                        next.add(opt.value)
+                      } else {
+                        for (const v of Array.from(next)) {
+                          if (isExclusiveMultiValue(v)) next.delete(v)
+                        }
+                        if (active) next.delete(opt.value)
+                        else next.add(opt.value)
+                      }
+                      setDraft({ kind: 'multi', values: Array.from(next) })
+                    }}
+                  >
+                    {opt.label}
+                  </Text>
+                )
+              })}
+            </View>
+          </View>
+        ) : null}
+
+        {def.type === 'multi' && !isTaggyMulti ? (
           <View className="options">
             {def.options.map((opt) => {
               const active = draft.kind === 'multi' && draft.values.includes(opt.value)
@@ -301,13 +554,14 @@ export default function OnboardingPage() {
                     if (draft.kind !== 'multi') return
                     const next = new Set(draft.values)
 
-                    // Special handling: mutually exclusive options like "none"
-                    if (opt.value === 'none' || opt.value === '都没有') {
+                    // Special handling: mutually exclusive options like "none"/"unknown"/"no_answer"
+                    if (isExclusiveMultiValue(opt.value)) {
                       next.clear()
                       next.add(opt.value)
                     } else {
-                      next.delete('none')
-                      next.delete('都没有')
+                      for (const v of Array.from(next)) {
+                        if (isExclusiveMultiValue(v)) next.delete(v)
+                      }
                       if (active) next.delete(opt.value)
                       else next.add(opt.value)
                     }
@@ -315,7 +569,12 @@ export default function OnboardingPage() {
                     setDraft({ kind: 'multi', values: Array.from(next) })
                   }}
                 >
-                  <Text className="optLabel">{opt.label}</Text>
+                  <View className="optRow">
+                    <Text className="optLabel">{opt.label}</Text>
+                    <View className={`optMark ${active ? 'optMarkActive' : ''}`}>
+                      <Text className="optMarkText">{active ? '✓' : ''}</Text>
+                    </View>
+                  </View>
                 </View>
               )
             })}
@@ -464,18 +723,23 @@ export default function OnboardingPage() {
               ).map((it) => {
                 const active = draft.kind === 'birth_date_object' && draft.mode === it.v
                 return (
-                  <View
-                    key={it.v}
-                    className={`opt ${active ? 'optActive' : ''}`}
-                    onClick={() => {
-                      if (draft.kind !== 'birth_date_object') return
-                      setDraft({ ...draft, mode: it.v })
-                    }}
-                  >
+                <View
+                  key={it.v}
+                  className={`opt ${active ? 'optActive' : ''}`}
+                  onClick={() => {
+                    if (draft.kind !== 'birth_date_object') return
+                    setDraft({ ...draft, mode: it.v })
+                  }}
+                >
+                  <View className="optRow">
                     <Text className="optLabel">{it.label}</Text>
+                    <View className={`optMark ${active ? 'optMarkActive' : ''}`}>
+                      <Text className="optMarkText">{active ? '✓' : ''}</Text>
+                    </View>
                   </View>
-                )
-              })}
+                </View>
+              )
+            })}
             </View>
 
             {draft.kind === 'birth_date_object' && draft.mode === 'exact_date' ? (
@@ -532,18 +796,24 @@ export default function OnboardingPage() {
           </View>
         ) : null}
 
-        <View className="actions">
-          <Button loading={submitting} onClick={() => Taro.navigateBack({ delta: 1 })}>
-            返回
-          </Button>
-          {!def.required ? (
-            <Button loading={submitting} onClick={skipCurrent}>
-              跳过
+        </View>
+
+        <View className="actionsSpacer" />
+        <View className="actionsBar">
+          <View className="actionsRow">
+            <Button loading={submitting} onClick={goPrev}>
+              {visibleIds.indexOf(currentId) <= 0 ? '稍后继续' : '上一步'}
             </Button>
-          ) : null}
-          <Button type="primary" loading={submitting} onClick={submitCurrent}>
-            下一步
-          </Button>
+            {!def.required ? (
+              <Button loading={submitting} onClick={skipCurrent}>
+                跳过
+              </Button>
+            ) : null}
+            <Button type="primary" loading={submitting} onClick={submitCurrent}>
+              下一步
+            </Button>
+          </View>
+        </View>
         </View>
       </View>
     </View>
