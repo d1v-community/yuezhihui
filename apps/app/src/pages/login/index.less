@@ -83,18 +83,13 @@
   color: rgba(0, 0, 0, 0.55);
 }
 
-.linkBtn {
-  font-size: 12px;
-  color: rgba(43, 43, 43, 0.92);
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.8);
-}
+// NOTE: link-style actions migrated to `FCTextButton` (see `src/ui/textButton.tsx`).
 
 .actions {
   margin-top: 16px;
-  .app-btnRow();
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .devCallout {
@@ -119,44 +114,6 @@
 .devHint {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.55);
-}
-
-.codeWrap {
-  margin-top: 8px;
-}
-
-.codeBoxes {
-  display: flex;
-  gap: 10px;
-}
-
-.codeBox {
-  width: 44px;
-  height: 52px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.codeBoxActive {
-  border-color: rgba(0, 0, 0, 0.32);
-  box-shadow: 0 10px 30px rgba(43, 43, 43, 0.10);
-}
-
-.codeChar {
-  font-size: 18px;
-  font-weight: 700;
-  color: rgba(0, 0, 0, 0.86);
-}
-
-.codeHiddenInput {
-  position: absolute;
-  opacity: 0;
-  left: -1000px;
-  top: -1000px;
 }
 
 .footNote {

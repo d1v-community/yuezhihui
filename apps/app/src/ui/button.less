@@ -1,0 +1,73 @@
+@import '../styles/ui.less';
+
+.fcBtn {
+  height: 44px;
+  border-radius: 999px;
+  padding: 0 18px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform @dur-fast @ease-soft, filter @dur-fast @ease-soft, background @dur-mid @ease-soft, border-color @dur-mid @ease-soft;
+}
+
+.fcBtnText {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.1px;
+}
+
+.fcBtnPrimary {
+  background: rgba(43, 43, 43, 0.96);
+  border: 1px solid rgba(43, 43, 43, 0.22);
+}
+
+.fcBtnPrimary .fcBtnText {
+  color: #fff;
+}
+
+.fcBtnSecondary {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.fcBtnSecondary .fcBtnText {
+  color: rgba(0, 0, 0, 0.86);
+}
+
+.fcBtnGhost {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+}
+
+.fcBtnGhost .fcBtnText {
+  color: rgba(0, 0, 0, 0.82);
+}
+
+.fcBtnDisabled {
+  opacity: 0.55;
+}
+
+.fcBtnFull {
+  width: 100%;
+}
+
+.fcBtnSm {
+  height: 40px;
+  padding: 0 14px;
+}
+
+.fcBtnSm .fcBtnText {
+  font-size: 13px;
+}
+
+.fcBtnLg {
+  height: 48px;
+  padding: 0 20px;
+}
+
+.fcBtnLg .fcBtnText {
+  font-size: 15px;
+}
+

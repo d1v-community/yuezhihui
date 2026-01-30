@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import Taro, { useLoad } from '@tarojs/taro'
-import { View, Text, Button, Switch, Picker } from '@tarojs/components'
+import { View, Text, Switch, Picker } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
 import { getStorageString, setStorageString } from '../../storage/storage'
 import { loadDailyRecord, saveDailyRecordDraft, submitDailyRecord } from '../../services/dailyRecordRepo'
 import type { DailyRecord, DailyRecordEvent, MenstrualColor } from '../../types/dailyRecord'
 import { addDaysYmd, clampYmd, todayYmd } from '../../utils/date'
 import { ensureAuthedOrRedirect } from '../../utils/authGuard'
+import { FCActionBar, FCButton, FCChip, FCNotice } from '../../ui'
 import './index.less'
 
 function uid() {
@@ -65,6 +66,7 @@ export default function HomePage() {
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(false)
 
   const [selectedDate, setSelectedDate] = useState(today)
   const [submittedAt, setSubmittedAt] = useState<number | null>(null)
@@ -174,6 +176,7 @@ export default function HomePage() {
   const submit = async () => {
     if (hasSubmitted && !dirty) return
     setSubmitting(true)
+    setSubmitError(false)
     try {
       const stored = await submitDailyRecord(record)
       setSnapshot(JSON.stringify(record))
@@ -187,6 +190,7 @@ export default function HomePage() {
 
       Taro.showToast({ title: wasSubmitted ? '已更新' : '提交成功', icon: 'none' })
     } catch (e) {
+      setSubmitError(true)
       Taro.showToast({ title: '提交失败，请重试', icon: 'none' })
     } finally {
       setSubmitting(false)
@@ -204,32 +208,18 @@ export default function HomePage() {
   return (
     <View className="page">
       <View className="wrap">
-        <View className="card">
+        <View className="card fc-appear">
           <View className="row">
             <Text className="title">按日记录</Text>
-            <Picker
-              mode="date"
-              value={selectedDate}
-              start={minDate}
-              end={today}
-              onChange={(e) => selectDate(String(e.detail.value))}
-            >
-              <View className="pickerBtn">
-                <Text>{selectedDate}</Text>
-              </View>
+            <Picker mode="date" value={selectedDate} start={minDate} end={today} onChange={(e) => selectDate(String(e.detail.value))}>
+              <FCChip>{selectedDate}</FCChip>
             </Picker>
           </View>
 
           <View className="pillRow">
-            <View className={`pill ${hasSubmitted ? 'pillActive' : ''}`}>
-              <Text>{hasSubmitted ? '已提交' : '未提交'}</Text>
-            </View>
-            <View className={`pill ${dirty ? 'pillActive' : ''}`}>
-              <Text>{dirty ? '有改动' : '未改动'}</Text>
-            </View>
-            <View className="pill">
-              <Text>仅可记录今天及之前</Text>
-            </View>
+            <FCChip active={hasSubmitted}>{hasSubmitted ? '已提交' : '未提交'}</FCChip>
+            <FCChip active={dirty}>{dirty ? '有改动' : '未改动'}</FCChip>
+            <FCChip disabled>仅可记录今天及之前</FCChip>
           </View>
 
           <View className="divider" />
@@ -264,9 +254,7 @@ export default function HomePage() {
               value={padTypeIndex}
               onChange={(e) => setPadTypeIndex(Number(e.detail.value) || 0)}
             >
-              <View className="pickerBtn">
-                <Text>{PAD_TYPES[padTypeIndex]?.label || '选择类型'}</Text>
-              </View>
+              <FCChip>{PAD_TYPES[padTypeIndex]?.label || '选择类型'}</FCChip>
             </Picker>
             <Picker
               mode="selector"
@@ -274,9 +262,7 @@ export default function HomePage() {
               value={colorIndex}
               onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
             >
-              <View className="pickerBtn">
-                <Text>{COLORS[colorIndex]?.label || '颜色'}</Text>
-              </View>
+              <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
             </Picker>
             <Picker
               mode="selector"
@@ -284,15 +270,12 @@ export default function HomePage() {
               value={volumeIndex}
               onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
             >
-              <View className="pickerBtn">
-                <Text>{VOLUMES[volumeIndex]?.label || '量级'}</Text>
-              </View>
+              <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
             </Picker>
             </View>
             <View className="row section">
-            <Button
-              size="mini"
-              type="primary"
+            <FCButton
+              size="sm"
               onClick={() => {
                 addEvent({
                   eventTime: new Date().toISOString(),
@@ -304,7 +287,7 @@ export default function HomePage() {
               }}
             >
               添加/片
-            </Button>
+            </FCButton>
               <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
             </View>
           </View>
@@ -320,9 +303,7 @@ export default function HomePage() {
               value={tamponModelIndex}
               onChange={(e) => setTamponModelIndex(Number(e.detail.value) || 0)}
             >
-              <View className="pickerBtn">
-                <Text>{TAMPON_MODELS[tamponModelIndex]?.label || '选择型号'}</Text>
-              </View>
+              <FCChip>{TAMPON_MODELS[tamponModelIndex]?.label || '选择型号'}</FCChip>
             </Picker>
             <Picker
               mode="selector"
@@ -330,9 +311,7 @@ export default function HomePage() {
               value={colorIndex}
               onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
             >
-              <View className="pickerBtn">
-                <Text>{COLORS[colorIndex]?.label || '颜色'}</Text>
-              </View>
+              <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
             </Picker>
             <Picker
               mode="selector"
@@ -340,15 +319,12 @@ export default function HomePage() {
               value={volumeIndex}
               onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
             >
-              <View className="pickerBtn">
-                <Text>{VOLUMES[volumeIndex]?.label || '量级'}</Text>
-              </View>
+              <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
             </Picker>
             </View>
             <View className="row section">
-            <Button
-              size="mini"
-              type="primary"
+            <FCButton
+              size="sm"
               onClick={() => {
                 addEvent({
                   eventTime: new Date().toISOString(),
@@ -360,7 +336,7 @@ export default function HomePage() {
               }}
             >
               添加/条
-            </Button>
+            </FCButton>
               <Text className="muted">与卫生巾一样：更换时记一条事件。</Text>
             </View>
           </View>
@@ -371,13 +347,14 @@ export default function HomePage() {
             <Text className="title">症状（示意）</Text>
             <View className="optRow">
             {(['小血块', '大血块'] as const).map((name) => (
-              <Button
+              <FCButton
                 key={name}
-                size="mini"
+                size="sm"
+                variant="secondary"
                 onClick={() => addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })}
               >
                 {name}
-              </Button>
+              </FCButton>
             ))}
             </View>
             <Text className="muted">症状也会成为时间轴上的“数据点”。</Text>
@@ -404,15 +381,27 @@ export default function HomePage() {
           </View>
         </View>
 
-        <View className="actionsSpacer" />
-        <View className="actionsBar">
-          <Button type="primary" loading={submitting} disabled={hasSubmitted && !dirty} onClick={submit}>
+        <FCActionBar>
+          {submitError ? (
+            <FCNotice
+              variant="warn"
+              title="数据暂时无法保存，但你的记录还在"
+              desc="请检查网络后重试；你可以继续添加事件，不会丢失当前页面的内容。"
+              style={{ marginBottom: 10 }}
+            />
+          ) : null}
+          <FCButton
+            loading={submitting}
+            disabled={hasSubmitted && !dirty}
+            fullWidth
+            onClick={() => void submit()}
+          >
             {submitting ? '提交中...' : hasSubmitted && dirty ? '确认更改' : '提交'}
-          </Button>
+          </FCButton>
           <Text className="actionsHint">
             {hasSubmitted && !dirty ? '该日已提交，未检测到改动。' : dirty ? '有未提交改动。' : '可继续记录或切换日期。'}
           </Text>
-        </View>
+        </FCActionBar>
       </View>
     </View>
   )

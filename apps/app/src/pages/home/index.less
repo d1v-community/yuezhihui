@@ -41,27 +41,11 @@
   .app-divider();
 }
 
-.pickerBtn {
-  padding: 8px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
-}
-
 .pillRow {
   margin-top: 10px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.pill {
-  .app-chip();
-}
-
-.pillActive {
-  .app-chipActive();
 }
 
 .volumeBar {
@@ -83,6 +67,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.optRow .fcBtnSm {
+  height: 36px;
+}
+
+.optRow .fcBtn {
+  padding: 0 12px;
 }
 
 .tagRow {
@@ -118,13 +110,7 @@
   color: rgba(0, 0, 0, 0.45);
 }
 
-.actionsSpacer {
-  .app-actionsSpacer();
-}
-
-.actionsBar {
-  .app-actionsBar();
-}
+/* Bottom actions now use `FCActionBar` + `FCButton` (see `src/ui/`). */
 
 .actionsHint {
   margin-top: 8px;

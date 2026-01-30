@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Taro, { useLoad } from '@tarojs/taro'
-import { View, Text, Button, Input, Picker } from '@tarojs/components'
+import { View, Text, Input, Picker } from '@tarojs/components'
 import type { OnboardingV2AnswerPayload, OnboardingV2AnswersMap, OnboardingV2QuestionId } from '../../services/onboardingV2'
 import { onboardingV2Answer, onboardingV2Position, onboardingV2Start, onboardingV2Submit } from '../../services/onboardingV2'
 import { QUESTION_DEFS } from '../../onboardingV2/questions'
@@ -10,6 +10,7 @@ import { STORAGE_KEYS } from '../../storage/keys'
 import { setStorageString } from '../../storage/storage'
 import { todayYmd } from '../../utils/date'
 import { ensureAuthedOrRedirect } from '../../utils/authGuard'
+import { FCActionBar, FCButton, FCChip, FCOptionCard, FCPressable, FCProgress, FCTextField, FCPickerField } from '../../ui'
 import './index.less'
 
 type Draft =
@@ -366,47 +367,55 @@ export default function OnboardingPage() {
     return (
       <View className="page">
         <View className="bg">
-          <View className="wrap">
-            <View className="topbar">
+          <View className="wrap wrapSummary">
+            <View className="topbar topbarCompact">
               <Text className="topTitle">提交前确认</Text>
               <View className="progressRow">
                 <Text className="progressText">你可以在提交前快速检查与修改。</Text>
               </View>
             </View>
 
-            <View className="card">
+            <View className="card fc-appear">
               <Text className="title">摘要</Text>
-              <Text className="note">点击「修改」可以回到对应问题。提交后将进入按日记录。</Text>
+              <View className="note">
+                <Text>点击每项右侧的编辑图标，可返回对应问题。提交后将进入按日记录。</Text>
+              </View>
 
               <View className="summaryList">
                 {summaryIds.map((id) => (
                   <View key={id} className="summaryItem">
-                    <Text className="summaryKey">{shortLabel(id)}</Text>
+                    <View className="summaryHead">
+                      <Text className="summaryKey">{shortLabel(id)}</Text>
+                      <FCPressable
+                        className="summaryEditIcon"
+                        disabled={submitting}
+                        onClick={() => void goEdit(id)}
+                        hoverClassName="fc-pressed"
+                      >
+                        <Text className="summaryEditIconText">✎</Text>
+                      </FCPressable>
+                    </View>
                     <Text className="summaryVal">{formatAnswer(id)}</Text>
-                    <Text className="summaryEdit" onClick={() => void goEdit(id)}>
-                      修改
-                    </Text>
                   </View>
                 ))}
               </View>
             </View>
 
-            <View className="actionsSpacer" />
-            <View className="actionsBar">
+            <FCActionBar>
               <View className="actionsRow">
-                <Button
+                <FCButton
+                  variant="secondary"
                   loading={submitting}
-                  onClick={() => {
-                    void Taro.reLaunch({ url: '/pages/index/index?pause=1' })
-                  }}
+                  style={{ flex: 1 }}
+                  onClick={() => void Taro.reLaunch({ url: '/pages/index/index?pause=1' })}
                 >
                   稍后继续
-                </Button>
-                <Button type="primary" loading={submitting} onClick={finalize}>
+                </FCButton>
+                <FCButton loading={submitting} style={{ flex: 1 }} onClick={() => void finalize()}>
                   提交并开始记录
-                </Button>
+                </FCButton>
               </View>
-            </View>
+            </FCActionBar>
           </View>
         </View>
       </View>
@@ -438,18 +447,14 @@ export default function OnboardingPage() {
         <View className="wrap">
           <View className="topbar">
             <Text className="topTitle">问卷 Onboarding</Text>
-            <View className="progressRow">
-              <Text className="progressText">
-                已完成 {Math.min(progress.idx, progress.total)}/{progress.total}
-              </Text>
-              <Text className="progressText">预计剩余 {estimateMin} 分钟</Text>
-            </View>
-            <View className="bar">
-              <View className="barFill" style={{ width: `${Math.round(progressRatio * 100)}%` }} />
-            </View>
+            <FCProgress
+              leftText={`已完成 ${Math.min(progress.idx, progress.total)}/${progress.total}`}
+              rightText={`预计剩余 ${estimateMin} 分钟`}
+              ratio={progressRatio}
+            />
           </View>
 
-          <View className="card">
+          <View className="card fc-appear">
             <Text className="title">{def.title}</Text>
             {def.note ? <Text className="note">{def.note}</Text> : null}
 
@@ -458,18 +463,14 @@ export default function OnboardingPage() {
             {def.options.map((opt) => {
               const active = draft.kind === 'single' && draft.value === opt.value
               return (
-                <View
+                <FCOptionCard
                   key={opt.value}
-                  className={`opt ${active ? 'optActive' : ''}`}
+                  active={active}
+                  disabled={submitting}
+                  label={opt.label}
                   onClick={() => setDraft({ kind: 'single', value: opt.value })}
                 >
-                  <View className="optRow">
-                    <Text className="optLabel">{opt.label}</Text>
-                    <View className={`optMark ${active ? 'optMarkActive' : ''}`}>
-                      <Text className="optMarkText">{active ? '✓' : ''}</Text>
-                    </View>
-                  </View>
-                </View>
+                </FCOptionCard>
               )
             })}
           </View>
@@ -491,9 +492,10 @@ export default function OnboardingPage() {
             {draft.kind === 'multi' && draft.values.length > 0 ? (
               <View className="chipsRow">
                 {draft.values.map((v) => (
-                  <Text
+                  <FCChip
                     key={v}
-                    className="chip chipActive"
+                    active
+                    disabled={submitting}
                     onClick={() => {
                       if (draft.kind !== 'multi') return
                       const next = draft.values.filter((x) => x !== v)
@@ -501,13 +503,13 @@ export default function OnboardingPage() {
                     }}
                   >
                     {v} ×
-                  </Text>
+                  </FCChip>
                 ))}
               </View>
             ) : (
               <View className="chipsRow">
-                <Text className="chip">还未选择</Text>
-                <Text className="chip">可输入关键词快速筛选</Text>
+                <FCChip disabled>还未选择</FCChip>
+                <FCChip disabled>可输入关键词快速筛选</FCChip>
               </View>
             )}
 
@@ -547,9 +549,11 @@ export default function OnboardingPage() {
             {def.options.map((opt) => {
               const active = draft.kind === 'multi' && draft.values.includes(opt.value)
               return (
-                <View
+                <FCOptionCard
                   key={opt.value}
-                  className={`opt ${active ? 'optActive' : ''}`}
+                  active={active}
+                  disabled={submitting}
+                  label={opt.label}
                   onClick={() => {
                     if (draft.kind !== 'multi') return
                     const next = new Set(draft.values)
@@ -568,36 +572,31 @@ export default function OnboardingPage() {
 
                     setDraft({ kind: 'multi', values: Array.from(next) })
                   }}
-                >
-                  <View className="optRow">
-                    <Text className="optLabel">{opt.label}</Text>
-                    <View className={`optMark ${active ? 'optMarkActive' : ''}`}>
-                      <Text className="optMarkText">{active ? '✓' : ''}</Text>
-                    </View>
-                  </View>
-                </View>
+                />
               )
             })}
           </View>
         ) : null}
 
         {def.type === 'number' ? (
-          <View className="field">
-            <Input
-              className="input"
-              type="number"
+          <View>
+            <FCTextField
               value={draft.kind === 'number' ? draft.value : ''}
               placeholder="请输入数字"
-              onInput={(e) => {
-                if (draft.kind !== 'number') return
-                setDraft({ ...draft, value: String(e.detail.value || ''), meta: {} })
-              }}
+              type="number"
               disabled={submitting || (draft.kind === 'number' && (draft.meta.unknown || draft.meta.no_answer))}
+              onChange={(next) => {
+                if (draft.kind !== 'number') return
+                setDraft({ ...draft, value: next, meta: {} })
+              }}
+              helperText={def.required ? ' ' : '可跳过；如不确定可选择下方选项'}
+              style={{ marginTop: 14 }}
             />
             <View className="metaRow">
               {def.allowUnknown ? (
-                <Text
-                  className={`metaBtn ${draft.kind === 'number' && draft.meta.unknown ? 'metaBtnActive' : ''}`}
+                <FCChip
+                  active={draft.kind === 'number' && Boolean(draft.meta.unknown)}
+                  disabled={submitting}
                   onClick={() => {
                     if (draft.kind !== 'number') return
                     const next = !draft.meta.unknown
@@ -605,11 +604,12 @@ export default function OnboardingPage() {
                   }}
                 >
                   不确定/记不清
-                </Text>
+                </FCChip>
               ) : null}
               {def.allowNoAnswer ? (
-                <Text
-                  className={`metaBtn ${draft.kind === 'number' && draft.meta.no_answer ? 'metaBtnActive' : ''}`}
+                <FCChip
+                  active={draft.kind === 'number' && Boolean(draft.meta.no_answer)}
+                  disabled={submitting}
                   onClick={() => {
                     if (draft.kind !== 'number') return
                     const next = !draft.meta.no_answer
@@ -617,32 +617,31 @@ export default function OnboardingPage() {
                   }}
                 >
                   不愿透露
-                </Text>
+                </FCChip>
               ) : null}
             </View>
           </View>
         ) : null}
 
         {def.type === 'date' ? (
-          <View className="field">
-            <Picker
+          <View>
+            <FCPickerField
               mode="date"
               value={draft.kind === 'date' ? draft.value : ''}
+              valueText={draft.kind === 'date' && draft.value ? draft.value : ''}
               end={todayYmd()}
+              disabled={submitting || (draft.kind === 'date' && (draft.meta.unknown || draft.meta.no_answer))}
               onChange={(e) => {
                 if (draft.kind !== 'date') return
                 setDraft({ ...draft, value: String(e.detail.value || ''), meta: {} })
               }}
-              disabled={submitting || (draft.kind === 'date' && (draft.meta.unknown || draft.meta.no_answer))}
-            >
-              <View className="input">
-                <Text>{draft.kind === 'date' && draft.value ? draft.value : '选择日期'}</Text>
-              </View>
-            </Picker>
+              placeholder="选择日期"
+            />
             <View className="metaRow">
               {def.allowUnknown ? (
-                <Text
-                  className={`metaBtn ${draft.kind === 'date' && draft.meta.unknown ? 'metaBtnActive' : ''}`}
+                <FCChip
+                  active={draft.kind === 'date' && Boolean(draft.meta.unknown)}
+                  disabled={submitting}
                   onClick={() => {
                     if (draft.kind !== 'date') return
                     const next = !draft.meta.unknown
@@ -650,11 +649,12 @@ export default function OnboardingPage() {
                   }}
                 >
                   不确定/记不清
-                </Text>
+                </FCChip>
               ) : null}
               {def.allowNoAnswer ? (
-                <Text
-                  className={`metaBtn ${draft.kind === 'date' && draft.meta.no_answer ? 'metaBtnActive' : ''}`}
+                <FCChip
+                  active={draft.kind === 'date' && Boolean(draft.meta.no_answer)}
+                  disabled={submitting}
                   onClick={() => {
                     if (draft.kind !== 'date') return
                     const next = !draft.meta.no_answer
@@ -662,29 +662,30 @@ export default function OnboardingPage() {
                   }}
                 >
                   不愿透露
-                </Text>
+                </FCChip>
               ) : null}
             </View>
           </View>
         ) : null}
 
         {def.type === 'text' ? (
-          <View className="field">
-            <Input
-              className="input"
-              type="text"
+          <View>
+            <FCTextField
               value={draft.kind === 'text' ? draft.value : ''}
               placeholder={def.placeholder || '请输入'}
-              onInput={(e) => {
-                if (draft.kind !== 'text') return
-                setDraft({ ...draft, value: String(e.detail.value || ''), meta: {} })
-              }}
               disabled={submitting || (draft.kind === 'text' && (draft.meta.unknown || draft.meta.no_answer))}
+              onChange={(next) => {
+                if (draft.kind !== 'text') return
+                setDraft({ ...draft, value: next, meta: {} })
+              }}
+              helperText={def.required ? ' ' : '可跳过；如不确定可选择下方选项'}
+              style={{ marginTop: 14 }}
             />
             <View className="metaRow">
               {def.allowUnknown ? (
-                <Text
-                  className={`metaBtn ${draft.kind === 'text' && draft.meta.unknown ? 'metaBtnActive' : ''}`}
+                <FCChip
+                  active={draft.kind === 'text' && Boolean(draft.meta.unknown)}
+                  disabled={submitting}
                   onClick={() => {
                     if (draft.kind !== 'text') return
                     const next = !draft.meta.unknown
@@ -692,11 +693,12 @@ export default function OnboardingPage() {
                   }}
                 >
                   不确定/记不清
-                </Text>
+                </FCChip>
               ) : null}
               {def.allowNoAnswer ? (
-                <Text
-                  className={`metaBtn ${draft.kind === 'text' && draft.meta.no_answer ? 'metaBtnActive' : ''}`}
+                <FCChip
+                  active={draft.kind === 'text' && Boolean(draft.meta.no_answer)}
+                  disabled={submitting}
                   onClick={() => {
                     if (draft.kind !== 'text') return
                     const next = !draft.meta.no_answer
@@ -704,7 +706,7 @@ export default function OnboardingPage() {
                   }}
                 >
                   不愿透露
-                </Text>
+                </FCChip>
               ) : null}
             </View>
           </View>
@@ -723,40 +725,34 @@ export default function OnboardingPage() {
               ).map((it) => {
                 const active = draft.kind === 'birth_date_object' && draft.mode === it.v
                 return (
-                <View
-                  key={it.v}
-                  className={`opt ${active ? 'optActive' : ''}`}
-                  onClick={() => {
-                    if (draft.kind !== 'birth_date_object') return
-                    setDraft({ ...draft, mode: it.v })
-                  }}
-                >
-                  <View className="optRow">
-                    <Text className="optLabel">{it.label}</Text>
-                    <View className={`optMark ${active ? 'optMarkActive' : ''}`}>
-                      <Text className="optMarkText">{active ? '✓' : ''}</Text>
-                    </View>
-                  </View>
-                </View>
+                  <FCOptionCard
+                    key={it.v}
+                    label={it.label}
+                    active={active}
+                    disabled={submitting}
+                    onClick={() => {
+                      if (draft.kind !== 'birth_date_object') return
+                      setDraft({ ...draft, mode: it.v })
+                    }}
+                  />
               )
             })}
             </View>
 
             {draft.kind === 'birth_date_object' && draft.mode === 'exact_date' ? (
-              <View className="field">
-                <Picker
+              <View>
+                <FCPickerField
                   mode="date"
                   value={draft.exactDate}
+                  valueText={draft.exactDate}
                   end={todayYmd()}
+                  disabled={submitting}
                   onChange={(e) => {
                     if (draft.kind !== 'birth_date_object') return
                     setDraft({ ...draft, exactDate: String(e.detail.value || todayYmd()) })
                   }}
-                >
-                  <View className="input">
-                    <Text>{draft.exactDate}</Text>
-                  </View>
-                </Picker>
+                  placeholder="选择日期"
+                />
               </View>
             ) : null}
 
@@ -773,9 +769,7 @@ export default function OnboardingPage() {
                       setDraft({ ...draft, year: years[Number(e.detail.value) || 0] || draft.year })
                     }}
                   >
-                    <View className="metaBtn">
-                      <Text>{draft.year}年</Text>
-                    </View>
+                    <FCChip disabled={submitting}>{draft.year}年</FCChip>
                   </Picker>
                   <Picker
                     mode="selector"
@@ -786,9 +780,7 @@ export default function OnboardingPage() {
                       setDraft({ ...draft, month: months[Number(e.detail.value) || 0] || draft.month })
                     }}
                   >
-                    <View className="metaBtn">
-                      <Text>{draft.month}月</Text>
-                    </View>
+                    <FCChip disabled={submitting}>{draft.month}月</FCChip>
                   </Picker>
                 </View>
               </View>
@@ -798,22 +790,31 @@ export default function OnboardingPage() {
 
         </View>
 
-        <View className="actionsSpacer" />
-        <View className="actionsBar">
+        <FCActionBar>
           <View className="actionsRow">
-            <Button loading={submitting} onClick={goPrev}>
+            <FCButton
+              variant="secondary"
+              loading={submitting}
+              style={{ flex: 1 }}
+              onClick={() => void goPrev()}
+            >
               {visibleIds.indexOf(currentId) <= 0 ? '稍后继续' : '上一步'}
-            </Button>
+            </FCButton>
             {!def.required ? (
-              <Button loading={submitting} onClick={skipCurrent}>
+              <FCButton
+                variant="ghost"
+                loading={submitting}
+                style={{ flex: 1 }}
+                onClick={() => void skipCurrent()}
+              >
                 跳过
-              </Button>
+              </FCButton>
             ) : null}
-            <Button type="primary" loading={submitting} onClick={submitCurrent}>
+            <FCButton loading={submitting} style={{ flex: 1 }} onClick={() => void submitCurrent()}>
               下一步
-            </Button>
+            </FCButton>
           </View>
-        </View>
+        </FCActionBar>
         </View>
       </View>
     </View>

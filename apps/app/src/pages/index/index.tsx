@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import Taro, { getCurrentInstance, useLoad } from '@tarojs/taro'
-import { View, Text, Button } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
 import { getStorageString, removeStorage, setStorageString } from '../../storage/storage'
 import { authMe } from '../../services/auth'
 import { onboardingV2State } from '../../services/onboardingV2'
 import { computeOnboardingAnchorDate } from '../../onboardingV2/anchorDate'
+import { FCButton } from '../../ui'
 import './index.less'
 
 export default function Index() {
@@ -66,7 +67,7 @@ export default function Index() {
             <Text className="title">FlowCycle</Text>
           </View>
 
-          <View className="card">
+          <View className="card fc-appear">
             <Text className="desc">
               {paused
                 ? '已保存进度。你可以随时继续完成问卷，或直接关闭页面稍后再来。'
@@ -77,23 +78,25 @@ export default function Index() {
 
             {paused ? (
               <View className="actions">
-                <Button type="primary" loading={booting} onClick={bootstrap}>
+                <FCButton loading={booting} fullWidth onClick={() => void bootstrap()}>
                   继续
-                </Button>
-                <Button
+                </FCButton>
+                <FCButton
+                  variant="secondary"
+                  fullWidth
                   onClick={() => {
                     removeStorage(STORAGE_KEYS.authToken)
                     Taro.redirectTo({ url: '/pages/login/index' })
                   }}
                 >
                   退出登录
-                </Button>
+                </FCButton>
               </View>
             ) : (
               <View className="actions">
-                <Button type="primary" loading>
+                <FCButton loading fullWidth>
                   进入
-                </Button>
+                </FCButton>
               </View>
             )}
           </View>
@@ -102,4 +105,3 @@ export default function Index() {
     </View>
   )
 }
-

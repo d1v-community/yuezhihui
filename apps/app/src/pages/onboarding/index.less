@@ -10,16 +10,46 @@
   .app-frame();
 }
 
+.wrapSummary {
+  // Summary page: tighten the top area; keep left/right rhythm unchanged.
+  padding-top: 12px;
+}
+
 .topbar {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   position: sticky;
   top: 0;
   z-index: 10;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: 8px;
+  padding-bottom: 10px;
+  // Make the sticky bar visually span the frame width (not "floating" inside container padding)
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
   background: rgba(251, 250, 248, 0.55);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.topbarCompact {
+  // for the "提交前确认" page: tighter height, clearer spacing
+  padding-top: 4px;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+}
+
+.topbarCompact .progressRow {
+  margin-top: 4px;
+}
+
+.topbarCompact .progressText {
+  line-height: 16px;
+}
+
+.topbarCompact .topTitle {
+  font-size: 16px;
+  line-height: 20px;
 }
 
 .topTitle {
@@ -111,14 +141,21 @@
   margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .summaryItem {
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 14px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.summaryHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .summaryKey {
@@ -127,22 +164,29 @@
 }
 
 .summaryVal {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 14px;
-  line-height: 20px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.86);
+  display: block;
 }
 
-.summaryEdit {
-  margin-top: 10px;
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  color: rgba(43, 43, 43, 0.92);
-  padding: 6px 10px;
-  border-radius: 999px;
+.summaryEditIcon {
+  width: 40px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.10);
   background: rgba(255, 255, 255, 0.86);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summaryEditIconText {
+  font-size: 14px;
+  line-height: 14px;
+  color: rgba(0, 0, 0, 0.70);
 }
 
 .card {
@@ -153,6 +197,7 @@
   font-size: 18px;
   font-weight: 700;
   line-height: 24px;
+  display: block; // `Text` is inline in H5; ensure title occupies its own line
 }
 
 .note {
@@ -160,6 +205,7 @@
   font-size: 12px;
   color: rgba(0, 0, 0, 0.55);
   line-height: 18px;
+  display: block; // ensure it wraps to next line (esp. after "摘要")
 }
 
 .options {
@@ -263,3 +309,4 @@
   display: flex;
   gap: 10px;
 }
+/* Actions now use `FCActionBar` + `FCButton` (see `src/ui/`). */

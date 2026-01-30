@@ -1,0 +1,56 @@
+@import '../styles/ui.less';
+
+.fcCodeWrap {
+  margin-top: 8px;
+  position: relative;
+  width: 100%;
+  padding: 10px 0;
+}
+
+.fcCodeBoxes {
+  display: flex;
+  gap: 10px;
+}
+
+.fcCodeBox {
+  width: 44px;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color @dur-mid @ease-soft, box-shadow @dur-mid @ease-soft, background @dur-mid @ease-soft;
+}
+
+.fcCodeBoxActive {
+  border-color: rgba(0, 0, 0, 0.32);
+  box-shadow: @shadow-press;
+}
+
+.fcCodeChar {
+  font-size: 18px;
+  font-weight: 750;
+  color: rgba(0, 0, 0, 0.86);
+}
+
+.fcCodeHiddenInput {
+  // Overlay a focusable input on top of the box row.
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 74px; // generous hit area
+  z-index: 2;
+  opacity: 0.02; // keep non-zero for iOS focus reliability
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  border: 0;
+}
+
+.fcCodeDisabled {
+  opacity: 0.6;
+}
+
