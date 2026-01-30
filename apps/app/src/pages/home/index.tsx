@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import Taro, { useLoad } from '@tarojs/taro'
-import { View, Text, Switch, Picker } from '@tarojs/components'
+import { View, Text, Switch, Picker, ScrollView } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
-import { getStorageString, setStorageString } from '../../storage/storage'
+import { getStorageJson, getStorageString, setStorageString } from '../../storage/storage'
 import { loadDailyRecord, saveDailyRecordDraft, submitDailyRecord } from '../../services/dailyRecordRepo'
 import type { DailyRecord, DailyRecordEvent, MenstrualColor } from '../../types/dailyRecord'
 import { addDaysYmd, clampYmd, todayYmd } from '../../utils/date'
-import { ensureAuthedOrRedirect } from '../../utils/authGuard'
-import { FCActionBar, FCButton, FCChip, FCNotice } from '../../ui'
+import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
+import { getMenstrualDailyRange } from '../../services/menstrual'
+import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCTabBar } from '../../ui'
 import './index.less'
 
 function uid() {
@@ -68,6 +69,8 @@ export default function HomePage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(false)
 
+  const [rangeMap, setRangeMap] = useState<Record<string, { hasBleeding: boolean; totalVolumeMl: number }>>({})
+
   const [selectedDate, setSelectedDate] = useState(today)
   const [submittedAt, setSubmittedAt] = useState<number | null>(null)
   const [record, setRecord] = useState<DailyRecord>({ date: today, hasBleeding: false, events: [] })
@@ -102,13 +105,26 @@ export default function HomePage() {
 
   useLoad(() => {
     ;(async () => {
-      const ok = await ensureAuthedOrRedirect()
+      const ok = await ensureAuthedAndOnboardedOrRedirect()
       if (!ok) return
 
       const firstCompletedAt = getStorageString(STORAGE_KEYS.dailyFirstCompletedAt)
       const anchor = getStorageString(STORAGE_KEYS.onboardingAnchorDate) || today
       const initial = firstCompletedAt ? today : clampYmd(anchor, minDate, today)
       await loadForDate(initial)
+
+      // Fetch a light "recent days" overview for navigation (P0-3).
+      try {
+        const start = addDaysYmd(today, -59)
+        const list = await getMenstrualDailyRange(start, today)
+        const map: Record<string, { hasBleeding: boolean; totalVolumeMl: number }> = {}
+        for (const it of list) {
+          map[it.date] = { hasBleeding: Boolean(it.hasBleeding), totalVolumeMl: Number(it.totalVolumeMl || 0) }
+        }
+        setRangeMap(map)
+      } catch {
+        // ignore; UI falls back to date picker only
+      }
 
       // First-time guidance (show once): align with USER_FLOW_MINIPROGRAM_DAILY.
       const guideShown = getStorageString(STORAGE_KEYS.dailyFirstGuideShown)
@@ -183,6 +199,12 @@ export default function HomePage() {
       const wasSubmitted = hasSubmitted
       setSubmittedAt(stored.submittedAt)
 
+      // Update overview map for the current day (best-effort).
+      setRangeMap((prev) => ({
+        ...prev,
+        [record.date]: { hasBleeding: record.hasBleeding, totalVolumeMl: totalVolume },
+      }))
+
       const firstCompletedAt = getStorageString(STORAGE_KEYS.dailyFirstCompletedAt)
       if (!firstCompletedAt) {
         setStorageString(STORAGE_KEYS.dailyFirstCompletedAt, String(Date.now()))
@@ -205,6 +227,13 @@ export default function HomePage() {
     )
   }
 
+  const visibility = getStorageJson<{ sanitaryPad?: boolean; tampon?: boolean; bleeding?: boolean }>(STORAGE_KEYS.visibilitySettings) || {}
+  const showPad = typeof visibility.sanitaryPad === 'boolean' ? visibility.sanitaryPad : true
+  const showTampon = typeof visibility.tampon === 'boolean' ? visibility.tampon : true
+  const showBleedingUi = typeof visibility.bleeding === 'boolean' ? visibility.bleeding : true
+
+  const recentDays = Array.from({ length: 30 }, (_, i) => addDaysYmd(today, -29 + i))
+
   return (
     <View className="page">
       <View className="wrap">
@@ -214,6 +243,35 @@ export default function HomePage() {
             <Picker mode="date" value={selectedDate} start={minDate} end={today} onChange={(e) => selectDate(String(e.detail.value))}>
               <FCChip>{selectedDate}</FCChip>
             </Picker>
+          </View>
+
+          <View className="calendarStrip">
+            <ScrollView scrollX showScrollbar={false} className="calendarScroll">
+              <View className="calendarInner">
+                {recentDays.map((d) => {
+                  const meta = rangeMap[d]
+                  const isActive = d === selectedDate
+                  const hasData = Boolean(meta && (meta.hasBleeding || meta.totalVolumeMl > 0))
+                  const dayText = d.slice(8, 10)
+                  return (
+                    <FCPressable
+                      key={d}
+                      className={['calDay', isActive ? 'calDayActive' : ''].join(' ')}
+                      onClick={() => void selectDate(d)}
+                    >
+                      <Text className={['calDayText', isActive ? 'calDayTextActive' : ''].join(' ')}>{dayText}</Text>
+                      <View className={['calDot', hasData ? 'calDotOn' : '', isActive ? 'calDotActive' : ''].join(' ')} />
+                    </FCPressable>
+                  )
+                })}
+              </View>
+            </ScrollView>
+            <View className="calHintRow">
+              <Text className="muted">点日期可快速切换；圆点表示该日有记录/出血。</Text>
+              <FCPressable className="calGear" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
+                <Text className="calGearText">⚙</Text>
+              </FCPressable>
+            </View>
           </View>
 
           <View className="pillRow">
@@ -232,114 +290,120 @@ export default function HomePage() {
             <Switch checked={record.hasBleeding} onChange={(e) => toggleBleeding(Boolean(e.detail.value))} />
           </View>
 
-          <View className="section">
-            <View className="row">
-              <Text className="title">实时血量（示意）</Text>
-              <Text className="muted">{totalVolume} mL</Text>
+          {showBleedingUi ? (
+            <View className="section">
+              <View className="row">
+                <Text className="title">实时血量（示意）</Text>
+                <Text className="muted">{totalVolume} mL</Text>
+              </View>
+              <View className="volumeBar">
+                <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
+              </View>
+              <Text className="muted">每次“添加”都会生成事件标签；提交后再改动会变为「确认更改」。</Text>
             </View>
-            <View className="volumeBar">
-              <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
-            </View>
-            <Text className="muted">每次“添加”都会生成事件标签；提交后再改动会变为「确认更改」。</Text>
-          </View>
+          ) : null}
 
           <View className="divider" />
 
-          <View className="section">
-            <Text className="title">卫生巾</Text>
-            <View className="optRow">
-            <Picker
-              mode="selector"
-              range={PAD_TYPES.map((x) => x.label)}
-              value={padTypeIndex}
-              onChange={(e) => setPadTypeIndex(Number(e.detail.value) || 0)}
-            >
-              <FCChip>{PAD_TYPES[padTypeIndex]?.label || '选择类型'}</FCChip>
-            </Picker>
-            <Picker
-              mode="selector"
-              range={COLORS.map((x) => x.label)}
-              value={colorIndex}
-              onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
-            >
-              <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
-            </Picker>
-            <Picker
-              mode="selector"
-              range={VOLUMES.map((x) => x.label)}
-              value={volumeIndex}
-              onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
-            >
-              <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
-            </Picker>
+          {showPad ? (
+            <View className="section">
+              <Text className="title">卫生巾</Text>
+              <View className="optRow">
+                <Picker
+                  mode="selector"
+                  range={PAD_TYPES.map((x) => x.label)}
+                  value={padTypeIndex}
+                  onChange={(e) => setPadTypeIndex(Number(e.detail.value) || 0)}
+                >
+                  <FCChip>{PAD_TYPES[padTypeIndex]?.label || '选择类型'}</FCChip>
+                </Picker>
+                <Picker
+                  mode="selector"
+                  range={COLORS.map((x) => x.label)}
+                  value={colorIndex}
+                  onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
+                >
+                  <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
+                </Picker>
+                <Picker
+                  mode="selector"
+                  range={VOLUMES.map((x) => x.label)}
+                  value={volumeIndex}
+                  onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
+                >
+                  <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
+                </Picker>
+              </View>
+              <View className="row section">
+                <FCButton
+                  size="sm"
+                  onClick={() => {
+                    addEvent({
+                      eventTime: new Date().toISOString(),
+                      eventType: 'pad',
+                      productType: PAD_TYPES[padTypeIndex]?.value,
+                      color: COLORS[colorIndex]?.value,
+                      volumeMl: VOLUMES[volumeIndex]?.value,
+                    })
+                  }}
+                >
+                  添加/片
+                </FCButton>
+                <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
+              </View>
             </View>
-            <View className="row section">
-            <FCButton
-              size="sm"
-              onClick={() => {
-                addEvent({
-                  eventTime: new Date().toISOString(),
-                  eventType: 'pad',
-                  productType: PAD_TYPES[padTypeIndex]?.value,
-                  color: COLORS[colorIndex]?.value,
-                  volumeMl: VOLUMES[volumeIndex]?.value,
-                })
-              }}
-            >
-              添加/片
-            </FCButton>
-              <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
-            </View>
-          </View>
+          ) : null}
 
           <View className="divider" />
 
-          <View className="section">
-            <Text className="title">卫生棉条</Text>
-            <View className="optRow">
-            <Picker
-              mode="selector"
-              range={TAMPON_MODELS.map((x) => x.label)}
-              value={tamponModelIndex}
-              onChange={(e) => setTamponModelIndex(Number(e.detail.value) || 0)}
-            >
-              <FCChip>{TAMPON_MODELS[tamponModelIndex]?.label || '选择型号'}</FCChip>
-            </Picker>
-            <Picker
-              mode="selector"
-              range={COLORS.map((x) => x.label)}
-              value={colorIndex}
-              onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
-            >
-              <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
-            </Picker>
-            <Picker
-              mode="selector"
-              range={VOLUMES.map((x) => x.label)}
-              value={volumeIndex}
-              onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
-            >
-              <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
-            </Picker>
+          {showTampon ? (
+            <View className="section">
+              <Text className="title">卫生棉条</Text>
+              <View className="optRow">
+                <Picker
+                  mode="selector"
+                  range={TAMPON_MODELS.map((x) => x.label)}
+                  value={tamponModelIndex}
+                  onChange={(e) => setTamponModelIndex(Number(e.detail.value) || 0)}
+                >
+                  <FCChip>{TAMPON_MODELS[tamponModelIndex]?.label || '选择型号'}</FCChip>
+                </Picker>
+                <Picker
+                  mode="selector"
+                  range={COLORS.map((x) => x.label)}
+                  value={colorIndex}
+                  onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
+                >
+                  <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
+                </Picker>
+                <Picker
+                  mode="selector"
+                  range={VOLUMES.map((x) => x.label)}
+                  value={volumeIndex}
+                  onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
+                >
+                  <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
+                </Picker>
+              </View>
+              <View className="row section">
+                <FCButton
+                  size="sm"
+                  onClick={() => {
+                    addEvent({
+                      eventTime: new Date().toISOString(),
+                      eventType: 'tampon',
+                      model: TAMPON_MODELS[tamponModelIndex]?.value,
+                      color: COLORS[colorIndex]?.value,
+                      volumeMl: VOLUMES[volumeIndex]?.value,
+                    })
+                  }}
+                >
+                  添加/条
+                </FCButton>
+                <Text className="muted">与卫生巾一样：更换时记一条事件。</Text>
+              </View>
             </View>
-            <View className="row section">
-            <FCButton
-              size="sm"
-              onClick={() => {
-                addEvent({
-                  eventTime: new Date().toISOString(),
-                  eventType: 'tampon',
-                  model: TAMPON_MODELS[tamponModelIndex]?.value,
-                  color: COLORS[colorIndex]?.value,
-                  volumeMl: VOLUMES[volumeIndex]?.value,
-                })
-              }}
-            >
-              添加/条
-            </FCButton>
-              <Text className="muted">与卫生巾一样：更换时记一条事件。</Text>
-            </View>
-          </View>
+          ) : null}
 
           <View className="divider" />
 
@@ -401,6 +465,7 @@ export default function HomePage() {
           <Text className="actionsHint">
             {hasSubmitted && !dirty ? '该日已提交，未检测到改动。' : dirty ? '有未提交改动。' : '可继续记录或切换日期。'}
           </Text>
+          <FCTabBar />
         </FCActionBar>
       </View>
     </View>

@@ -13,7 +13,7 @@ function getApiBaseUrl(): string {
 
 type ApiRequestOptions = {
   path: string
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   data?: any
 }
 
@@ -44,4 +44,3 @@ export async function apiRequest<T>(opts: ApiRequestOptions): Promise<T> {
 
   return res.data
 }
-

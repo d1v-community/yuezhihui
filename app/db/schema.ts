@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, index, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, index, jsonb, uniqueIndex, integer, boolean, date, serial } from "drizzle-orm/pg-core";
 
 // Users table
 export const users = pgTable("users", {
@@ -78,7 +78,120 @@ export const onboardingAnswers = pgTable(
   })
 );
 
+// --- Menstrual (daily + events) ---
+
+export const menstrualDaily = pgTable(
+  "menstrual_daily",
+  {
+    // Composite PK in SQL migration: (user_id, record_date)
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    recordDate: date("record_date").notNull(),
+    hasBleeding: boolean("has_bleeding").notNull().default(false),
+    totalVolumeMl: integer("total_volume_ml").notNull().default(0),
+    dayColor: text("day_color"),
+    clotSmallCount: integer("clot_small_count").notNull().default(0),
+    clotLargeCount: integer("clot_large_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userDateUq: uniqueIndex("menstrual_daily_user_date_uq").on(table.userId, table.recordDate),
+    userIdIdx: index("menstrual_daily_user_id_idx").on(table.userId),
+    recordDateIdx: index("menstrual_daily_record_date_idx").on(table.recordDate),
+  }),
+);
+
+export const menstrualEvent = pgTable(
+  "menstrual_event",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    recordDate: date("record_date").notNull(),
+    eventTime: timestamp("event_time", { withTimezone: false }).notNull(),
+    eventType: text("event_type").notNull(), // 'pad' | 'tampon' | 'symptom'
+    volumeMl: integer("volume_ml").notNull().default(0),
+    color: text("color"),
+    productType: text("product_type"),
+    brand: text("brand"),
+    series: text("series"),
+    lengthMm: integer("length_mm"),
+    model: text("model"),
+    absorbency: text("absorbency"),
+    symptomName: text("symptom_name"),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userDateIdx: index("menstrual_event_user_date_idx").on(table.userId, table.recordDate),
+    userDateTimeIdx: index("menstrual_event_user_date_time_idx").on(table.userId, table.recordDate, table.eventTime),
+  }),
+);
+
+// --- Products (brands + series) ---
+
+export const productBrands = pgTable(
+  "product_brands",
+  {
+    id: serial("id").primaryKey(),
+    type: text("type").notNull(), // 'pad' | 'tampon'
+    name: text("name").notNull(),
+    sort: integer("sort").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+  },
+  (table) => ({
+    typeIdx: index("product_brands_type_idx").on(table.type),
+    typeNameUq: uniqueIndex("product_brands_type_name_uq").on(table.type, table.name),
+  }),
+);
+
+export const productSeries = pgTable(
+  "product_series",
+  {
+    id: serial("id").primaryKey(),
+    brandId: integer("brand_id")
+      .notNull()
+      .references(() => productBrands.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    sort: integer("sort").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+  },
+  (table) => ({
+    brandIdx: index("product_series_brand_id_idx").on(table.brandId),
+    brandNameUq: uniqueIndex("product_series_brand_name_uq").on(table.brandId, table.name),
+  }),
+);
+
+// --- Feedback ---
+
+export const feedback = pgTable(
+  "feedback",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    typeIndex: integer("type_index").notNull().default(0),
+    content: text("content").notNull(),
+    contact: text("contact"),
+    images: jsonb("images"),
+    meta: jsonb("meta"),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("feedback_user_id_idx").on(table.userId),
+    createdAtIdx: index("feedback_created_at_idx").on(table.createdAt),
+  }),
+);
+
 export type User = typeof users.$inferSelect;
 export type VerificationCode = typeof verificationCodes.$inferSelect;
 export type OnboardingSession = typeof onboardingSessions.$inferSelect;
 export type OnboardingAnswer = typeof onboardingAnswers.$inferSelect;
+export type MenstrualDaily = typeof menstrualDaily.$inferSelect;
+export type MenstrualEvent = typeof menstrualEvent.$inferSelect;
+export type ProductBrand = typeof productBrands.$inferSelect;
+export type ProductSeries = typeof productSeries.$inferSelect;
+export type Feedback = typeof feedback.$inferSelect;
