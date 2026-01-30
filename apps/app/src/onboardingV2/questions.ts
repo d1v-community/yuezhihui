@@ -1,0 +1,768 @@
+import type { OnboardingV2QuestionId } from '../services/onboardingV2'
+
+export type QuestionOption = {
+  value: string
+  label: string
+}
+
+export type QuestionDef =
+  | {
+      id: OnboardingV2QuestionId
+      type: 'single' | 'multi'
+      title: string
+      required: boolean
+      options: QuestionOption[]
+      note?: string
+    }
+  | {
+      id: OnboardingV2QuestionId
+      type: 'number'
+      title: string
+      required: boolean
+      min?: number
+      max?: number
+      note?: string
+      allowUnknown?: boolean
+      allowNoAnswer?: boolean
+    }
+  | {
+      id: OnboardingV2QuestionId
+      type: 'date'
+      title: string
+      required: boolean
+      note?: string
+      allowUnknown?: boolean
+      allowNoAnswer?: boolean
+    }
+  | {
+      id: OnboardingV2QuestionId
+      type: 'text'
+      title: string
+      required: boolean
+      note?: string
+      allowUnknown?: boolean
+      allowNoAnswer?: boolean
+      placeholder?: string
+    }
+  | {
+      id: OnboardingV2QuestionId
+      // Special UI: "single + conditional input" from QUESTIONNAIRE_V2
+      type: 'birth_date_object'
+      title: string
+      required: boolean
+      note?: string
+    }
+
+export const ONBOARDING_V2_QUESTION_ORDER: OnboardingV2QuestionId[] = [
+  'A0_consent_research',
+  'B1_birth_date',
+  'B2_region_level',
+  'C1_menarche_ever',
+  'C6_menarche_age_band',
+  'C3_menses_last_3m',
+  'C5_amenorrhea_reason',
+  'C4_amenorrhea_ever_3m',
+  'C2_current_status',
+  'D1_period_length_days',
+  'D2_cycle_regularity',
+  'D3_cycle_length_days',
+  'D4_irregular_patterns',
+  'D5_last_period_start',
+  'E1_products',
+  'E1_pad_brand',
+  'E1_pad_brand_other_text',
+  'E1_tampon_brand',
+  'E1_tampon_brand_other_text',
+  'E1_cup_brand',
+  'E1_cup_brand_other_text',
+  'E1_disc_brand',
+  'E1_disc_brand_other_text',
+  'E1_period_underwear_brand',
+  'E1_period_underwear_brand_other_text',
+  'E1_other_product_text',
+  'E2_change_frequency_peak',
+  'E3_clots_leakage',
+  'F1_health_conditions',
+  'F2_condition_source',
+  'F2_condition_source_unknown_text',
+  'M1_pregnancy_possible',
+  'M1_pregnancy_test',
+  'M2_iron_deficiency_confirm',
+  'M3_iron_treatment',
+  'G1_bleeding_history_multi',
+  'H1_contraception_methods',
+  'H2_pregnancy_history',
+  'H3_pregnancy_count_band',
+  'H4_birth_history',
+  'H5_abortion_history',
+  'I1_height_cm',
+  'I2_weight_kg',
+  'J1_know_mbl',
+  'J2_mbl_band',
+  'J3_mbl_subjective',
+]
+
+export const QUESTION_DEFS: Record<OnboardingV2QuestionId, QuestionDef> = {
+  A0_consent_research: {
+    id: 'A0_consent_research',
+    type: 'single',
+    title: '您是否同意将本次填写的数据用于学术研究（匿名/脱敏后分析）？',
+    required: true,
+    options: [
+      { value: 'agree', label: '同意' },
+      { value: 'disagree', label: '不同意（仍可继续使用）' },
+    ],
+  },
+
+  B1_birth_date: {
+    id: 'B1_birth_date',
+    type: 'birth_date_object',
+    title: '您的出生日期是？',
+    required: true,
+    note: '支持：具体日期 / 只记得年月 / 不确定 / 不愿透露。',
+  },
+
+  B2_region_level: {
+    id: 'B2_region_level',
+    type: 'single',
+    title: '您的常住地区大致是？（非精确地址）',
+    required: false,
+    options: [
+      { value: 'tier1', label: '一线/新一线城市' },
+      { value: 'tier2', label: '二线城市' },
+      { value: 'tier3', label: '三线及以下/县城' },
+      { value: 'rural', label: '乡镇/农村' },
+      { value: 'overseas', label: '海外' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  C1_menarche_ever: {
+    id: 'C1_menarche_ever',
+    type: 'single',
+    title: '您是否来过初潮（第一次月经）？',
+    required: true,
+    options: [
+      { value: 'yes', label: '来过' },
+      { value: 'no', label: '没来过' },
+      { value: 'unknown', label: '不确定' },
+    ],
+  },
+
+  C6_menarche_age_band: {
+    id: 'C6_menarche_age_band',
+    type: 'single',
+    title: '您第一次来月经大概在多大年龄？',
+    required: false,
+    options: [
+      { value: '<=10', label: '10岁及以下' },
+      { value: '11-12', label: '11-12 岁' },
+      { value: '13-14', label: '13-14 岁' },
+      { value: '15-16', label: '15-16 岁' },
+      { value: '17-18', label: '17-18 岁' },
+      { value: '>=19', label: '19岁及以上' },
+      { value: 'unknown', label: '不确定/记不清' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  C3_menses_last_3m: {
+    id: 'C3_menses_last_3m',
+    type: 'single',
+    title: '过去 3 个月，您是否有过月经出血？',
+    required: true,
+    options: [
+      { value: 'yes', label: '有' },
+      { value: 'no', label: '没有' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  C5_amenorrhea_reason: {
+    id: 'C5_amenorrhea_reason',
+    type: 'single',
+    title: '如果曾/正在停经，最主要的原因是？',
+    required: false,
+    options: [
+      { value: 'pregnancy', label: '怀孕' },
+      { value: 'postpartum_lactation', label: '产后/哺乳期' },
+      { value: 'hormone_medication', label: '激素用药/避孕方式导致（月经变少或不来）' },
+      { value: 'surgery', label: '手术/治疗（如子宫相关手术、放化疗等）' },
+      { value: 'disease', label: '疾病原因（如内分泌、卵巢功能等）' },
+      { value: 'weight_stress', label: '体重变化/压力/作息等' },
+      { value: 'other_known', label: '其它（已知原因）' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  C4_amenorrhea_ever_3m: {
+    id: 'C4_amenorrhea_ever_3m',
+    type: 'single',
+    title: '您是否曾出现过“连续 ≥3 个月没有月经”（非怀孕/产后哺乳）？',
+    required: false,
+    options: [
+      { value: 'yes', label: '是' },
+      { value: 'no', label: '否' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  C2_current_status: {
+    id: 'C2_current_status',
+    type: 'single',
+    title: '您当前更符合以下哪种状态？',
+    required: false,
+    options: [
+      { value: 'menstruating', label: '仍在来月经' },
+      { value: 'perimenopause', label: '围绝经期（经量/周期开始明显变化，但尚未连续 12 个月停经）' },
+      { value: 'menopause', label: '已绝经（连续 12 个月及以上未月经，非怀孕/哺乳）' },
+      { value: 'uncertain', label: '不确定' },
+    ],
+  },
+
+  D1_period_length_days: {
+    id: 'D1_period_length_days',
+    type: 'number',
+    title: '您通常一次月经持续几天？（整数，单位：天）',
+    required: true,
+    min: 1,
+    max: 20,
+    allowUnknown: true,
+    allowNoAnswer: true,
+  },
+
+  D2_cycle_regularity: {
+    id: 'D2_cycle_regularity',
+    type: 'single',
+    title: '您的月经周期（两次月经第一天之间）通常规律吗？',
+    required: true,
+    options: [
+      { value: 'regular', label: '较规律（多数在 21~35 天，波动不大）' },
+      { value: 'irregular', label: '不规律（间隔变化较大）' },
+      { value: 'unknown', label: '不确定' },
+    ],
+  },
+
+  D3_cycle_length_days: {
+    id: 'D3_cycle_length_days',
+    type: 'number',
+    title: '您近期平均月经周期大约是？（整数，单位：天）',
+    required: false,
+    min: 10,
+    max: 90,
+    allowUnknown: true,
+    allowNoAnswer: true,
+  },
+
+  D4_irregular_patterns: {
+    id: 'D4_irregular_patterns',
+    type: 'multi',
+    title: '不规律主要表现是哪些？（可多选）',
+    required: false,
+    options: [
+      { value: 'often_early', label: '经期经常提前' },
+      { value: 'often_late', label: '经期经常推迟' },
+      { value: 'vary_a_lot', label: '周期长短变化很大' },
+      { value: 'spotting', label: '非经期点滴/不规则出血' },
+      { value: 'sometimes_amenorrhea_3m', label: '偶尔停经 ≥3 个月' },
+      { value: 'flow_varies', label: '经量忽多忽少' },
+      { value: 'unknown', label: '说不清/不确定' },
+    ],
+  },
+
+  D5_last_period_start: {
+    id: 'D5_last_period_start',
+    type: 'date',
+    title: '您上次月经第一天是？（YYYY-MM-DD）',
+    required: false,
+    allowUnknown: true,
+    allowNoAnswer: true,
+    note: '用于确定问卷完成后的默认记录日期（anchorDate）。',
+  },
+
+  E1_products: {
+    id: 'E1_products',
+    type: 'multi',
+    title: '您最近一次月经/出血时主要使用哪些卫生用品？（可多选）',
+    required: true,
+    options: [
+      { value: 'pad', label: '卫生巾/护垫' },
+      { value: 'tampon', label: '卫生棉条' },
+      { value: 'cup', label: '月经杯' },
+      { value: 'disc', label: '月经碟' },
+      { value: 'period_underwear', label: '月经裤/安心裤' },
+      { value: 'other', label: '其它' },
+      { value: 'unknown', label: '不确定/记不清' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  E1_pad_brand: {
+    id: 'E1_pad_brand',
+    type: 'single',
+    title: '卫生巾/护垫常用品牌（可选）',
+    required: false,
+    options: [
+      { value: 'sofy', label: '苏菲（SOFY）' },
+      { value: 'space7', label: '七度空间' },
+      { value: 'whisper', label: '护舒宝（Whisper）' },
+      { value: 'kotex', label: '高洁丝（Kotex）' },
+      { value: 'freemore', label: '自由点' },
+      { value: 'abc', label: 'ABC' },
+      { value: 'laurier', label: '乐而雅（Laurier）' },
+      { value: 'beishute', label: '倍舒特' },
+      { value: 'jieting', label: '洁婷' },
+      { value: 'taotao', label: '淘淘氧棉' },
+      { value: 'nais_princess', label: '奈丝公主' },
+      { value: 'libresse', label: '薇尔（Libresse）' },
+      { value: 'various', label: '多个/不固定' },
+      { value: 'other', label: '其它（可填写）' },
+      { value: 'unknown', label: '不确定/记不清' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  E1_pad_brand_other_text: {
+    id: 'E1_pad_brand_other_text',
+    type: 'text',
+    title: '其它卫生巾/护垫品牌（可填写）',
+    required: false,
+    placeholder: '请输入品牌名',
+  },
+
+  E1_tampon_brand: {
+    id: 'E1_tampon_brand',
+    type: 'single',
+    title: '卫生棉条常用品牌（可选）',
+    required: false,
+    options: [
+      { value: 'tampax', label: '丹碧丝（TAMPAX）' },
+      { value: 'ob', label: 'o.b.' },
+      { value: 'kotex', label: '高洁丝（Kotex）' },
+      { value: 'sofy', label: '苏菲（SOFY）' },
+      { value: 'playtex', label: 'Playtex（倍得适）' },
+      { value: 'bluetex', label: '蓝宝丝（Bluetex）' },
+      { value: 'tmaxx', label: '体美丝（Tmaxx）' },
+      { value: 'femme', label: '非秘（Femme）' },
+      { value: 'various', label: '多个/不固定' },
+      { value: 'other', label: '其它（可填写）' },
+      { value: 'unknown', label: '不确定/记不清' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  E1_tampon_brand_other_text: {
+    id: 'E1_tampon_brand_other_text',
+    type: 'text',
+    title: '其它卫生棉条品牌（可填写）',
+    required: false,
+    placeholder: '请输入品牌名',
+  },
+
+  E1_cup_brand: {
+    id: 'E1_cup_brand',
+    type: 'single',
+    title: '月经杯常用品牌（可选）',
+    required: false,
+    options: [
+      { value: 'divacup', label: 'DivaCup' },
+      { value: 'meluna', label: 'MeLuna' },
+      { value: 'intimina', label: 'Intimina（含 Lena Cup 等）' },
+      { value: 'mooncup', label: 'Mooncup' },
+      { value: 'saalt', label: 'Saalt' },
+      { value: 'lenacup', label: 'Lena Cup' },
+      { value: 'blossom', label: 'Blossom Cup' },
+      { value: 'yuuki', label: 'Yuuki' },
+      { value: 'various', label: '多个/不固定' },
+      { value: 'other', label: '其它（可填写）' },
+      { value: 'unknown', label: '不确定/记不清' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  E1_cup_brand_other_text: {
+    id: 'E1_cup_brand_other_text',
+    type: 'text',
+    title: '其它月经杯品牌（可填写）',
+    required: false,
+    placeholder: '请输入品牌名',
+  },
+
+  E1_disc_brand: {
+    id: 'E1_disc_brand',
+    type: 'single',
+    title: '月经碟常用品牌（可选）',
+    required: false,
+    options: [
+      { value: 'flex', label: 'Flex Disc' },
+      { value: 'lunette', label: 'Lunette Disc' },
+      { value: 'siline', label: 'Si-Line Sterne' },
+      { value: 'yuuki', label: 'Yuuki Disc' },
+      { value: 'blossom', label: 'Blossom Disc' },
+      { value: 'modibodi', label: 'Modibodi Disc' },
+      { value: 'rubylove', label: 'Ruby Love Disc' },
+      { value: 'various', label: '多个/不固定' },
+      { value: 'other', label: '其它（可填写）' },
+      { value: 'unknown', label: '不确定/记不清' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  E1_disc_brand_other_text: {
+    id: 'E1_disc_brand_other_text',
+    type: 'text',
+    title: '其它月经碟品牌（可填写）',
+    required: false,
+    placeholder: '请输入品牌名',
+  },
+
+  E1_period_underwear_brand: {
+    id: 'E1_period_underwear_brand',
+    type: 'single',
+    title: '月经裤/安心裤常用品牌（可选）',
+    required: false,
+    options: [
+      { value: 'thinx', label: 'THINX' },
+      { value: 'knix', label: 'Knixwear（Knix）' },
+      { value: 'modibodi', label: 'Modibodi' },
+      { value: 'dearkate', label: 'Dear Kate' },
+      { value: 'rubylove', label: 'Ruby Love' },
+      { value: 'fluxies', label: 'Fluxies' },
+      { value: 'elia', label: 'Elia Lingerie' },
+      { value: 'various', label: '多个/不固定' },
+      { value: 'other', label: '其它（可填写）' },
+      { value: 'unknown', label: '不确定/记不清' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  E1_period_underwear_brand_other_text: {
+    id: 'E1_period_underwear_brand_other_text',
+    type: 'text',
+    title: '其它月经裤/安心裤品牌（可填写）',
+    required: false,
+    placeholder: '请输入品牌名',
+  },
+
+  E1_other_product_text: {
+    id: 'E1_other_product_text',
+    type: 'text',
+    title: '其它卫生用品说明（可填写）',
+    required: false,
+    placeholder: '例如：纱布、纸巾等（不建议）',
+  },
+
+  E2_change_frequency_peak: {
+    id: 'E2_change_frequency_peak',
+    type: 'single',
+    title: '在最近一次月经/出血中，出血量最多那天，您大约多久需要更换一次（主要用品）？',
+    required: true,
+    options: [
+      { value: '<=1h', label: '1小时内' },
+      { value: '1-2h', label: '1-2小时' },
+      { value: '2-4h', label: '2-4小时' },
+      { value: '>4h', label: '4小时以上' },
+      { value: 'unknown', label: '不确定' },
+    ],
+  },
+
+  E3_clots_leakage: {
+    id: 'E3_clots_leakage',
+    type: 'multi',
+    title: '最近一次月经/出血期间是否出现过以下情况？（可多选）',
+    required: false,
+    options: [
+      { value: 'large_clots', label: '有较大血块（约 ≥1 元硬币）' },
+      { value: 'night_leak', label: '夜间经常漏' },
+      { value: 'double_protection', label: '需要“双重防护”（如巾+棉条/巾+月经裤）' },
+      { value: 'fatigue_dizzy', label: '容易疲劳/头晕（疑似贫血表现）' },
+      { value: 'none', label: '都没有' },
+      { value: 'unknown', label: '不确定' },
+    ],
+  },
+
+  F1_health_conditions: {
+    id: 'F1_health_conditions',
+    type: 'multi',
+    title: '您是否存在以下健康状况？（可多选）',
+    required: false,
+    options: [
+      { value: '血友病家族史', label: '血友病家族史' },
+      { value: '月经过多', label: '月经过多' },
+      { value: '月经过少', label: '月经过少' },
+      { value: '子宫内膜异位症', label: '子宫内膜异位症' },
+      { value: '子宫肌瘤', label: '子宫肌瘤' },
+      { value: '子宫腺肌症', label: '子宫腺肌症' },
+      { value: '痛经', label: '痛经' },
+      { value: '经前期综合征（PMS）', label: '经前期综合征（PMS）' },
+      { value: '子宫息肉', label: '子宫息肉' },
+      { value: '子宫内膜增生', label: '子宫内膜增生' },
+      { value: '子宫畸形', label: '子宫畸形' },
+      { value: '多囊卵巢综合征', label: '多囊卵巢综合征' },
+      { value: '青春期排卵障碍', label: '青春期排卵障碍' },
+      { value: '围绝经期排卵障碍', label: '围绝经期排卵障碍' },
+      { value: '月经不规律', label: '月经不规律' },
+      { value: '经期过长', label: '经期过长' },
+      { value: '经期过短', label: '经期过短' },
+      { value: '月经频发', label: '月经频发' },
+      { value: '月经稀发', label: '月经稀发' },
+      { value: '非经期出血', label: '非经期出血' },
+      { value: '黄体功能不足', label: '黄体功能不足' },
+      { value: '功能性子宫出血', label: '功能性子宫出血' },
+      { value: '卵巢早衰', label: '卵巢早衰' },
+      { value: '激素紊乱', label: '激素紊乱' },
+      { value: '甲亢或甲减', label: '甲亢或甲减' },
+      { value: '糖尿病或胰岛素抵抗', label: '糖尿病或胰岛素抵抗' },
+      { value: '乳腺增生', label: '乳腺增生' },
+      { value: '乳腺癌、卵巢癌或子宫内膜癌', label: '乳腺癌、卵巢癌或子宫内膜癌' },
+      { value: '有激素相关肿瘤家族史', label: '有激素相关肿瘤家族史' },
+      { value: '盆腔炎', label: '盆腔炎' },
+      { value: '子宫内膜炎', label: '子宫内膜炎' },
+      { value: '缺铁性贫血', label: '缺铁性贫血' },
+      { value: '地中海贫血', label: '地中海贫血' },
+      { value: '血管性血友病家族史', label: '血管性血友病家族史' },
+      { value: '血小板减少', label: '血小板减少' },
+      { value: '罕见凝血因子缺乏家族史', label: '罕见凝血因子缺乏家族史' },
+      // QUESTIONNAIRE_V2 提到“其它（text）”，服务端没有单独 questionId；
+      // 这里先作为一个 tag 值（需要时可让用户在客户端补充描述）。
+      { value: '其它', label: '其它（可在下一步补充）' },
+    ],
+    note: '实现建议：支持搜索 + Tag 展示（本阶段先用多选列表）。',
+  },
+
+  F2_condition_source: {
+    id: 'F2_condition_source',
+    type: 'single',
+    title: '上述选择主要来自？',
+    required: false,
+    options: [
+      { value: 'doctor_dx', label: '医生诊断/明确告知' },
+      { value: 'doctor_suspect', label: '医生提示可能/正在检查' },
+      { value: 'self_judgement', label: '自我感觉/自测' },
+      { value: 'mixed', label: '混合' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  F2_condition_source_unknown_text: {
+    id: 'F2_condition_source_unknown_text',
+    type: 'text',
+    title: '不确定补充说明（可选填写）',
+    required: false,
+    placeholder: '可选填',
+  },
+
+  M1_pregnancy_possible: {
+    id: 'M1_pregnancy_possible',
+    type: 'single',
+    title: '近期是否可能怀孕？',
+    required: false,
+    options: [
+      { value: 'possible', label: '可能' },
+      { value: 'impossible', label: '不可能' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  M1_pregnancy_test: {
+    id: 'M1_pregnancy_test',
+    type: 'single',
+    title: '是否已做过验孕（尿/血）？',
+    required: false,
+    options: [
+      { value: 'yes', label: '是' },
+      { value: 'no', label: '否' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  M2_iron_deficiency_confirm: {
+    id: 'M2_iron_deficiency_confirm',
+    type: 'single',
+    title: '上述“缺铁性贫血”是否由医生诊断或化验提示？',
+    required: false,
+    options: [
+      { value: 'yes', label: '是' },
+      { value: 'no', label: '否' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  M3_iron_treatment: {
+    id: 'M3_iron_treatment',
+    type: 'single',
+    title: '您目前是否在补铁或接受治疗？',
+    required: false,
+    options: [
+      { value: 'yes', label: '是' },
+      { value: 'no', label: '否' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  G1_bleeding_history_multi: {
+    id: 'G1_bleeding_history_multi',
+    type: 'multi',
+    title: '以下出血相关情况您是否经历过？（可多选）',
+    required: false,
+    options: [
+      { value: '鼻出血较频繁或一次持续较久（如 >10 分钟）', label: '鼻出血较频繁或一次持续较久（如 >10 分钟）' },
+      { value: '不明原因淤青较多或面积较大', label: '不明原因淤青较多或面积较大' },
+      { value: '小伤口出血时间明显较长', label: '小伤口出血时间明显较长' },
+      { value: '刷牙/口腔出血较频繁', label: '刷牙/口腔出血较频繁' },
+      { value: '拔牙后出血较久或需要就医处理', label: '拔牙后出血较久或需要就医处理' },
+      { value: '手术/外伤后出血较多或需要额外止血处理', label: '手术/外伤后出血较多或需要额外止血处理' },
+      { value: '分娩后出血偏多或需要医疗处理', label: '分娩后出血偏多或需要医疗处理' },
+      { value: '都没有', label: '都没有' },
+      { value: '不确定', label: '不确定' },
+    ],
+  },
+
+  H1_contraception_methods: {
+    id: 'H1_contraception_methods',
+    type: 'multi',
+    title: '您目前或过去一年使用过哪些避孕方式？（可多选）',
+    required: false,
+    options: [
+      { value: 'none', label: '未使用' },
+      { value: 'condom', label: '避孕套' },
+      { value: 'coc', label: '短效口服避孕药（雌激素+孕激素）' },
+      { value: 'progestin_only', label: '孕激素类（口服/针剂/埋植等）' },
+      { value: 'iud', label: '宫内节育器（含曼月乐等）' },
+      { value: 'sterilization', label: '结扎' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  H2_pregnancy_history: {
+    id: 'H2_pregnancy_history',
+    type: 'single',
+    title: '您是否怀孕过？',
+    required: false,
+    options: [
+      { value: 'never', label: '从未' },
+      { value: 'ever', label: '怀孕过' },
+      { value: 'pregnant_now', label: '正在怀孕' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  H3_pregnancy_count_band: {
+    id: 'H3_pregnancy_count_band',
+    type: 'single',
+    title: '怀孕次数（含当前）大概是？',
+    required: false,
+    options: [
+      { value: '1', label: '1 次' },
+      { value: '2', label: '2 次' },
+      { value: '3', label: '3 次' },
+      { value: '4+', label: '4 次及以上' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  H4_birth_history: {
+    id: 'H4_birth_history',
+    type: 'single',
+    title: '分娩情况（可选最符合的一项）',
+    required: false,
+    options: [
+      { value: 'none', label: '未分娩过' },
+      { value: 'vaginal', label: '顺产为主' },
+      { value: 'c_section', label: '剖宫产为主' },
+      { value: 'both', label: '两者都有' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  H5_abortion_history: {
+    id: 'H5_abortion_history',
+    type: 'single',
+    title: '是否有过流产经历？',
+    required: false,
+    options: [
+      { value: 'none', label: '没有' },
+      { value: 'spontaneous', label: '自然流产' },
+      { value: 'induced', label: '人工流产' },
+      { value: 'both', label: '两者都有' },
+      { value: 'unknown', label: '不确定' },
+      { value: 'no_answer', label: '不愿透露' },
+    ],
+  },
+
+  I1_height_cm: {
+    id: 'I1_height_cm',
+    type: 'number',
+    title: '身高（cm）',
+    required: true,
+    min: 120,
+    max: 200,
+    allowUnknown: true,
+    allowNoAnswer: true,
+  },
+
+  I2_weight_kg: {
+    id: 'I2_weight_kg',
+    type: 'number',
+    title: '体重（kg）',
+    required: true,
+    min: 25,
+    max: 200,
+    allowUnknown: true,
+    allowNoAnswer: true,
+  },
+
+  J1_know_mbl: {
+    id: 'J1_know_mbl',
+    type: 'single',
+    title: '您是否了解自己最近一次月经/出血的大致流量（mL）？',
+    required: false,
+    options: [
+      { value: 'yes', label: '了解（我大概知道 mL）' },
+      { value: 'no', label: '不了解' },
+      { value: 'unknown', label: '不确定' },
+    ],
+  },
+
+  J2_mbl_band: {
+    id: 'J2_mbl_band',
+    type: 'single',
+    title: '您估计最近一次月经/出血的流量大约是？',
+    required: false,
+    options: [
+      { value: '<20', label: '< 20 mL' },
+      { value: '20-40', label: '20-40 mL' },
+      { value: '41-80', label: '41-80 mL' },
+      { value: '81-150', label: '81-150 mL' },
+      { value: '>150', label: '> 150 mL' },
+      { value: 'unknown', label: '不确定' },
+    ],
+  },
+
+  J3_mbl_subjective: {
+    id: 'J3_mbl_subjective',
+    type: 'single',
+    title: '总体来说，您觉得最近一次月经/出血时经量属于？',
+    required: false,
+    options: [
+      { value: 'light', label: '偏少' },
+      { value: 'normal', label: '一般' },
+      { value: 'heavy', label: '偏多' },
+      { value: 'unknown', label: '不确定' },
+    ],
+  },
+}
+

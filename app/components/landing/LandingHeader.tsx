@@ -38,7 +38,7 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
 
           <div className="flex items-center gap-2">
             <Link
-              to="/app/"
+              to="/app"
               reloadDocument
               className="rounded-full bg-brand-text px-4 py-2 text-sm font-medium text-white hover:bg-black/90 transition"
             >

@@ -5,7 +5,7 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { getUserFromRequest } from "~/utils/auth.server";
 
-const APP_H5_PATH = "/app/";
+const APP_H5_PATH = "/app";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUserFromRequest(request);

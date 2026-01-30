@@ -35,6 +35,9 @@
     "maintained node versions"
   ],
   "author": "",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@babel/runtime": "^7.24.4",
     "@tarojs/components": "4.1.11",

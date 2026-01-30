@@ -27,6 +27,14 @@ This enables a single Vercel deployment to serve:
 
 See also: `docs/architecture/DEPLOYMENT_VERCEL_SINGLE.md`.
 
+## 🧩 Vercel Notes (Node Version)
+
+Taro v4 requires Node.js 20+. This repo pins Node to 20 via:
+- `engines.node` in `package.json`
+- `.nvmrc` / `.node-version`
+
+If Vercel still builds with an older Node, set **Project Settings → General → Node.js Version = 20.x**.
+
 ## ✨ Features
 
 - 🔐 **Email Verification Login** - Secure authentication without passwords

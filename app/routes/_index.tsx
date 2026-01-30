@@ -99,7 +99,7 @@ export default function Index() {
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Link
-                    to="/app/"
+                    to="/app"
                     reloadDocument
                     className="inline-flex items-center justify-center rounded-full bg-brand-text px-6 py-3 text-sm font-medium text-white transition hover:bg-black/90 motion-safe:animate-lp-breathe"
                   >
@@ -281,7 +281,7 @@ export default function Index() {
                   </p>
                   <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                     <Link
-                      to="/app/"
+                      to="/app"
                       reloadDocument
                       className="inline-flex items-center justify-center rounded-full bg-brand-text px-6 py-3 text-sm font-medium text-white transition hover:bg-black/90"
                     >
