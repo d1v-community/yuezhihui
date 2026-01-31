@@ -5,6 +5,7 @@ export default defineAppConfig({
     'pages/onboarding/index',
     'pages/home/index',
     'pages/analyze/index',
+    'pages/analyze/cycle/index',
     'pages/encyclopedia/index',
     'pages/setting/index',
     'pages/feedback/index',

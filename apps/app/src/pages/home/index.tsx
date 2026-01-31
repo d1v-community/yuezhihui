@@ -93,8 +93,10 @@ export default function HomePage() {
   const loadForDate = async (date: string) => {
     setLoading(true)
     try {
-      const stored = await loadDailyRecord(date)
+      // Update header immediately; UI shows a local loading mask while data is fetched.
       setSelectedDate(date)
+      setRecord((prev) => ({ ...prev, date }))
+      const stored = await loadDailyRecord(date)
       setSubmittedAt(stored.submittedAt)
       setRecord(stored.record)
       setSnapshot(JSON.stringify(stored.record))
@@ -219,14 +221,6 @@ export default function HomePage() {
     }
   }
 
-  if (loading) {
-    return (
-      <View className="page">
-        <Text>Loading...</Text>
-      </View>
-    )
-  }
-
   const visibility = getStorageJson<{ sanitaryPad?: boolean; tampon?: boolean; bleeding?: boolean }>(STORAGE_KEYS.visibilitySettings) || {}
   const showPad = typeof visibility.sanitaryPad === 'boolean' ? visibility.sanitaryPad : true
   const showTampon = typeof visibility.tampon === 'boolean' ? visibility.tampon : true
@@ -240,7 +234,16 @@ export default function HomePage() {
         <View className="card fc-appear">
           <View className="row">
             <Text className="title">按日记录</Text>
-            <Picker mode="date" value={selectedDate} start={minDate} end={today} onChange={(e) => selectDate(String(e.detail.value))}>
+            <Picker
+              mode="date"
+              value={selectedDate}
+              start={minDate}
+              end={today}
+              onChange={(e) => {
+                if (loading) return
+                void selectDate(String(e.detail.value))
+              }}
+            >
               <FCChip>{selectedDate}</FCChip>
             </Picker>
           </View>
@@ -257,7 +260,10 @@ export default function HomePage() {
                     <FCPressable
                       key={d}
                       className={['calDay', isActive ? 'calDayActive' : ''].join(' ')}
-                      onClick={() => void selectDate(d)}
+                      onClick={() => {
+                        if (loading) return
+                        void selectDate(d)
+                      }}
                     >
                       <Text className={['calDayText', isActive ? 'calDayTextActive' : ''].join(' ')}>{dayText}</Text>
                       <View className={['calDot', hasData ? 'calDotOn' : '', isActive ? 'calDotActive' : ''].join(' ')} />
@@ -282,77 +288,88 @@ export default function HomePage() {
 
           <View className="divider" />
 
-          <View className="row section">
-            <View>
-              <Text className="title">有出血吗？</Text>
-              <Text className="muted">关闭将清空当日事件；开启后可继续添加用品/症状。</Text>
-            </View>
-            <Switch checked={record.hasBleeding} onChange={(e) => toggleBleeding(Boolean(e.detail.value))} />
-          </View>
+          <View className="recordBody">
+            {loading ? (
+              <View className="loadingMask">
+                <View className="loadingBox">
+                  <View className="fc-spinner fc-spinnerDark" />
+                  <Text className="loadingText">正在加载 {selectedDate} 的记录…</Text>
+                  <Text className="loadingSub">如果长时间无响应，请检查网络后重试。</Text>
+                </View>
+              </View>
+            ) : null}
 
-          {showBleedingUi ? (
-            <View className="section">
-              <View className="row">
-                <Text className="title">实时血量（示意）</Text>
-                <Text className="muted">{totalVolume} mL</Text>
+            <View className="row section">
+              <View>
+                <Text className="title">有出血吗？</Text>
+                <Text className="muted">关闭将清空当日事件；开启后可继续添加用品/症状。</Text>
               </View>
-              <View className="volumeBar">
-                <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
-              </View>
-              <Text className="muted">每次“添加”都会生成事件标签；提交后再改动会变为「确认更改」。</Text>
+              <Switch checked={record.hasBleeding} onChange={(e) => toggleBleeding(Boolean(e.detail.value))} />
             </View>
-          ) : null}
 
-          <View className="divider" />
+            {showBleedingUi ? (
+              <View className="section">
+                <View className="row">
+                  <Text className="title">实时血量（示意）</Text>
+                  <Text className="muted">{totalVolume} mL</Text>
+                </View>
+                <View className="volumeBar">
+                  <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
+                </View>
+                <Text className="muted">每次“添加”都会生成事件标签；提交后再改动会变为「确认更改」。</Text>
+              </View>
+            ) : null}
 
-          {showPad ? (
-            <View className="section">
-              <Text className="title">卫生巾</Text>
-              <View className="optRow">
-                <Picker
-                  mode="selector"
-                  range={PAD_TYPES.map((x) => x.label)}
-                  value={padTypeIndex}
-                  onChange={(e) => setPadTypeIndex(Number(e.detail.value) || 0)}
-                >
-                  <FCChip>{PAD_TYPES[padTypeIndex]?.label || '选择类型'}</FCChip>
-                </Picker>
-                <Picker
-                  mode="selector"
-                  range={COLORS.map((x) => x.label)}
-                  value={colorIndex}
-                  onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
-                >
-                  <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
-                </Picker>
-                <Picker
-                  mode="selector"
-                  range={VOLUMES.map((x) => x.label)}
-                  value={volumeIndex}
-                  onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
-                >
-                  <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
-                </Picker>
+            <View className="divider" />
+
+            {showPad ? (
+              <View className="section">
+                <Text className="title">卫生巾</Text>
+                <View className="optRow">
+                  <Picker
+                    mode="selector"
+                    range={PAD_TYPES.map((x) => x.label)}
+                    value={padTypeIndex}
+                    onChange={(e) => setPadTypeIndex(Number(e.detail.value) || 0)}
+                  >
+                    <FCChip>{PAD_TYPES[padTypeIndex]?.label || '选择类型'}</FCChip>
+                  </Picker>
+                  <Picker
+                    mode="selector"
+                    range={COLORS.map((x) => x.label)}
+                    value={colorIndex}
+                    onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
+                  >
+                    <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
+                  </Picker>
+                  <Picker
+                    mode="selector"
+                    range={VOLUMES.map((x) => x.label)}
+                    value={volumeIndex}
+                    onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
+                  >
+                    <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
+                  </Picker>
+                </View>
+                <View className="row section">
+                  <FCButton
+                    size="sm"
+                    onClick={() => {
+                      addEvent({
+                        eventTime: new Date().toISOString(),
+                        eventType: 'pad',
+                        productType: PAD_TYPES[padTypeIndex]?.value,
+                        color: COLORS[colorIndex]?.value,
+                        volumeMl: VOLUMES[volumeIndex]?.value,
+                      })
+                    }}
+                  >
+                    添加/片
+                  </FCButton>
+                  <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
+                </View>
               </View>
-              <View className="row section">
-                <FCButton
-                  size="sm"
-                  onClick={() => {
-                    addEvent({
-                      eventTime: new Date().toISOString(),
-                      eventType: 'pad',
-                      productType: PAD_TYPES[padTypeIndex]?.value,
-                      color: COLORS[colorIndex]?.value,
-                      volumeMl: VOLUMES[volumeIndex]?.value,
-                    })
-                  }}
-                >
-                  添加/片
-                </FCButton>
-                <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
-              </View>
-            </View>
-          ) : null}
+            ) : null}
 
           <View className="divider" />
 
@@ -444,6 +461,7 @@ export default function HomePage() {
             )}
           </View>
         </View>
+        </View>
 
         <FCActionBar>
           {submitError ? (
@@ -456,7 +474,7 @@ export default function HomePage() {
           ) : null}
           <FCButton
             loading={submitting}
-            disabled={hasSubmitted && !dirty}
+            disabled={loading || (hasSubmitted && !dirty)}
             fullWidth
             onClick={() => void submit()}
           >

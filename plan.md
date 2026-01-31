@@ -113,31 +113,31 @@ API：
 
 #### 3) Analysis（分析）
 数据结构（对齐旧小程序 `mini-program/miniprogram/api/analysis.ts`）：
-- [ ] `AnalysisOverview`
-- [ ] `AnalysisCycleList`（分页）
-- [ ] `AnalysisCycleDetail`
-- [ ] `AnalysisHealthScoreDetail`
+- [x] `AnalysisOverview`
+- [x] `AnalysisCycleList`（分页）
+- [x] `AnalysisCycleDetail`
+- [x] `AnalysisHealthScoreDetail`
 
 API：
-- [ ] `GET /api/analysis/overview?limit=number` → `ApiResponse<AnalysisOverview>`
+- [x] `GET /api/analysis/overview?limit=number` → `ApiResponse<AnalysisOverview>`
   - 路由：`app/routes/api.analysis.overview.ts`
-- [ ] `GET /api/analysis/health-score-detail?limit=number` → `ApiResponse<AnalysisHealthScoreDetail>`
+- [x] `GET /api/analysis/health-score-detail?limit=number` → `ApiResponse<AnalysisHealthScoreDetail>`
   - 路由：`app/routes/api.analysis.health-score-detail.ts`
-- [ ] `GET /api/analysis/cycles?page=number&pageSize=number` → `ApiResponse<AnalysisCycleList>`
+- [x] `GET /api/analysis/cycles?page=number&pageSize=number` → `ApiResponse<AnalysisCycleList>`
   - 路由：`app/routes/api.analysis.cycles.ts`
-- [ ] `GET /api/analysis/cycles/:cycleId` → `ApiResponse<AnalysisCycleDetail>`
+- [x] `GET /api/analysis/cycles/:cycleId` → `ApiResponse<AnalysisCycleDetail>`
   - 路由：`app/routes/api.analysis.cycles.$cycleId.ts`
 
 #### 4) Share（分享：创建/获取）
 数据结构（对齐旧小程序 `mini-program/miniprogram/api/share.ts`）：
-- [ ] `ShareCreateResp = { shareCode: string; expireAt: string; path: string }`
-- [ ] `ShareGetResp = { shareCode; type:'period'|'overview'; createdAt; expireAt; owner:{nickname;avatarUrl}; data: AnalysisCycleDetail | AnalysisOverview }`
+- [x] `ShareCreateResp = { shareCode: string; expireAt: string; path: string }`
+- [x] `ShareGetResp = { shareCode; type:'period'|'overview'; createdAt; expireAt; owner:{nickname;avatarUrl}; data: AnalysisCycleDetail | AnalysisOverview }`
 
 API：
-- [ ] `POST /api/share` body：`{ type:'period'|'overview'; cycleId?:number; limit?:number }`
+- [x] `POST /api/share` body：`{ type:'period'|'overview'; cycleId?:number; limit?:number }`
   - resp：`ApiResponse<ShareCreateResp>`
   - 路由：`app/routes/api.share.ts`
-- [ ] `GET /api/share/:code` → `ApiResponse<ShareGetResp>`
+- [x] `GET /api/share/:code` → `ApiResponse<ShareGetResp>`
   - 路由：`app/routes/api.share.$code.ts`
 
 #### 5) Export（导出 xlsx）
@@ -173,8 +173,9 @@ API：
 
 ### 数据库迁移与联通验证
 - [x] 新增迁移：`drizzle/0002_menstrual_products_feedback.sql`（daily/event/products/feedback）
-- [x] 执行迁移：`pnpm db:migrate`（已在开发环境跑通）
-- [x] Smoke test（Remix dev + Neon）：auth → PUT daily → GET daily → GET range（已通过）
+- [x] 新增迁移：`drizzle/0003_analysis_cycles_share.sql`（cycle + share）
+- [ ] 执行迁移：`pnpm db:migrate:api`（应用 0003）
+- [ ] Smoke test（Remix dev + Neon）：auth → PUT daily → GET daily → GET range → GET analysis overview/cycles（通过）
 
 ---
 
@@ -247,19 +248,20 @@ API：
 ## P1（分析/分享/导出/产品：形成可见价值）
 
 ### P1-1 Analyze 最小版（先卡片化，再上图表）
-- [ ] 分析总览（overview）
+- [x] 分析总览（overview）
   - API：`GET /api/analysis/overview`
   - UI：健康分、趋势状态、风险列表（可点击解释）
   - 页面：`apps/app/src/pages/analyze/index.tsx`
-- [ ] 周期列表 + 周期详情（detail）
+- [x] 周期列表 + 周期详情（detail）
   - API：`GET /api/analysis/cycles`、`GET /api/analysis/cycles/:id`
   - 交互：列表/详情 loading 与空态；返回保留上下文
+  - 页面：`apps/app/src/pages/analyze/cycle/index.tsx`
 
 ### P1-2 Share：创建在 Taro、展示在 Remix（降低双端复杂度）
-- [ ] Taro：创建分享（复制链接/码）
+- [x] Taro：创建分享（复制链接/码）
   - API：`POST /api/share`（period/overview）
   - UI：复制 shareCode/链接；失败可重试
-- [ ] Remix：分享展示页（更适合跨端打开/可复制链接）
+- [x] Remix：分享展示页（更适合跨端打开/可复制链接）
   - 路由：`/share/:code`
   - API：`GET /api/share/:code`
 

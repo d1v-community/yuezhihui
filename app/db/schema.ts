@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, index, jsonb, uniqueIndex, integer, boolean, date, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, index, jsonb, uniqueIndex, integer, boolean, date, serial, bigserial } from "drizzle-orm/pg-core";
 
 // Users table
 export const users = pgTable("users", {
@@ -93,6 +93,7 @@ export const menstrualDaily = pgTable(
     dayColor: text("day_color"),
     clotSmallCount: integer("clot_small_count").notNull().default(0),
     clotLargeCount: integer("clot_large_count").notNull().default(0),
+    cycleId: integer("cycle_id"),
     createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
   },
@@ -100,6 +101,7 @@ export const menstrualDaily = pgTable(
     userDateUq: uniqueIndex("menstrual_daily_user_date_uq").on(table.userId, table.recordDate),
     userIdIdx: index("menstrual_daily_user_id_idx").on(table.userId),
     recordDateIdx: index("menstrual_daily_record_date_idx").on(table.recordDate),
+    cycleIdIdx: index("menstrual_daily_cycle_id_idx").on(table.cycleId),
   }),
 );
 
@@ -122,11 +124,37 @@ export const menstrualEvent = pgTable(
     model: text("model"),
     absorbency: text("absorbency"),
     symptomName: text("symptom_name"),
+    cycleId: integer("cycle_id"),
     createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
   },
   (table) => ({
     userDateIdx: index("menstrual_event_user_date_idx").on(table.userId, table.recordDate),
     userDateTimeIdx: index("menstrual_event_user_date_time_idx").on(table.userId, table.recordDate, table.eventTime),
+    cycleIdIdx: index("menstrual_event_cycle_id_idx").on(table.cycleId),
+  }),
+);
+
+export const menstrualCycle = pgTable(
+  "menstrual_cycle",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date").notNull(),
+    daysCount: integer("days_count").notNull().default(0),
+    totalVolumeMl: integer("total_volume_ml").notNull().default(0),
+    levelStatus: text("level_status"),
+    distributionStatus: text("distribution_status"),
+    colorStatus: text("color_status"),
+    clotStatus: text("clot_status"),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userStartUq: uniqueIndex("menstrual_cycle_user_start_uq").on(table.userId, table.startDate),
+    userStartIdx: index("menstrual_cycle_user_start_idx").on(table.userId, table.startDate),
   }),
 );
 
@@ -186,12 +214,36 @@ export const feedback = pgTable(
   }),
 );
 
+// --- Share ---
+
+export const shareRecord = pgTable(
+  "share_record",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    shareCode: text("share_code").notNull(),
+    shareType: text("share_type").notNull(), // 'period' | 'overview'
+    paramsJson: jsonb("params_json"),
+    expireAt: timestamp("expire_at", { withTimezone: false }),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+  },
+  (table) => ({
+    shareCodeUq: uniqueIndex("share_record_share_code_uq").on(table.shareCode),
+    ownerCreatedAtIdx: index("share_record_owner_created_at_idx").on(table.ownerUserId, table.createdAt),
+    expireAtIdx: index("share_record_expire_at_idx").on(table.expireAt),
+  }),
+);
+
 export type User = typeof users.$inferSelect;
 export type VerificationCode = typeof verificationCodes.$inferSelect;
 export type OnboardingSession = typeof onboardingSessions.$inferSelect;
 export type OnboardingAnswer = typeof onboardingAnswers.$inferSelect;
 export type MenstrualDaily = typeof menstrualDaily.$inferSelect;
 export type MenstrualEvent = typeof menstrualEvent.$inferSelect;
+export type MenstrualCycle = typeof menstrualCycle.$inferSelect;
 export type ProductBrand = typeof productBrands.$inferSelect;
 export type ProductSeries = typeof productSeries.$inferSelect;
 export type Feedback = typeof feedback.$inferSelect;
+export type ShareRecord = typeof shareRecord.$inferSelect;
