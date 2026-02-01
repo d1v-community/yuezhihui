@@ -6,7 +6,7 @@
 
 export async function loader() {
   // Note: import.meta.glob is resolved at build time by Vite/Remix.
-  const modules = import.meta.glob("./api.*.ts", { eager: true }) as Record<
+  const modules = import.meta.glob("./api.*.{ts,tsx}", { eager: true }) as Record<
     string,
     {
       loader?: unknown;
@@ -26,10 +26,23 @@ export async function loader() {
     if (mod && typeof mod.action === "function") methods["post"] = { summary: "POST" };
     if (Object.keys(methods).length === 0) continue;
 
-    // Derive the route path from the file name
-    // e.g., "./api.auth.verify-login.ts" -> "/api/auth/verify-login"
+    // Derive the route path from the file name.
+    // e.g.:
+    // - "./api.auth.verify-login.ts" -> "/api/auth/verify-login"
+    // - "./api.menstrual.daily.$date.ts" -> "/api/menstrual/daily/{date}"
+    // - "./api.openapi[.]json.ts" -> "/api/openapi.json" (but we skip openapi below)
     const name = file.replace(/^\.\//, "").replace(/\.tsx?$/, "");
-    const routePath = "/" + name.replace(/\./g, "/");
+    const parts = name.split(".");
+    const routePath =
+      "/" +
+      parts
+        .map((p) => {
+          // File routing: `$param` is a dynamic segment.
+          if (p.startsWith("$")) return `{${p.slice(1)}}`;
+          // Remix escape for dots inside filenames.
+          return p.replace(/\[\.\]/g, ".");
+        })
+        .join("/");
 
     paths[routePath] = methods;
   }

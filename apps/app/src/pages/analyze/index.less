@@ -1,0 +1,212 @@
+@import '../../styles/ui.less';
+
+.page {
+  .app-page();
+}
+
+.bg {
+  min-height: 100vh;
+  .app-bg-flow();
+}
+
+.wrap {
+  .app-container();
+  .app-frame();
+}
+
+.card {
+  .app-card();
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.desc {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.62);
+  display: block;
+}
+
+.anLoadingRow {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.anLoadingText {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.56);
+}
+
+.section {
+  margin-top: 12px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  display: block;
+}
+
+.ovRow {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+
+.ovItem {
+  flex: 1;
+  padding: 10px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.ovLabel {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.55);
+  display: block;
+}
+
+.ovValue {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  display: block;
+}
+
+.riskList {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.riskItem {
+  .app-card();
+  padding: 12px;
+}
+
+.riskTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.riskTitle {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.riskLevel {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.riskHigh {
+  background: rgba(255, 80, 80, 0.09);
+  border-color: rgba(255, 80, 80, 0.22);
+  color: rgba(200, 0, 0, 0.8);
+}
+
+.riskMid {
+  background: rgba(255, 196, 0, 0.11);
+  border-color: rgba(255, 196, 0, 0.26);
+  color: rgba(120, 70, 0, 0.85);
+}
+
+.riskDesc {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.65);
+  display: block;
+}
+
+.cycleList {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cycleItem {
+  .app-card();
+  padding: 12px;
+}
+
+.cycleTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cycleTitle {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cycleMeta {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.58);
+}
+
+.cycleTags {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.tagOk {
+  background: rgba(0, 160, 80, 0.08);
+  border-color: rgba(0, 160, 80, 0.2);
+  color: rgba(0, 110, 60, 0.88);
+}
+
+.tagWarn {
+  background: rgba(255, 120, 0, 0.1);
+  border-color: rgba(255, 120, 0, 0.25);
+  color: rgba(150, 60, 0, 0.88);
+}

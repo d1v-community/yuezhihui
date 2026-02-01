@@ -521,6 +521,233 @@ Ensure all required variables are set with valid values.
 
 ---
 
+---
+
+## WeChat Configuration
+
+This section covers WeChat-related environment variables for WeChat mini-program login and WeChat Pay integration.
+
+### WeChat Mini-Program Configuration
+
+These variables are required for WeChat authentication:
+
+#### `WECHAT_APPID`
+
+**Description**: WeChat Mini-Program AppID.
+
+**Example**:
+```
+wxc76f347d96dd8879
+```
+
+**How to get**:
+1. Go to [WeChat Mini-Program Admin](https://mp.weixin.qq.com/)
+2. Log in with your WeChat account
+3. Select your mini-program
+4. Go to **Settings** → **Basic Settings**
+5. Find **AppID** under **Developer ID**
+
+**Usage**: Used for WeChat login authentication flow.
+
+---
+
+#### `WECHAT_SECRET`
+
+**Description**: WeChat Mini-Program AppSecret.
+
+**Example**:
+```
+3d3290380083082880363749e3f33072
+```
+
+**How to get**:
+1. Go to [WeChat Mini-Program Admin](https://mp.weixin.qq.com/)
+2. Log in with your WeChat account
+3. Select your mini-program
+4. Go to **Settings** → **Basic Settings**
+5. Find **AppSecret** under **Developer ID**
+6. Click **Reset** to generate a new secret
+
+**⚠️ Important**:
+- Keep this secret confidential
+- Never commit to version control
+- Can be regenerated if compromised
+- Only shown once - save it immediately
+
+**Usage**: Used to exchange login code for openid/session_key.
+
+---
+
+### WeChat Pay Configuration
+
+These variables are required for WeChat Pay integration:
+
+#### `WECHAT_PAY_MCHID`
+
+**Description**: WeChat Pay Merchant ID.
+
+**Example**:
+```
+1738041791
+```
+
+**How to get**:
+1. Log in to [WeChat Pay Merchant Platform](https://pay.weixin.qq.com/)
+2. Go to **Account Center** → **Merchant Info**
+3. Find **Merchant ID**
+
+**Usage**: Unique identifier for your merchant account.
+
+---
+
+#### `WECHAT_PAY_SERIAL_NO`
+
+**Description**: WeChat Pay API Certificate Serial Number.
+
+**Example**:
+```
+469C93323BA0F3C68FF20D1D91CCBCBB3B4C4E1D
+```
+
+**How to get**:
+1. Log in to [WeChat Pay Merchant Platform](https://pay.weixin.qq.com/)
+2. Go to **Account Center** → **API Certificates**
+3. Download your API certificate
+4. Extract the serial number from the certificate:
+   ```bash
+   openssl x509 -in apiclient_cert.pem -noout -serial
+   ```
+
+**Usage**: Used to verify API request signatures.
+
+---
+
+#### `WECHAT_PAY_API_V3_KEY`
+
+**Description**: WeChat Pay API v3 Key (32 characters).
+
+**Example**:
+```
+08a50ed43545c7d5c76af21f6c7f7db7
+```
+
+**How to get**:
+1. Log in to [WeChat Pay Merchant Platform](https://pay.weixin.qq.com/)
+2. Go to **Account Center** → **API Keys**
+3. Set or reset the API v3 key (must be exactly 32 characters)
+
+**⚠️ Important**:
+- Must be exactly 32 characters
+- Keep this key confidential
+- Different from API v2 key
+- Can be changed but old refunds will fail
+
+**Usage**: Used to decrypt payment notifications and sign API requests.
+
+---
+
+#### `WECHAT_PAY_PRIVATE_KEY_PATH`
+
+**Description**: Path to WeChat Pay API v3 private key file.
+
+**Default**: `certs/apiclient_key.pem`
+
+**Format**: Relative or absolute path to PEM file
+
+**Example**:
+```
+certs/apiclient_key.pem
+```
+
+**How to get**:
+1. Log in to [WeChat Pay Merchant Platform](https://pay.weixin.qq.com/)
+2. Go to **Account Center** → **API Certificates**
+3. Download the API certificate package
+4. Extract `apiclient_key.pem`
+5. Place it in the `certs/` directory
+
+**⚠️ Important**:
+- File must be in PEM format
+- Should not be password protected
+- Set restrictive file permissions: `chmod 600 apiclient_key.pem`
+- Never commit to version control
+
+**Usage**: Used to sign API requests and decrypt responses.
+
+---
+
+#### `WECHAT_PAY_NOTIFY_URL`
+
+**Description**: Webhook URL for receiving WeChat Pay notifications.
+
+**Example**:
+```
+https://yourdomain.com/api/pay/wechat/notify
+```
+
+**Format**: Full HTTPS URL
+
+**How to get**:
+1. Configure your server to handle POST requests at this endpoint
+2. URL must be publicly accessible (not localhost)
+3. Must use HTTPS with valid SSL certificate
+
+**Usage**: WeChat Pay will send payment status updates to this URL.
+
+**Configuration**:
+1. Log in to [WeChat Pay Merchant Platform](https://pay.weixin.qq.com/)
+2. Go to **Product Center** → **Payment Notifications**
+3. Add your notify URL
+
+---
+
+### WeChat Certificate Setup
+
+#### Directory Structure
+
+Create a `certs/` directory in your project root:
+
+```
+certs/
+├── apiclient_key.pem          # Your API v3 private key
+└── README.md                   # Documentation (auto-generated)
+```
+
+#### Getting Your Private Key
+
+1. Download API certificate package from WeChat Pay Merchant Platform
+2. Extract the files:
+   ```bash
+   unzip apiclient_cert.zip
+   ```
+3. Verify the certificate:
+   ```bash
+   openssl x509 -in apiclient_cert.pem -text -noout
+   ```
+4. Place `apiclient_key.pem` in the `certs/` directory
+5. Set restrictive permissions:
+   ```bash
+   chmod 600 certs/apiclient_key.pem
+   ```
+
+#### Security Best Practices for WeChat Pay
+
+**❌ Never do this**:
+- Commit private key to git
+- Share keys in chat/email
+- Use the same key in dev and prod
+- Store keys in publicly accessible locations
+
+**✅ Instead**:
+- Use `.env` with gitignored `.env` file
+- Use different certificates for dev/staging/prod
+- Rotate keys periodically
+- Use secret management services (AWS Secrets Manager, etc.)
+- Set file permissions to 600
+- Monitor for unauthorized access
+
+---
+
 ## Next Steps
 
 Now that you understand environment variables:
@@ -528,6 +755,7 @@ Now that you understand environment variables:
 1. [Read the API Documentation](API.md)
 2. [Deploy to Production](DEPLOYMENT.md)
 3. [Customize the Template](../app/services/verification.server.ts)
+4. [Learn about WeChat Integration](../docs/architecture/TARGET_ARCHITECTURE.md)
 
 ---
 

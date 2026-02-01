@@ -1,0 +1,166 @@
+@import '../../../styles/ui.less';
+
+.page {
+  .app-page();
+}
+
+.bg {
+  min-height: 100vh;
+  .app-bg-flow();
+}
+
+.wrap {
+  .app-container();
+  .app-frame();
+}
+
+.card {
+  .app-card();
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rowRight {
+  display: flex;
+  gap: 8px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.summary {
+  margin-top: 10px;
+}
+
+.summaryTitle {
+  font-size: 14px;
+  font-weight: 800;
+  display: block;
+}
+
+.summaryMeta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+  display: block;
+}
+
+.tags {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.tagOk {
+  background: rgba(0, 160, 80, 0.08);
+  border-color: rgba(0, 160, 80, 0.2);
+  color: rgba(0, 110, 60, 0.88);
+}
+
+.tagWarn {
+  background: rgba(255, 120, 0, 0.1);
+  border-color: rgba(255, 120, 0, 0.25);
+  color: rgba(150, 60, 0, 0.88);
+}
+
+.hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  display: block;
+}
+
+.tagLinks {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.linkChip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.linkChipText {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.section {
+  margin-top: 12px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.dayList {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dayItem {
+  .app-card();
+  padding: 12px;
+}
+
+.dayTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dayTitle {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.dayMeta {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.58);
+}
+
+.dayDesc {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.65);
+  display: block;
+}
+
+.settleList {
+  margin-top: 10px;
+  .app-card();
+  padding: 12px;
+}
+
+.settleItem {
+  font-size: 12px;
+  line-height: 18px;
+  display: block;
+  color: rgba(0, 0, 0, 0.72);
+}
+

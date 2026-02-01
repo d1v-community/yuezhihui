@@ -1,0 +1,47 @@
+@import '../styles/ui.less';
+
+.fcTabBar {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fcTabItem {
+  flex: 1;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.035);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform @dur-fast @ease-soft, filter @dur-fast @ease-soft, background @dur-mid @ease-soft, border-color @dur-mid @ease-soft;
+}
+
+.fcTabItemActive {
+  background: rgba(200, 182, 166, 0.20);
+  border-color: rgba(139, 94, 94, 0.20);
+}
+
+.fcTabText {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.78);
+  font-weight: 700;
+}
+
+.fcTabDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.fcTabDotActive {
+  background: rgba(139, 94, 94, 0.72);
+}
+

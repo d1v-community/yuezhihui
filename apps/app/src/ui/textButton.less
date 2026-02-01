@@ -1,0 +1,22 @@
+@import '../styles/ui.less';
+
+.fcTextBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  transition: transform @dur-fast @ease-soft, filter @dur-fast @ease-soft, background @dur-mid @ease-soft, border-color @dur-mid @ease-soft;
+}
+
+.fcTextBtnText {
+  font-size: 12px;
+  color: rgba(43, 43, 43, 0.92);
+}
+
+.fcTextBtnDisabled {
+  opacity: 0.55;
+}
+

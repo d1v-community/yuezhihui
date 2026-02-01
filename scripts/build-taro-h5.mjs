@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -25,6 +25,25 @@ const child = spawn("pnpm", ["-C", "apps/app", "run", "build:h5"], {
 });
 
 child.on("exit", (code) => {
-  process.exit(typeof code === "number" ? code : 1);
+  const exitCode = typeof code === "number" ? code : 1;
+  if (exitCode === 0) {
+    // Write a tiny build marker into the output dir so we can verify
+    // Vercel really rebuilt and deployed the latest Taro bundle.
+    const outDir = path.join(repoRoot, "public", "app");
+    const meta = {
+      builtAt: new Date().toISOString(),
+      vercel: {
+        env: process.env.VERCEL_ENV || null,
+        url: process.env.VERCEL_URL || null,
+        gitCommitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
+        gitCommitRef: process.env.VERCEL_GIT_COMMIT_REF || null,
+      },
+    };
+    try {
+      writeFileSync(path.join(outDir, "build-meta.json"), JSON.stringify(meta, null, 2) + "\n", "utf8");
+    } catch {
+      // Ignore marker write failures; don't break CI.
+    }
+  }
+  process.exit(exitCode);
 });
-

@@ -1,0 +1,58 @@
+@import '../styles/ui.less';
+
+.fcOption {
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 12px;
+  padding: 9px 12px; // compact, but keep top/bottom spacing symmetric
+  background: rgba(255, 255, 255, 0.90);
+  transition: transform @dur-fast @ease-soft, filter @dur-fast @ease-soft, border-color @dur-mid @ease-soft, background @dur-mid @ease-soft;
+}
+
+.fcOptionActive {
+  border-color: rgba(139, 94, 94, 0.30);
+  background: rgba(200, 182, 166, 0.18);
+}
+
+.fcOptionRow {
+  display: flex;
+  align-items: center; // keep label + check vertically balanced
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fcOptionLabel {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.86);
+  flex: 1;
+  display: block; // make vertical centering predictable in H5
+}
+
+.fcOptionMark {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fcOptionMarkActive {
+  border-color: rgba(139, 94, 94, 0.35);
+  background: rgba(139, 94, 94, 0.12);
+}
+
+.fcOptionMarkText {
+  font-size: 12px;
+  line-height: 12px; // keep glyph optically centered
+  color: rgba(0, 0, 0, 0.68);
+  font-weight: 800;
+  transform: translateY(-0.5px); // compensate for ✓ baseline
+  display: block;
+}
+
+.fcOptionDisabled {
+  opacity: 0.55;
+}
