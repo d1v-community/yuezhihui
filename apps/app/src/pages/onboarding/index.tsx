@@ -548,11 +548,14 @@ export default function OnboardingPage() {
           <View className="options">
             {def.options.map((opt) => {
               const active = draft.kind === 'multi' && draft.values.includes(opt.value)
+              const isAtMax = draft.kind === 'multi' && def.maxSelections && draft.values.length >= def.maxSelections
+              const canSelect = !active && (!isAtMax || isExclusiveMultiValue(opt.value))
+
               return (
                 <FCOptionCard
                   key={opt.value}
                   active={active}
-                  disabled={submitting}
+                  disabled={submitting || !canSelect}
                   label={opt.label}
                   onClick={() => {
                     if (draft.kind !== 'multi') return
@@ -567,7 +570,13 @@ export default function OnboardingPage() {
                         if (isExclusiveMultiValue(v)) next.delete(v)
                       }
                       if (active) next.delete(opt.value)
-                      else next.add(opt.value)
+                      else {
+                        if (def.maxSelections && next.size >= def.maxSelections) {
+                          Taro.showToast({ title: `最多选择 ${def.maxSelections} 项`, icon: 'none' })
+                          return
+                        }
+                        next.add(opt.value)
+                      }
                     }
 
                     setDraft({ kind: 'multi', values: Array.from(next) })
@@ -575,6 +584,11 @@ export default function OnboardingPage() {
                 />
               )
             })}
+            {def.maxSelections && draft.kind === 'multi' ? (
+              <Text className="note" style={{ marginTop: 8 }}>
+                已选择 {draft.values.length}/{def.maxSelections} 项
+              </Text>
+            ) : null}
           </View>
         ) : null}
 
