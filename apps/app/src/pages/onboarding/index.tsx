@@ -234,14 +234,30 @@ export default function OnboardingPage() {
       await Taro.reLaunch({ url: '/pages/index/index?pause=1' })
       return
     }
-    const prevId = visibleIds[idx - 1] || null
+    const prevId = visibleIds[idx - 1]
+    if (!prevId) {
+      Taro.showToast({ title: '无法返回上一题', icon: 'none' })
+      return
+    }
+
     setSubmitting(true)
     try {
       const res = await onboardingV2Position(prevId)
-      if (!res?.success) throw new Error(res?.error || '返回失败')
-      setCurrentId((res.currentQuestionId ?? prevId ?? null) as any)
+      if (!res?.success) {
+        // 如果后端返回问题不可见，尝试直接使用前端计算的 prevId
+        console.warn('返回上一题API失败，尝试使用本地计算:', res?.error)
+        setCurrentId(prevId as any)
+        return
+      }
+      // 优先使用后端返回的位置，如果为空则使用前端计算的
+      if (res.currentQuestionId) {
+        setCurrentId(res.currentQuestionId as any)
+      } else {
+        setCurrentId(prevId as any)
+      }
     } catch (e) {
-      Taro.showToast({ title: e instanceof Error ? e.message : '返回失败', icon: 'none' })
+      console.error('返回上一题错误:', e)
+      Taro.showToast({ title: '返回失败，请重试', icon: 'none' })
     } finally {
       setSubmitting(false)
     }

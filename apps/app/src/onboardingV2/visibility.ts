@@ -78,27 +78,27 @@ export function isQuestionVisibleV2(id: OnboardingV2QuestionId, answers: Onboard
     case 'E1_pad_brand':
       return includesMulti(answers, 'E1_products', 'pad')
     case 'E1_pad_brand_other_text':
-      return getSingle(answers, 'E1_pad_brand') === 'other'
+      return includesMulti(answers, 'E1_pad_brand', 'other')
 
     case 'E1_tampon_brand':
       return includesMulti(answers, 'E1_products', 'tampon')
     case 'E1_tampon_brand_other_text':
-      return getSingle(answers, 'E1_tampon_brand') === 'other'
+      return includesMulti(answers, 'E1_tampon_brand', 'other')
 
     case 'E1_cup_brand':
       return includesMulti(answers, 'E1_products', 'cup')
     case 'E1_cup_brand_other_text':
-      return getSingle(answers, 'E1_cup_brand') === 'other'
+      return includesMulti(answers, 'E1_cup_brand', 'other')
 
     case 'E1_disc_brand':
       return includesMulti(answers, 'E1_products', 'disc')
     case 'E1_disc_brand_other_text':
-      return getSingle(answers, 'E1_disc_brand') === 'other'
+      return includesMulti(answers, 'E1_disc_brand', 'other')
 
     case 'E1_period_underwear_brand':
       return includesMulti(answers, 'E1_products', 'period_underwear')
     case 'E1_period_underwear_brand_other_text':
-      return getSingle(answers, 'E1_period_underwear_brand') === 'other'
+      return includesMulti(answers, 'E1_period_underwear_brand', 'other')
 
     case 'E1_other_product_text':
       return includesMulti(answers, 'E1_products', 'other')
