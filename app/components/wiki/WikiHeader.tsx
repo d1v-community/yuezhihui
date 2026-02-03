@@ -48,7 +48,7 @@ export function WikiHeader({ user, onLogout }: WikiHeaderProps) {
                 >
                   {displayName}
                 </button>
-                <div className="absolute right-0 mt-2 hidden group-hover:block">
+                <div className="absolute right-0 mt-2 hidden group-hover:block z-50">
                   <button
                     type="button"
                     onClick={onLogout}

@@ -39,8 +39,12 @@ export function isQuestionVisibleV2(id: OnboardingV2QuestionId, answers: Onboard
     case 'C2_current_status':
     case 'H1_contraception_methods':
     case 'H2_pregnancy_history':
-    case 'H5_abortion_history':
       return menarcheEver === 'yes'
+
+    case 'H5_abortion_history': {
+      const pregnancyHistory = getSingle(answers, 'H2_pregnancy_history')
+      return menarcheEver === 'yes' && (pregnancyHistory === 'ever' || pregnancyHistory === 'pregnant_now')
+    }
 
     case 'C5_amenorrhea_reason':
       return menarcheEver === 'yes' && mensesLast3m === 'no'
