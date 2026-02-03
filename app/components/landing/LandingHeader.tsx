@@ -18,20 +18,35 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
             {APP_TITLE}
           </Link>
 
-          <nav className="hidden md:flex items-center gap-5 text-sm text-brand-muted">
-            <Link to="/wiki" className="hover:text-brand-text transition-colors">
+          <nav className="hidden md:flex items-center gap-1 text-sm text-brand-muted">
+            <Link
+              to="/wiki"
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+            >
               百科
             </Link>
-            <a href="#problem" className="hover:text-brand-text transition-colors">
+            <a
+              href="#problem"
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+            >
               痛点
             </a>
-            <a href="#demo" className="hover:text-brand-text transition-colors">
+            <a
+              href="#demo"
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+            >
               Demo
             </a>
-            <a href="#philosophy" className="hover:text-brand-text transition-colors">
+            <a
+              href="#philosophy"
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+            >
               理念
             </a>
-            <a href="#privacy" className="hover:text-brand-text transition-colors">
+            <a
+              href="#privacy"
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+            >
               隐私
             </a>
           </nav>
@@ -47,12 +62,9 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
 
             {user ? (
               <div className="relative group">
-                <button
-                  type="button"
-                  className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-brand-text hover:bg-brand-primary/35 transition"
-                >
+                <span className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-brand-text hover:bg-brand-primary/35 transition cursor-pointer">
                   {displayName}
-                </button>
+                </span>
                 <div className="absolute right-0 mt-2 hidden group-hover:block z-50">
                   <button
                     type="button"

@@ -42,12 +42,9 @@ export function WikiHeader({ user, onLogout }: WikiHeaderProps) {
 
             {user ? (
               <div className="relative group">
-                <button
-                  type="button"
-                  className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-brand-text hover:bg-brand-primary/35 transition"
-                >
+                <span className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-brand-text hover:bg-brand-primary/35 transition cursor-pointer">
                   {displayName}
-                </button>
+                </span>
                 <div className="absolute right-0 mt-2 hidden group-hover:block z-50">
                   <button
                     type="button"
