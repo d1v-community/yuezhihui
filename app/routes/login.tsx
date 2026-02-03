@@ -232,6 +232,8 @@ export default function Login() {
                 <input
                   id="code"
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   required
