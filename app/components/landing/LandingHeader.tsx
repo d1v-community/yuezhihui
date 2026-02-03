@@ -7,6 +7,16 @@ interface LandingHeaderProps {
   onLogout: () => void;
 }
 
+function scrollToSection(e: React.MouseEvent<HTMLAnchorElement>, hash: string) {
+  e.preventDefault();
+  const element = document.querySelector(hash);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Update URL without triggering scroll
+    history.pushState(null, '', hash);
+  }
+}
+
 export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
   const displayName = user?.displayName || user?.username || user?.email;
 
@@ -21,31 +31,35 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
           <nav className="hidden md:flex items-center gap-1 text-sm text-brand-muted">
             <Link
               to="/wiki"
-              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70"
             >
               百科
             </Link>
             <a
               href="#problem"
-              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+              onClick={(e) => scrollToSection(e, '#problem')}
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
             >
               痛点
             </a>
             <a
               href="#demo"
-              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+              onClick={(e) => scrollToSection(e, '#demo')}
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
             >
               Demo
             </a>
             <a
               href="#philosophy"
-              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+              onClick={(e) => scrollToSection(e, '#philosophy')}
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
             >
               理念
             </a>
             <a
               href="#privacy"
-              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:text-brand-text"
+              onClick={(e) => scrollToSection(e, '#privacy')}
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
             >
               隐私
             </a>
