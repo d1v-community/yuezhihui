@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Taro, { useLoad } from '@tarojs/taro'
-import { View, Text, Picker, ScrollView } from '@tarojs/components'
+import { View, Text, Picker } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
 import { getStorageJson, getStorageString, setStorageString } from '../../storage/storage'
 import { loadDailyRecord, saveDailyRecordDraft, submitDailyRecord } from '../../services/dailyRecordRepo'
@@ -69,6 +69,9 @@ const VOLUMES = [
   { label: '多（10mL）', value: 10 },
 ]
 
+const STRIP_DAYS = 14
+const STRIP_CENTER_IDX = 6 // 0-based
+
 export default function HomePage() {
   const today = todayYmd()
   const minDate = addDaysYmd(today, -180)
@@ -87,6 +90,8 @@ export default function HomePage() {
   const [submittedAt, setSubmittedAt] = useState<number | null>(null)
   const [record, setRecord] = useState<DailyRecord>({ date: today, hasBleeding: false, events: [] })
   const [snapshot, setSnapshot] = useState('')
+
+  const [stripStart, setStripStart] = useState(() => addDaysYmd(today, -(STRIP_DAYS - 1)))
 
   const [padTypeIndex, setPadTypeIndex] = useState(1)
   const [tamponModelIndex, setTamponModelIndex] = useState(1)
@@ -111,6 +116,18 @@ export default function HomePage() {
     totalVolume,
   })
   editingRef.current = { date: record.date, hasAnyData, derivedHasBleeding, totalVolume }
+
+  const stripEnd = useMemo(() => addDaysYmd(stripStart, STRIP_DAYS - 1), [stripStart])
+  const stripDays = useMemo(() => Array.from({ length: STRIP_DAYS }, (_, i) => addDaysYmd(stripStart, i)), [stripStart])
+  const stripIncludes = (d: string) => d >= stripStart && d <= stripEnd
+  const reanchorStripTo = (d: string) => {
+    const clamped = clampYmd(d, minDate, today)
+    let start = addDaysYmd(clamped, -STRIP_CENTER_IDX)
+    // Ensure window doesn't exceed [minDate..today] while still keeping 14 days when possible.
+    if (addDaysYmd(start, STRIP_DAYS - 1) > today) start = addDaysYmd(today, -(STRIP_DAYS - 1))
+    if (start < minDate) start = minDate
+    return start
+  }
 
   const fetchRange = async (start: string, end: string) => {
     setRangeLoading(true)
@@ -186,6 +203,7 @@ export default function HomePage() {
       const firstCompletedAt = getStorageString(STORAGE_KEYS.dailyFirstCompletedAt)
       const anchor = getStorageString(STORAGE_KEYS.onboardingAnchorDate) || today
       const initial = firstCompletedAt ? today : clampYmd(anchor, minDate, today)
+      setStripStart(reanchorStripTo(initial))
       await loadForDate(initial)
 
       // First-time guidance (show once): align with USER_FLOW_MINIPROGRAM_DAILY.
@@ -229,18 +247,75 @@ export default function HomePage() {
     })
   }, [record?.date, hasAnyData, derivedHasBleeding, totalVolume, loading])
 
+  const confirmDiscardIfDirty = async () => {
+    if (!dirty) return true
+    const res = await Taro.showModal({
+      title: '放弃修改？',
+      content: '当前修改未提交，切换日期将放弃这些改动。',
+      confirmText: '放弃',
+      cancelText: '继续编辑',
+    })
+    return Boolean(res.confirm)
+  }
+
+  const touchRef = useRef<{ x: number; y: number; t: number }>({ x: 0, y: 0, t: 0 })
+  const onSwipeStart = (e: any) => {
+    const p = e?.touches?.[0]
+    if (!p) return
+    touchRef.current = { x: Number(p.pageX || 0), y: Number(p.pageY || 0), t: Date.now() }
+  }
+  const onSwipeEnd = (e: any) => {
+    if (loading) return
+    const p = e?.changedTouches?.[0]
+    if (!p) return
+    const dx = Number(p.pageX || 0) - touchRef.current.x
+    const dy = Number(p.pageY || 0) - touchRef.current.y
+    const dt = Date.now() - touchRef.current.t
+
+    // Gesture filter: quick-ish horizontal swipe only.
+    if (dt > 650) return
+    if (Math.abs(dx) < 45) return
+    if (Math.abs(dy) > 30) return
+    if (Math.abs(dx) < Math.abs(dy) * 1.2) return
+
+    const dir = dx < 0 ? 1 : -1
+    if (dir > 0 && selectedDate >= stripEnd) {
+      Taro.showToast({ title: '已到最晚日期', icon: 'none' })
+      return
+    }
+    if (dir < 0 && selectedDate <= stripStart) {
+      Taro.showToast({ title: '已到最早日期', icon: 'none' })
+      return
+    }
+
+    void selectDate(addDaysYmd(selectedDate, dir))
+  }
+
   const selectDate = async (nextDate: string) => {
     const clamped = clampYmd(nextDate, minDate, today)
     if (clamped === selectedDate) return
-    if (dirty) {
+    const ok = await confirmDiscardIfDirty()
+    if (!ok) return
+    await loadForDate(clamped)
+  }
+
+  const selectDateWithReanchor = async (nextDate: string) => {
+    const clamped = clampYmd(nextDate, minDate, today)
+    if (clamped === selectedDate) return
+    const ok = await confirmDiscardIfDirty()
+    if (!ok) return
+
+    if (!stripIncludes(clamped)) {
       const res = await Taro.showModal({
-        title: '放弃修改？',
-        content: '当前修改未提交，切换日期将放弃这些改动。',
-        confirmText: '放弃',
-        cancelText: '继续编辑',
+        title: '跳转日期',
+        content: '所选日期不在当前顶部 14 天范围内，将刷新顶部日期范围以包含该日。',
+        confirmText: '继续',
+        cancelText: '取消',
       })
       if (!res.confirm) return
+      setStripStart(reanchorStripTo(clamped))
     }
+
     await loadForDate(clamped)
   }
 
@@ -297,119 +372,120 @@ export default function HomePage() {
   const showTampon = typeof visibility.tampon === 'boolean' ? visibility.tampon : true
   const showBleedingUi = typeof visibility.bleeding === 'boolean' ? visibility.bleeding : true
 
-  let stripStart = addDaysYmd(selectedDate, -14)
-  let stripEnd = addDaysYmd(stripStart, 29)
-  if (stripEnd > today) {
-    stripEnd = today
-    stripStart = addDaysYmd(stripEnd, -29)
-  }
-  if (stripStart < minDate) {
-    stripStart = minDate
-    stripEnd = addDaysYmd(stripStart, 29)
-    if (stripEnd > today) stripEnd = today
-  }
-  const recentDays = Array.from({ length: 30 }, (_, i) => addDaysYmd(stripStart, i))
+  const recentDays = stripDays
+
+  const eventTags =
+    record.events.length === 0 ? (
+      <Text className="muted">今天的身体还没有被记录。</Text>
+    ) : (
+      <View className="tagRow">
+        {record.events.map((e) => (
+          <View key={e.id} className="tag">
+            <Text className="tagText">{formatEventLabel(e)}</Text>
+            <View className="tagDel" onClick={() => removeEvent(e.id)}>
+              <Text>×</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    )
 
   return (
     <View className="page">
       <View className="wrap">
         <View className="card fc-appear">
-          <View className="row">
-            <Text className="title">按日记录</Text>
-            <Picker
-              mode="date"
-              value={selectedDate}
-              start={minDate}
-              end={today}
-              onChange={(e) => {
-                if (loading) return
-                void selectDate(String(e.detail.value))
-              }}
-            >
-              <FCChip>{selectedDate}</FCChip>
-            </Picker>
+          <View className="row headerRow">
+            <View className="headerLeft">
+              <Text className="title">按日记录</Text>
+              <View className="headerStatusIcons">
+                <FCPressable
+                  className={['statusIcon', hasSubmitted ? 'statusIconOn' : ''].join(' ')}
+                  onClick={() => Taro.showToast({ title: hasSubmitted ? '该日已保存' : '该日未提交', icon: 'none' })}
+                >
+                  <Text className="statusIconText">{hasSubmitted ? '✓' : '○'}</Text>
+                </FCPressable>
+                <FCPressable
+                  className={['statusIcon', dirty ? 'statusIconOn' : ''].join(' ')}
+                  onClick={() => Taro.showToast({ title: dirty ? '有未提交改动' : '未检测到改动', icon: 'none' })}
+                >
+                  <Text className="statusIconText">{dirty ? '✎' : '—'}</Text>
+                </FCPressable>
+                {submitting ? (
+                  <View className="statusSpin">
+                    <View className="fc-spinner fc-spinnerDark" />
+                  </View>
+                ) : null}
+              </View>
+            </View>
+
+            <View className="headerRight">
+              <Picker
+                mode="date"
+                value={selectedDate}
+                start={minDate}
+                end={today}
+                onChange={(e) => {
+                  if (loading) return
+                  void selectDateWithReanchor(String(e.detail.value))
+                }}
+              >
+                <FCChip>{selectedDate}</FCChip>
+              </Picker>
+
+              <FCPressable className="headerGear" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
+                <Text className="headerGearText">⚙</Text>
+              </FCPressable>
+            </View>
           </View>
 
           <View className="calendarStrip">
-            <ScrollView scrollX showScrollbar={false} className="calendarScroll">
-              <View className="calendarInner">
-                {recentDays.map((d) => {
-                  const meta = rangeMap[d]
-                  const isActive = d === selectedDate
-                  const hasData = Boolean(meta)
-                  const dayText = d.slice(8, 10)
-                  return (
-                    <FCPressable
-                      key={d}
-                      className={['calDay', isActive ? 'calDayActive' : ''].join(' ')}
-                      onClick={() => {
-                        if (loading) return
-                        void selectDate(d)
-                      }}
-                      onLongPress={() => {
-                        if (rangeLoading && !meta) {
-                          Taro.showToast({ title: '正在加载…', icon: 'none' })
-                          return
-                        }
-                        if (!meta) {
-                          Taro.showToast({ title: `${d} 无记录`, icon: 'none' })
-                          return
-                        }
-                        Taro.showToast({ title: `${d} · ${meta.totalVolumeMl}mL`, icon: 'none' })
-                      }}
-                    >
-                      <Text className={['calDayText', isActive ? 'calDayTextActive' : ''].join(' ')}>{dayText}</Text>
-                      <FCVolumeVial
-                        volumeMl={meta?.totalVolumeMl ?? 0}
-                        hasData={hasData}
-                        active={isActive}
-                        loading={rangeLoading && !meta}
-                        color={meta?.dayColor ?? null}
-                        maxMl={40}
-                      />
-                    </FCPressable>
-                  )
-                })}
-              </View>
-            </ScrollView>
+            <View className="calendarInner calendarInner14">
+              {recentDays.map((d) => {
+                const meta = rangeMap[d]
+                const isActive = d === selectedDate
+                const hasData = Boolean(meta)
+                const dayText = d.slice(8, 10)
+                return (
+                  <FCPressable
+                    key={d}
+                    className={['calDay', 'calDay14', isActive ? 'calDayActive' : ''].join(' ')}
+                    onClick={() => {
+                      if (loading) return
+                      void selectDate(d)
+                    }}
+                    onLongPress={() => {
+                      if (rangeLoading && !meta) {
+                        Taro.showToast({ title: '正在加载…', icon: 'none' })
+                        return
+                      }
+                      if (!meta) {
+                        Taro.showToast({ title: `${d} 无记录`, icon: 'none' })
+                        return
+                      }
+                      Taro.showToast({ title: `${d} · ${meta.totalVolumeMl}mL`, icon: 'none' })
+                    }}
+                  >
+                    <Text className={['calDayText', isActive ? 'calDayTextActive' : ''].join(' ')}>{dayText}</Text>
+                    <FCVolumeVial
+                      volumeMl={meta?.totalVolumeMl ?? 0}
+                      hasData={hasData}
+                      active={isActive}
+                      loading={rangeLoading && !meta}
+                      color={meta?.dayColor ?? null}
+                      maxMl={40}
+                    />
+                  </FCPressable>
+                )
+              })}
+            </View>
             <View className="calHintRow">
-              <Text className="muted">点日期可快速切换；量筒高度表示该日总血量（示意），空量筒也表示“有记录但无血量”。</Text>
-              <FCPressable className="calGear" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
-                <Text className="calGearText">⚙</Text>
-              </FCPressable>
+              <Text className="muted">点日期切换；左右滑动下方内容可前后切换 1 天；量筒高度表示该日总血量（示意）。</Text>
             </View>
-          </View>
-
-          <View className="statusRow">
-            <View className="statusIcons">
-              <FCPressable
-                className={['statusIcon', hasSubmitted ? 'statusIconOn' : ''].join(' ')}
-                onClick={() =>
-                  Taro.showToast({ title: hasSubmitted ? '该日已保存' : '该日未提交', icon: 'none' })
-                }
-              >
-                <Text className="statusIconText">{hasSubmitted ? '✓' : '○'}</Text>
-              </FCPressable>
-              <FCPressable
-                className={['statusIcon', dirty ? 'statusIconOn' : ''].join(' ')}
-                onClick={() =>
-                  Taro.showToast({ title: dirty ? '有未提交改动' : '未检测到改动', icon: 'none' })
-                }
-              >
-                <Text className="statusIconText">{dirty ? '✎' : '—'}</Text>
-              </FCPressable>
-              {submitting ? (
-                <View className="statusSpin">
-                  <View className="fc-spinner fc-spinnerDark" />
-                </View>
-              ) : null}
-            </View>
-            <Text className="statusHint">仅可记录今天及之前</Text>
           </View>
 
           <View className="divider" />
 
-          <View className="recordBody">
+          <View className="recordBody" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd} onTouchCancel={onSwipeEnd}>
             {loading ? (
               <View className="loadingMask">
                 <View className="loadingBox">
@@ -429,9 +505,18 @@ export default function HomePage() {
                 <View className="volumeBar">
                   <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
                 </View>
+                <View className="tagsInline">{eventTags}</View>
                 <Text className="muted">填写实际血量即代表该日有出血；提交后若继续改动，按钮会变为「更新」。</Text>
               </View>
-            ) : null}
+            ) : (
+              <View className="section">
+                <View className="row">
+                  <Text className="title">当日数据点</Text>
+                  <Text className="muted">{record.events.length} 条</Text>
+                </View>
+                <View className="tagsInline">{eventTags}</View>
+              </View>
+            )}
 
             <View className="divider" />
 
@@ -554,25 +639,6 @@ export default function HomePage() {
               <Text className="muted">症状也会成为时间轴上的“数据点”。</Text>
             </View>
 
-            <View className="divider" />
-
-            <View className="section">
-              <Text className="title">事件标签</Text>
-              {record.events.length === 0 ? (
-                <Text className="muted">今天的身体还没有被记录。</Text>
-              ) : (
-                <View className="tagRow">
-                  {record.events.map((e) => (
-                    <View key={e.id} className="tag">
-                      <Text className="tagText">{formatEventLabel(e)}</Text>
-                      <View className="tagDel" onClick={() => removeEvent(e.id)}>
-                        <Text>×</Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
           </View>
         </View>
 
