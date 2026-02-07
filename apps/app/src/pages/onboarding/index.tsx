@@ -157,7 +157,7 @@ export default function OnboardingPage() {
         const nextId = res.session?.currentQuestionId ?? null
         setAnswers(nextAnswers)
         setCurrentId(nextId)
-      } catch (e) {
+      } catch {
         Taro.showToast({ title: '加载失败，请重试', icon: 'none' })
       } finally {
         setLoading(false)
@@ -296,17 +296,17 @@ export default function OnboardingPage() {
 
   const formatAnswer = (id: OnboardingV2QuestionId) => {
     const a = answers[id]
-    const def = QUESTION_DEFS[id]
+    const qdef = QUESTION_DEFS[id]
     if (!a) return '未填写'
     if (a.type === 'single') {
-      const opt = def.type === 'single' ? def.options.find((o) => o.value === a.value) : null
+      const opt = qdef.type === 'single' ? qdef.options.find((o) => o.value === a.value) : null
       return opt?.label || a.value
     }
     if (a.type === 'multi') {
       const values = Array.isArray(a.values) ? a.values : []
       const labels =
-        def.type === 'multi'
-          ? values.map((v) => def.options.find((o) => o.value === v)?.label || v)
+        qdef.type === 'multi'
+          ? values.map((v) => qdef.options.find((o) => o.value === v)?.label || v)
           : values
       if (labels.length <= 3) return labels.join('、') || '未选择'
       return `${labels.slice(0, 3).join('、')} 等（${labels.length}项）`
@@ -377,8 +377,8 @@ export default function OnboardingPage() {
     const summaryIds = visibleIds
       .filter((id) => id !== 'F2_condition_source_unknown_text')
       .filter((id) => {
-        const def = QUESTION_DEFS[id]
-        return Boolean(def?.required || answers[id])
+        const qdef = QUESTION_DEFS[id]
+        return Boolean(qdef?.required || answers[id])
       })
     return (
       <View className="page">

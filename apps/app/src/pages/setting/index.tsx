@@ -7,7 +7,7 @@ import { authMe } from '../../services/auth'
 import { onboardingV2Position, onboardingV2State } from '../../services/onboardingV2'
 import { updateUserProfile } from '../../services/user'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
-import { FCActionBar, FCButton, FCTextField, FCTabBar } from '../../ui'
+import { FCActionBar, FCButton, FCPressable, FCTextField, FCTabBar } from '../../ui'
 import './index.less'
 
 type VisibilitySettings = {
@@ -106,13 +106,22 @@ export default function SettingPage() {
     Taro.reLaunch({ url: '/pages/login/index' })
   }
 
+  const goBack = () => {
+    Taro.navigateBack().catch(() => Taro.redirectTo({ url: '/pages/home/index' }))
+  }
+
   if (loading) {
     return (
       <View className="page">
         <View className="bg">
           <View className="wrap">
             <View className="card">
-              <Text className="title">设置</Text>
+              <View className="headerRow">
+                <FCPressable className="backBtn" onClick={goBack}>
+                  <Text className="backIcon">←</Text>
+                </FCPressable>
+                <Text className="title">设置</Text>
+              </View>
               <Text className="desc">正在加载...</Text>
             </View>
           </View>
@@ -126,7 +135,12 @@ export default function SettingPage() {
       <View className="bg">
         <View className="wrap">
           <View className="card fc-appear">
-            <Text className="title">设置</Text>
+            <View className="headerRow">
+              <FCPressable className="backBtn" onClick={goBack}>
+                <Text className="backIcon">←</Text>
+              </FCPressable>
+              <Text className="title">设置</Text>
+            </View>
             <Text className="desc">账号 · 隐私 · 记录展示</Text>
 
             <View className="section">
@@ -225,4 +239,3 @@ export default function SettingPage() {
     </View>
   )
 }
-

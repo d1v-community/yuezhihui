@@ -54,7 +54,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
       { status: 200 },
     );
   } catch (e: any) {
-    if (e instanceof Response) return e;
+    if (e instanceof Response) {
+      if (e.status === 401) {
+        return Response.json(fail("登录已过期，请重新登录", 401), { status: 401 });
+      }
+      return e;
+    }
     if (e?.status === 401) {
       return Response.json(fail("登录已过期，请重新登录", 401), { status: 401 });
     }

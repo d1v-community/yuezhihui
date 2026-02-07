@@ -46,11 +46,55 @@
   .app-divider();
 }
 
-.pillRow {
+.statusRow {
   margin-top: 10px;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.statusIcons {
+  display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.statusIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.55;
+}
+
+.statusIconOn {
+  opacity: 1;
+  border-color: rgba(139, 94, 94, 0.24);
+  background: rgba(200, 182, 166, 0.18);
+}
+
+.statusIconText {
+  font-size: 13px;
+  line-height: 13px;
+  color: rgba(0, 0, 0, 0.70);
+}
+
+.statusSpin {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusHint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.46);
 }
 
 .calendarStrip {
@@ -96,20 +140,6 @@
   color: rgba(0, 0, 0, 0.88);
 }
 
-.calDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.12);
-}
-
-.calDotOn {
-  background: rgba(139, 94, 94, 0.42);
-}
-
-.calDotActive {
-  background: rgba(139, 94, 94, 0.82);
-}
 
 .calHintRow {
   margin-top: 8px;

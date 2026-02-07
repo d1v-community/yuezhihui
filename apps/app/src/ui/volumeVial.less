@@ -1,0 +1,83 @@
+@import '../styles/ui.less';
+
+.fcVial {
+  width: 10px;
+  height: 18px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+
+.fcVialTube {
+  width: 10px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  position: relative;
+}
+
+.fcVialFill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* A subtle "liquid surface" line, kept inside the tube. */
+.fcVialMeniscus {
+  height: 1px;
+  margin: 0 1px;
+  opacity: 0.75;
+}
+
+.fcVialHasData .fcVialTube {
+  border-color: rgba(139, 94, 94, 0.26);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.fcVialActive {
+  opacity: 1;
+}
+
+.fcVialActive .fcVialTube {
+  border-color: rgba(139, 94, 94, 0.42);
+  box-shadow: 0 0 0 3px rgba(200, 182, 166, 0.18);
+}
+
+.fcVialLoading .fcVialTube {
+  border-color: rgba(0, 0, 0, 0.10);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.03),
+    rgba(0, 0, 0, 0.06),
+    rgba(0, 0, 0, 0.03)
+  );
+  background-size: 200% 100%;
+  animation: fcVialShimmer 1.2s @ease-soft infinite;
+}
+
+@keyframes fcVialShimmer {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+/* Hidden text helper (keeps DOM stable; ignore in normal layout). */
+.fcVialSr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
