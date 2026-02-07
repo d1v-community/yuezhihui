@@ -107,7 +107,7 @@ async function main() {
     assert.equal(get.res.status, 200, `menstrual get failed: ${get.text}`);
     assert.equal(get.data?.code, 200, `menstrual get code!=200: ${get.text}`);
     assert.equal(get.data?.data?.date, ymd, `menstrual get date mismatch: ${get.text}`);
-    assert.equal(get.data?.data?.totalVolumeMl, 9, `menstrual totalVolumeMl mismatch: ${get.text}`);
+    assert.equal(get.data?.data?.totalVolumeMl, 8, `menstrual totalVolumeMl mismatch: ${get.text}`);
     assert.ok(Array.isArray(get.data?.data?.events), "menstrual get should include events array");
 
     const range = await jsonFetch(`/api/menstrual/daily?start=${start}&end=${end}`, { token });

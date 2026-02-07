@@ -16,8 +16,8 @@ function uid() {
 }
 
 function sumVolumeMl(events: DailyRecordEvent[]) {
-  const CLOT_SMALL_ML = 3
-  const CLOT_LARGE_ML = 6
+  const CLOT_SMALL_ML = 2
+  const CLOT_LARGE_ML = 4
   return events.reduce((s, e) => {
     if (e.eventType === 'pad' || e.eventType === 'tampon') return s + (e.volumeMl || 0)
     if (e.eventType === 'symptom') {
@@ -531,7 +531,7 @@ export default function HomePage() {
                   <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
                 </View>
                 <View className="tagsInline">{eventTags}</View>
-                <Text className="muted">血块会按示意值计入进度条：小血块≈3mL，大血块≈6mL。</Text>
+                <Text className="muted">血块会按示意值计入进度条：小血块≈2mL，大血块≈4mL。</Text>
               </View>
             ) : (
               <View className="section">
