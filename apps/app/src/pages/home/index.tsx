@@ -424,12 +424,13 @@ export default function HomePage() {
                 value={selectedDate}
                 start={minDate}
                 end={today}
+                className="datePicker"
                 onChange={(e) => {
                   if (loading) return
                   void selectDateWithReanchor(String(e.detail.value))
                 }}
               >
-                <FCChip>{selectedDate}</FCChip>
+                <FCChip className="dateChip">{selectedDate}</FCChip>
               </Picker>
 
               <FCPressable className="headerGear" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
@@ -500,7 +501,22 @@ export default function HomePage() {
               <View className="section">
                 <View className="row">
                   <Text className="title">当日血量（示意）</Text>
-                  <Text className="muted">{totalVolume} mL</Text>
+                  <View className="rowRight">
+                    <View className="tagBtnRow">
+                      {(['小血块', '大血块'] as const).map((name) => (
+                        <FCChip
+                          key={name}
+                          className="tagBtn"
+                          onClick={() =>
+                            addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
+                          }
+                        >
+                          {name}
+                        </FCChip>
+                      ))}
+                    </View>
+                    <Text className="muted">{totalVolume} mL</Text>
+                  </View>
                 </View>
                 <View className="volumeBar">
                   <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
@@ -512,7 +528,22 @@ export default function HomePage() {
               <View className="section">
                 <View className="row">
                   <Text className="title">当日数据点</Text>
-                  <Text className="muted">{record.events.length} 条</Text>
+                  <View className="rowRight">
+                    <View className="tagBtnRow">
+                      {(['小血块', '大血块'] as const).map((name) => (
+                        <FCChip
+                          key={name}
+                          className="tagBtn"
+                          onClick={() =>
+                            addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
+                          }
+                        >
+                          {name}
+                        </FCChip>
+                      ))}
+                    </View>
+                    <Text className="muted">{record.events.length} 条</Text>
+                  </View>
                 </View>
                 <View className="tagsInline">{eventTags}</View>
               </View>
@@ -619,25 +650,6 @@ export default function HomePage() {
                 </View>
               </View>
             ) : null}
-
-            <View className="divider" />
-
-            <View className="section">
-              <Text className="title">症状（示意）</Text>
-              <View className="optRow">
-                {(['小血块', '大血块'] as const).map((name) => (
-                  <FCButton
-                    key={name}
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })}
-                  >
-                    {name}
-                  </FCButton>
-                ))}
-              </View>
-              <Text className="muted">症状也会成为时间轴上的“数据点”。</Text>
-            </View>
 
           </View>
         </View>

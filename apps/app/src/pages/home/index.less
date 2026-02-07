@@ -25,6 +25,26 @@
   gap: 12px;
 }
 
+.rowRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tagBtnRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tagBtn {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
 .title {
   font-size: 16px;
   font-weight: 700;
@@ -98,7 +118,7 @@
 }
 
 .headerRow {
-  align-items: flex-start;
+  align-items: center;
 }
 
 .headerLeft {
@@ -106,6 +126,7 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  min-height: 34px;
 }
 
 .headerStatusIcons {
@@ -118,6 +139,24 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 34px;
+}
+
+.datePicker {
+  height: 34px;
+  display: flex;
+  align-items: center;
+}
+
+/* Make the date chip visually align with the 34px gear button. */
+.dateChip {
+  height: 34px;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.dateChip text {
+  line-height: 34px;
 }
 
 .headerGear {
@@ -274,12 +313,6 @@
 }
 
 /* Bottom actions now use `FCActionBar` + `FCButton` (see `src/ui/`). */
-
-.actionsHint {
-  margin-top: 8px;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.55);
-}
 
 .loadingMask {
   position: absolute;
