@@ -16,7 +16,16 @@ function uid() {
 }
 
 function sumVolumeMl(events: DailyRecordEvent[]) {
-  return events.reduce((s, e) => s + (e.eventType === 'pad' || e.eventType === 'tampon' ? e.volumeMl || 0 : 0), 0)
+  const CLOT_SMALL_ML = 3
+  const CLOT_LARGE_ML = 6
+  return events.reduce((s, e) => {
+    if (e.eventType === 'pad' || e.eventType === 'tampon') return s + (e.volumeMl || 0)
+    if (e.eventType === 'symptom') {
+      if (e.symptomName === '小血块') return s + CLOT_SMALL_ML
+      if (e.symptomName === '大血块') return s + CLOT_LARGE_ML
+    }
+    return s
+  }, 0)
 }
 
 function minYmd(a: string, b: string) {
