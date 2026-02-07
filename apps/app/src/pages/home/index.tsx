@@ -553,16 +553,22 @@ export default function HomePage() {
 
             {showPad ? (
               <View className="section">
-                <Text className="title">卫生巾</Text>
+                <View className="sectionHeadRow">
+                  <Text className="title">卫生巾</Text>
+                  <View className="segRow">
+                    {PAD_TYPES.map((x, idx) => (
+                      <FCChip
+                        key={x.value}
+                        className="segChip"
+                        active={padTypeIndex === idx}
+                        onClick={() => setPadTypeIndex(idx)}
+                      >
+                        {x.label}
+                      </FCChip>
+                    ))}
+                  </View>
+                </View>
                 <View className="optRow">
-                  <Picker
-                    mode="selector"
-                    range={PAD_TYPES.map((x) => x.label)}
-                    value={padTypeIndex}
-                    onChange={(e) => setPadTypeIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{PAD_TYPES[padTypeIndex]?.label || '选择类型'}</FCChip>
-                  </Picker>
                   <Picker
                     mode="selector"
                     range={COLORS.map((x) => x.label)}
@@ -604,16 +610,22 @@ export default function HomePage() {
 
             {showTampon ? (
               <View className="section">
-                <Text className="title">卫生棉条</Text>
+                <View className="sectionHeadRow">
+                  <Text className="title">卫生棉条</Text>
+                  <View className="segRow">
+                    {TAMPON_MODELS.map((x, idx) => (
+                      <FCChip
+                        key={x.value}
+                        className="segChip"
+                        active={tamponModelIndex === idx}
+                        onClick={() => setTamponModelIndex(idx)}
+                      >
+                        {x.label}
+                      </FCChip>
+                    ))}
+                  </View>
+                </View>
                 <View className="optRow">
-                  <Picker
-                    mode="selector"
-                    range={TAMPON_MODELS.map((x) => x.label)}
-                    value={tamponModelIndex}
-                    onChange={(e) => setTamponModelIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{TAMPON_MODELS[tamponModelIndex]?.label || '选择型号'}</FCChip>
-                  </Picker>
                   <Picker
                     mode="selector"
                     range={COLORS.map((x) => x.label)}

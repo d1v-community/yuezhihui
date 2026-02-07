@@ -148,7 +148,6 @@ export default function EncyclopediaPage() {
                 设置
               </FCButton>
             </View>
-            <Text className="desc">科学、温和、可解释的月经知识卡片：常识、风险、自检与“反直觉”。</Text>
             <FCNotice
               variant="warn"
               title="科普信息不替代诊断"
