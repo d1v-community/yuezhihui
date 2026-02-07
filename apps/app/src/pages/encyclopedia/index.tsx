@@ -2,7 +2,7 @@ import { View, Text } from '@tarojs/components'
 import Taro, { useLoad } from '@tarojs/taro'
 import { useMemo, useState } from 'react'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
-import { FCActionBar, FCButton, FCNotice, FCPressable, FCTabBar } from '../../ui'
+import { FCActionBar, FCButton, FCNotice, FCPressable, FCSourceTag, FCTabBar } from '../../ui'
 import './index.less'
 
 type Source = { label: string; url: string }
@@ -222,15 +222,7 @@ export default function EncyclopediaPage() {
                             </View>
                             <View className="kbSources">
                               {c.sources.map((s) => (
-                                <FCPressable
-                                  key={s.url}
-                                  className="kbSourceChip"
-                                  onClick={() => {
-                                    void copyUrl(s.url)
-                                  }}
-                                >
-                                  <Text className="kbSourceText">{s.label}</Text>
-                                </FCPressable>
+                                <FCSourceTag key={s.url} label={s.label} onClick={() => void copyUrl(s.url)} />
                               ))}
                             </View>
                           </View>
