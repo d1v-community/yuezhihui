@@ -146,6 +146,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     let totalVolumeMl = 0;
     let clotSmallCount = 0;
     let clotLargeCount = 0;
+    const CLOT_SMALL_ML = 3;
+    const CLOT_LARGE_ML = 6;
 
     for (const e of events) {
       if (e.eventType === "pad" || e.eventType === "tampon") {
@@ -154,8 +156,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
           colorVolume.set(e.color, (colorVolume.get(e.color) ?? 0) + e.volumeMl);
         }
       } else if (e.eventType === "symptom") {
-        if (e.symptomName === "小血块") clotSmallCount += 1;
-        if (e.symptomName === "大血块") clotLargeCount += 1;
+        // UI/estimation: treat clot markers as a small additional volume signal.
+        if (e.symptomName === "小血块") {
+          clotSmallCount += 1;
+          totalVolumeMl += CLOT_SMALL_ML;
+        }
+        if (e.symptomName === "大血块") {
+          clotLargeCount += 1;
+          totalVolumeMl += CLOT_LARGE_ML;
+        }
       }
     }
 

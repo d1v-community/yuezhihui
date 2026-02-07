@@ -520,7 +520,7 @@ export default function HomePage() {
                             addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
                           }
                         >
-                          {name}
+                          ＋{name}
                         </FCChip>
                       ))}
                     </View>
@@ -531,7 +531,7 @@ export default function HomePage() {
                   <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
                 </View>
                 <View className="tagsInline">{eventTags}</View>
-                <Text className="muted">填写实际血量即代表该日有出血；提交后若继续改动，按钮会变为「更新」。</Text>
+                <Text className="muted">血块会按示意值计入进度条：小血块≈3mL，大血块≈6mL。</Text>
               </View>
             ) : (
               <View className="section">
@@ -547,7 +547,7 @@ export default function HomePage() {
                             addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
                           }
                         >
-                          {name}
+                          ＋{name}
                         </FCChip>
                       ))}
                     </View>
