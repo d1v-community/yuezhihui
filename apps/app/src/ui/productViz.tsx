@@ -73,11 +73,17 @@ function computeBlots(opts: { seed: string; volumeMl: number; kind: 'pad' | 'tam
   if (v <= 0) return []
 
   const rng = makeRng(opts.seed)
+  const centerBias = () => {
+    // Average a few uniform samples to bias toward the center (smooth, stable, less edge-clinging).
+    return (rng() + rng() + rng()) / 3
+  }
 
   const isPad = opts.kind === 'pad'
   const padType = opts.padType
   const yMin = isPad && padType === 'night' ? 16 : isPad && padType === 'liner' ? 20 : 18
   const yMax = isPad && padType === 'night' ? 78 : isPad && padType === 'liner' ? 72 : 76
+  const yMid = (yMin + yMax) / 2
+  const ySpan = yMax - yMin
 
   // Smooth/stable behavior:
   // - Positions are derived only from `seed` (not volume), so dragging the slider won't "teleport" blots.
@@ -98,8 +104,9 @@ function computeBlots(opts: { seed: string; volumeMl: number; kind: 'pad' | 'tam
   })
 
   for (let i = 1; i < MAX_BLOTS; i++) {
-    const x = 50 + (rng() - 0.5) * 46
-    const y = yMin + (yMax - yMin) * rng()
+    // Cluster around the center instead of hugging edges.
+    const x = 50 + (centerBias() - 0.5) * 32
+    const y = yMid + (centerBias() - 0.5) * (ySpan * 0.72)
     const baseSize = clamp(7 + rng() * 12, 6, 22)
     const baseAlpha = clamp(0.35 + rng() * 0.55, 0.28, 0.92)
 
