@@ -715,6 +715,14 @@ export default function HomePage() {
                               })
                             }}
                           >
+                            <View className="clickCardViz">
+                              <FCProductViz
+                                kind="pad"
+                                padType={PAD_TYPES[padTypeIndex]?.value as any}
+                                volumeMl={ml}
+                                color={dayColor}
+                              />
+                            </View>
                             <Text className="clickCardMl">{ml}mL</Text>
                           </View>
                         ))}
@@ -817,6 +825,14 @@ export default function HomePage() {
                               })
                             }}
                           >
+                            <View className="clickCardViz">
+                              <FCProductViz
+                                kind="tampon"
+                                tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                                volumeMl={ml}
+                                color={dayColor}
+                              />
+                            </View>
                             <Text className="clickCardMl">{ml}mL</Text>
                           </View>
                         ))}

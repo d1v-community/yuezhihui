@@ -379,9 +379,10 @@
 .clickCard {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px 0;
+  padding: 8px 4px;
   border-radius: 12px;
   background: rgba(248, 246, 244, 0.98);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -391,6 +392,11 @@
   &:active {
     background: rgba(232, 228, 224, 0.98);
   }
+}
+
+.clickCardViz {
+  margin-bottom: 6px;
+  transform: scale(0.6);
 }
 
 .clickCardMl {
