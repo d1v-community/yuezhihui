@@ -74,27 +74,45 @@ function computeBlots(opts: { seed: string; volumeMl: number; kind: 'pad' | 'tam
 
   const rng = makeRng(opts.seed)
 
-  // 3mL ~ 2 blots, 6mL ~ 4, 10mL ~ 7
-  const count = clamp(Math.round(v / 1.5), 1, 10)
-  const mainSize = clamp(10 + v * 1.2, 10, 34)
-
   const isPad = opts.kind === 'pad'
   const padType = opts.padType
   const yMin = isPad && padType === 'night' ? 16 : isPad && padType === 'liner' ? 20 : 18
   const yMax = isPad && padType === 'night' ? 78 : isPad && padType === 'liner' ? 72 : 76
 
+  // Smooth/stable behavior:
+  // - Positions are derived only from `seed` (not volume), so dragging the slider won't "teleport" blots.
+  // - As volume increases, more blots fade in gradually, instead of re-randomizing.
+  const MAX_BLOTS = 10
+  const V_RANGE = 12 // UI slider max is ~12mL for pads; keep staging stable in that range.
+  const FADE_SPAN = 1.2 // mL span for each blot to fade/scale in
+
   const out: Blot[] = []
 
-  // Main blot near center.
-  out.push({ xPct: 50, yPct: isPad && padType === 'night' ? 46 : 48, sizePx: mainSize, alpha: 0.95 })
+  const mainProg = clamp(v / 1.0, 0, 1)
+  const mainSize = clamp(12 + v * 1.35, 12, 34)
+  out.push({
+    xPct: 50,
+    yPct: isPad && padType === 'night' ? 46 : 48,
+    sizePx: mainSize,
+    alpha: 0.35 + 0.6 * mainProg,
+  })
 
-  for (let i = 1; i < count; i++) {
-    const spread = Math.min(1, v / 10)
-    const x = 50 + (rng() - 0.5) * (46 * spread)
-    const y = yMin + (yMax - yMin) * rng() + (rng() - 0.5) * (10 * spread)
-    const size = clamp(6 + rng() * 12 + v * 0.35, 6, 22)
-    const alpha = clamp(0.45 + rng() * 0.45, 0.35, 0.95)
-    out.push({ xPct: clamp(x, 22, 78), yPct: clamp(y, yMin, yMax), sizePx: size, alpha })
+  for (let i = 1; i < MAX_BLOTS; i++) {
+    const x = 50 + (rng() - 0.5) * 46
+    const y = yMin + (yMax - yMin) * rng()
+    const baseSize = clamp(7 + rng() * 12, 6, 22)
+    const baseAlpha = clamp(0.35 + rng() * 0.55, 0.28, 0.92)
+
+    const appearAt = (i / (MAX_BLOTS - 1)) * V_RANGE
+    const prog = clamp((v - appearAt) / FADE_SPAN, 0, 1)
+    if (prog <= 0) continue
+
+    out.push({
+      xPct: clamp(x, 22, 78),
+      yPct: clamp(y, yMin, yMax),
+      sizePx: Math.round(baseSize * (0.75 + 0.25 * prog)),
+      alpha: baseAlpha * prog,
+    })
   }
 
   return out
@@ -120,7 +138,8 @@ export function FCProductViz(props: FCProductVizProps) {
   const volumeMl = Number(props.volumeMl || 0)
   const padType = props.padType || 'day'
   const model = props.tamponModel || 'regular'
-  const seed = `${props.kind}|${padType}|${model}|${volumeMl}|${props.color || 'na'}`
+  // Keep seed stable across slider changes (smooth "少 -> 多" transition).
+  const seed = `${props.kind}|${padType}|${model}`
 
   const blots = props.kind === 'pad' ? computeBlots({ seed, volumeMl, kind: props.kind, padType }) : []
   const wetPct =

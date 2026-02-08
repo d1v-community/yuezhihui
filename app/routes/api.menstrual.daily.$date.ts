@@ -148,8 +148,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
     let clotLargeCount = 0;
     const CLOT_SMALL_ML = 2;
     const CLOT_LARGE_ML = 4;
+    let lastColor: string | null = null;
 
     for (const e of events) {
+      if (e.color) lastColor = e.color;
       if (e.eventType === "pad" || e.eventType === "tampon") {
         totalVolumeMl += e.volumeMl;
         if (e.color) {
@@ -178,6 +180,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
         dayColor = v > 0 ? color : null;
       }
     }
+    // If there is bleeding but we can't infer a dominant product color (e.g. only clot markers),
+    // fall back to "latest selected" color or default to red.
+    if (body.hasBleeding && !dayColor) {
+      dayColor = lastColor ?? "red";
+    }
+    if (!body.hasBleeding) dayColor = null;
 
     // Best-effort "transaction": use db.transaction if available; otherwise fallback to sequential writes.
     const doWrite = async (tx: typeof db) => {

@@ -170,13 +170,20 @@ export default function HomePage() {
     if (totalVolume <= 0 && volumeSheetOpen) setVolumeSheetOpen(false)
   }, [totalVolume, volumeSheetOpen])
 
-  const editingRef = useRef<{ date: string; hasAnyData: boolean; derivedHasBleeding: boolean; totalVolume: number }>({
+  const editingRef = useRef<{
+    date: string
+    hasAnyData: boolean
+    derivedHasBleeding: boolean
+    totalVolume: number
+    dayColor: MenstrualColor
+  }>({
     date: record.date,
     hasAnyData,
     derivedHasBleeding,
     totalVolume,
+    dayColor,
   })
-  editingRef.current = { date: record.date, hasAnyData, derivedHasBleeding, totalVolume }
+  editingRef.current = { date: record.date, hasAnyData, derivedHasBleeding, totalVolume, dayColor }
 
   const stripEnd = useMemo(() => addDaysYmd(stripStart, STRIP_DAYS - 1), [stripStart])
   const stripDays = useMemo(() => Array.from({ length: STRIP_DAYS }, (_, i) => addDaysYmd(stripStart, i)), [stripStart])
@@ -214,7 +221,7 @@ export default function HomePage() {
             next[ed.date] = {
               hasBleeding: ed.derivedHasBleeding,
               totalVolumeMl: ed.totalVolume,
-              dayColor: prevMeta?.dayColor ?? null,
+              dayColor: ed.dayColor ?? prevMeta?.dayColor ?? null,
             }
           }
         }
@@ -401,6 +408,18 @@ export default function HomePage() {
     setDayColor(next)
     // Make the change immediately visible on product viz + calendar vial by applying to events.
     setRecord((prev) => ({ ...prev, events: prev.events.map((e) => ({ ...e, color: next })) }))
+    // Keep the 14-day strip in sync even before submit.
+    setRangeMap((prev) => {
+      if (!hasAnyData) return prev
+      return {
+        ...prev,
+        [selectedDate]: {
+          hasBleeding: derivedHasBleeding,
+          totalVolumeMl: totalVolume,
+          dayColor: next,
+        },
+      }
+    })
   }
 
   const submit = async () => {
@@ -531,7 +550,7 @@ export default function HomePage() {
                 const isActive = d === selectedDate
                 const liveHasData = isActive ? record.events.length > 0 : Boolean(meta)
                 const liveTotalMl = isActive ? totalVolume : meta?.totalVolumeMl ?? 0
-                const liveColor = isActive ? deriveDayColor(record.events) ?? meta?.dayColor ?? null : meta?.dayColor ?? null
+                const liveColor = isActive ? dayColor : meta?.dayColor ?? null
                 const dayText = d.slice(8, 10)
                 return (
                   <FCPressable
