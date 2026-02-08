@@ -7,6 +7,16 @@ interface LandingHeaderProps {
   onLogout: () => void;
 }
 
+function scrollToSection(e: React.MouseEvent<HTMLAnchorElement>, hash: string) {
+  e.preventDefault();
+  const element = document.querySelector(hash);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Update URL without triggering scroll
+    history.pushState(null, '', hash);
+  }
+}
+
 export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
   const displayName = user?.displayName || user?.username || user?.email;
 
@@ -18,20 +28,39 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
             {APP_TITLE}
           </Link>
 
-          <nav className="hidden md:flex items-center gap-5 text-sm text-brand-muted">
-            <Link to="/wiki" className="hover:text-brand-text transition-colors">
+          <nav className="hidden md:flex items-center gap-1 text-sm text-brand-muted">
+            <Link
+              to="/wiki"
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70"
+            >
               百科
             </Link>
-            <a href="#problem" className="hover:text-brand-text transition-colors">
+            <a
+              href="#problem"
+              onClick={(e) => scrollToSection(e, '#problem')}
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
+            >
               痛点
             </a>
-            <a href="#demo" className="hover:text-brand-text transition-colors">
+            <a
+              href="#demo"
+              onClick={(e) => scrollToSection(e, '#demo')}
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
+            >
               Demo
             </a>
-            <a href="#philosophy" className="hover:text-brand-text transition-colors">
+            <a
+              href="#philosophy"
+              onClick={(e) => scrollToSection(e, '#philosophy')}
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
+            >
               理念
             </a>
-            <a href="#privacy" className="hover:text-brand-text transition-colors">
+            <a
+              href="#privacy"
+              onClick={(e) => scrollToSection(e, '#privacy')}
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
+            >
               隐私
             </a>
           </nav>
@@ -47,13 +76,10 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
 
             {user ? (
               <div className="relative group">
-                <button
-                  type="button"
-                  className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-brand-text hover:bg-brand-primary/35 transition"
-                >
+                <span className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-brand-text hover:bg-brand-primary/35 transition cursor-pointer">
                   {displayName}
-                </button>
-                <div className="absolute right-0 mt-2 hidden group-hover:block">
+                </span>
+                <div className="absolute right-0 mt-2 hidden group-hover:block z-50">
                   <button
                     type="button"
                     onClick={onLogout}

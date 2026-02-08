@@ -25,6 +25,26 @@
   gap: 12px;
 }
 
+.rowRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tagBtnRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tagBtn {
+  padding: 3px 7px;
+  font-size: 10px;
+}
+
 .title {
   font-size: 16px;
   font-weight: 700;
@@ -34,11 +54,30 @@
 .muted {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.55);
-  line-height: 18px;
 }
 
 .section {
   margin-top: 16px;
+}
+
+.sectionHeadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.segRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  flex: none;
+}
+
+.segChip {
+  padding: 4px 8px;
+  font-size: 11px;
 }
 
 .divider {
@@ -46,19 +85,119 @@
   .app-divider();
 }
 
-.pillRow {
+.statusRow {
   margin-top: 10px;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.statusIcons {
+  display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.statusIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.55;
+}
+
+.statusIconOn {
+  opacity: 1;
+  border-color: rgba(139, 94, 94, 0.24);
+  background: rgba(200, 182, 166, 0.18);
+}
+
+.statusIconText {
+  font-size: 13px;
+  line-height: 13px;
+  color: rgba(0, 0, 0, 0.70);
+}
+
+.statusSpin {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusHint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.46);
+}
+
+.headerRow {
+  align-items: center;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 34px;
+}
+
+.headerStatusIcons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+
+.datePicker {
+  height: 34px;
+  display: flex;
+  align-items: center;
+}
+
+/* Make the date chip visually align with the 34px gear button. */
+.dateChip {
+  height: 34px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  margin-bottom: 18px;
+}
+
+.dateChip text {
+  line-height: 34px;
+}
+
+.headerGear {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headerGearText {
+  font-size: 14px;
+  line-height: 14px;
+  color: rgba(0, 0, 0, 0.70);
 }
 
 .calendarStrip {
   margin-top: 10px;
-}
-
-.calendarScroll {
-  width: 100%;
 }
 
 .calendarInner {
@@ -66,6 +205,10 @@
   align-items: center;
   gap: 8px;
   padding: 4px 0;
+}
+
+.calendarInner14 {
+  gap: 4px;
 }
 
 .calDay {
@@ -79,6 +222,20 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+.calDay14 {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  height: 56px;
+  border-radius: 12px;
+  gap: 6px;
+}
+
+.calDay14 .calDayText {
+  font-size: 12px;
+  line-height: 14px;
 }
 
 .calDayActive {
@@ -96,44 +253,13 @@
   color: rgba(0, 0, 0, 0.88);
 }
 
-.calDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.12);
-}
-
-.calDotOn {
-  background: rgba(139, 94, 94, 0.42);
-}
-
-.calDotActive {
-  background: rgba(139, 94, 94, 0.82);
-}
 
 .calHintRow {
   margin-top: 8px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
-}
-
-.calGear {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.86);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.calGearText {
-  font-size: 14px;
-  line-height: 14px;
-  color: rgba(0, 0, 0, 0.70);
 }
 
 .volumeBar {
@@ -142,6 +268,14 @@
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.05);
   overflow: hidden;
+}
+
+.tagsInline {
+  margin-top: 10px;
+}
+
+.tagsInline .tagRow {
+  margin-top: 0;
 }
 
 .volumeFill {
@@ -199,12 +333,6 @@
 }
 
 /* Bottom actions now use `FCActionBar` + `FCButton` (see `src/ui/`). */
-
-.actionsHint {
-  margin-top: 8px;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.55);
-}
 
 .loadingMask {
   position: absolute;

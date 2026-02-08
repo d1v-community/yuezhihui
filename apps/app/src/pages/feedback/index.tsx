@@ -5,7 +5,7 @@ import { STORAGE_KEYS } from '../../storage/keys'
 import { getStorageJson, setStorageJson } from '../../storage/storage'
 import { submitFeedback } from '../../services/feedback'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
-import { FCButton, FCOptionCard, FCTextField } from '../../ui'
+import { FCButton, FCOptionCard, FCPressable, FCTextField } from '../../ui'
 import './index.less'
 
 const TYPE_OPTIONS = ['功能异常', '体验问题', '新功能建议', '内容反馈', '其他']
@@ -43,6 +43,10 @@ export default function FeedbackPage() {
       setLoading(false)
     })()
   })
+
+  const goBack = () => {
+    Taro.navigateBack().catch(() => Taro.redirectTo({ url: '/pages/setting/index' }))
+  }
 
   useEffect(() => {
     if (loading) return
@@ -86,7 +90,12 @@ export default function FeedbackPage() {
         <View className="bg">
           <View className="wrap">
             <View className="card">
-              <Text className="title">反馈</Text>
+              <View className="headerRow">
+                <FCPressable className="backBtn" onClick={goBack}>
+                  <Text className="backIcon">←</Text>
+                </FCPressable>
+                <Text className="title">反馈</Text>
+              </View>
               <Text className="desc">正在加载...</Text>
             </View>
           </View>
@@ -100,7 +109,12 @@ export default function FeedbackPage() {
       <View className="bg">
         <View className="wrap">
           <View className="card fc-appear">
-            <Text className="title">反馈</Text>
+            <View className="headerRow">
+              <FCPressable className="backBtn" onClick={goBack}>
+                <Text className="backIcon">←</Text>
+              </FCPressable>
+              <Text className="title">反馈</Text>
+            </View>
             <Text className="desc">我们会优先修复影响记录与数据可靠性的体验问题。</Text>
 
             <View className="section">
@@ -146,4 +160,3 @@ export default function FeedbackPage() {
     </View>
   )
 }
-

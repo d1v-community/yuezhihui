@@ -7,21 +7,29 @@
   background: rgba(255, 255, 255, 0.86);
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 8px;
 }
 
 .fcNoticeDot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  margin-top: 6px;
+  margin-top: 5px; // align with 18px title line-height
   background: rgba(0, 0, 0, 0.22);
+  flex: none;
+}
+
+.fcNoticeBody {
+  flex: 1;
+  min-width: 0;
 }
 
 .fcNoticeTitle {
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 800;
   color: rgba(0, 0, 0, 0.86);
+  line-height: 18px;
+  display: block;
 }
 
 .fcNoticeDesc {
@@ -29,15 +37,16 @@
   font-size: 12px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.55);
+  display: block;
 }
 
 .fcNoticeWarn {
-  background: rgba(200, 182, 166, 0.16);
-  border-color: rgba(139, 94, 94, 0.12);
+  background: rgba(255, 120, 0, 0.06);
+  border-color: rgba(255, 120, 0, 0.18);
 }
 
 .fcNoticeWarn .fcNoticeDot {
-  background: rgba(139, 94, 94, 0.40);
+  background: rgba(255, 120, 0, 0.55);
 }
 
 .fcNoticeSuccess {
@@ -48,4 +57,3 @@
 .fcNoticeSuccess .fcNoticeDot {
   background: rgba(43, 43, 43, 0.35);
 }
-

@@ -157,7 +157,7 @@ export default function OnboardingPage() {
         const nextId = res.session?.currentQuestionId ?? null
         setAnswers(nextAnswers)
         setCurrentId(nextId)
-      } catch (e) {
+      } catch {
         Taro.showToast({ title: '加载失败，请重试', icon: 'none' })
       } finally {
         setLoading(false)
@@ -234,14 +234,30 @@ export default function OnboardingPage() {
       await Taro.reLaunch({ url: '/pages/index/index?pause=1' })
       return
     }
-    const prevId = visibleIds[idx - 1] || null
+    const prevId = visibleIds[idx - 1]
+    if (!prevId) {
+      Taro.showToast({ title: '无法返回上一题', icon: 'none' })
+      return
+    }
+
     setSubmitting(true)
     try {
       const res = await onboardingV2Position(prevId)
-      if (!res?.success) throw new Error(res?.error || '返回失败')
-      setCurrentId((res.currentQuestionId ?? prevId ?? null) as any)
+      if (!res?.success) {
+        // 如果后端返回问题不可见，尝试直接使用前端计算的 prevId
+        console.warn('返回上一题API失败，尝试使用本地计算:', res?.error)
+        setCurrentId(prevId as any)
+        return
+      }
+      // 优先使用后端返回的位置，如果为空则使用前端计算的
+      if (res.currentQuestionId) {
+        setCurrentId(res.currentQuestionId as any)
+      } else {
+        setCurrentId(prevId as any)
+      }
     } catch (e) {
-      Taro.showToast({ title: e instanceof Error ? e.message : '返回失败', icon: 'none' })
+      console.error('返回上一题错误:', e)
+      Taro.showToast({ title: '返回失败，请重试', icon: 'none' })
     } finally {
       setSubmitting(false)
     }
@@ -280,17 +296,17 @@ export default function OnboardingPage() {
 
   const formatAnswer = (id: OnboardingV2QuestionId) => {
     const a = answers[id]
-    const def = QUESTION_DEFS[id]
+    const qdef = QUESTION_DEFS[id]
     if (!a) return '未填写'
     if (a.type === 'single') {
-      const opt = def.type === 'single' ? def.options.find((o) => o.value === a.value) : null
+      const opt = qdef.type === 'single' ? qdef.options.find((o) => o.value === a.value) : null
       return opt?.label || a.value
     }
     if (a.type === 'multi') {
       const values = Array.isArray(a.values) ? a.values : []
       const labels =
-        def.type === 'multi'
-          ? values.map((v) => def.options.find((o) => o.value === v)?.label || v)
+        qdef.type === 'multi'
+          ? values.map((v) => qdef.options.find((o) => o.value === v)?.label || v)
           : values
       if (labels.length <= 3) return labels.join('、') || '未选择'
       return `${labels.slice(0, 3).join('、')} 等（${labels.length}项）`
@@ -361,8 +377,8 @@ export default function OnboardingPage() {
     const summaryIds = visibleIds
       .filter((id) => id !== 'F2_condition_source_unknown_text')
       .filter((id) => {
-        const def = QUESTION_DEFS[id]
-        return Boolean(def?.required || answers[id])
+        const qdef = QUESTION_DEFS[id]
+        return Boolean(qdef?.required || answers[id])
       })
     return (
       <View className="page">
@@ -548,11 +564,14 @@ export default function OnboardingPage() {
           <View className="options">
             {def.options.map((opt) => {
               const active = draft.kind === 'multi' && draft.values.includes(opt.value)
+              const isAtMax = draft.kind === 'multi' && def.maxSelections && draft.values.length >= def.maxSelections
+              const canSelect = !active && (!isAtMax || isExclusiveMultiValue(opt.value))
+
               return (
                 <FCOptionCard
                   key={opt.value}
                   active={active}
-                  disabled={submitting}
+                  disabled={submitting || !canSelect}
                   label={opt.label}
                   onClick={() => {
                     if (draft.kind !== 'multi') return
@@ -567,7 +586,13 @@ export default function OnboardingPage() {
                         if (isExclusiveMultiValue(v)) next.delete(v)
                       }
                       if (active) next.delete(opt.value)
-                      else next.add(opt.value)
+                      else {
+                        if (def.maxSelections && next.size >= def.maxSelections) {
+                          Taro.showToast({ title: `最多选择 ${def.maxSelections} 项`, icon: 'none' })
+                          return
+                        }
+                        next.add(opt.value)
+                      }
                     }
 
                     setDraft({ kind: 'multi', values: Array.from(next) })
@@ -575,6 +600,11 @@ export default function OnboardingPage() {
                 />
               )
             })}
+            {def.maxSelections && draft.kind === 'multi' ? (
+              <Text className="note" style={{ marginTop: 8 }}>
+                已选择 {draft.values.length}/{def.maxSelections} 项
+              </Text>
+            ) : null}
           </View>
         ) : null}
 

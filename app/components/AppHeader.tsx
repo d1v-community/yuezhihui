@@ -32,10 +32,13 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
 
             {user ? (
               <div className="relative group">
-                <div className="text-sm text-gray-700 group-hover:text-gray-900 cursor-default dark:text-slate-200 dark:group-hover:text-white">
+                <button
+                  type="button"
+                  className="text-sm text-gray-700 group-hover:text-gray-900 cursor-default dark:text-slate-200 dark:group-hover:text-white"
+                >
                   {displayName}
-                </div>
-                <div className="absolute right-0 mt-2 hidden group-hover:block">
+                </button>
+                <div className="absolute right-0 mt-2 hidden group-hover:block z-50">
                   <button
                     onClick={onLogout}
                     className="px-3 py-1 text-sm text-white bg-gray-800 rounded shadow hover:bg-gray-900 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white"

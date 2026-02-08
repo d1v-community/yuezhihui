@@ -74,9 +74,12 @@ export default function AnalyzeCycleDetailPage() {
                 <FCButton size="sm" variant="ghost" loading={sharing} onClick={() => void sharePeriod()}>
                   分享
                 </FCButton>
-                <FCButton size="sm" variant="secondary" onClick={() => Taro.navigateBack()}>
-                  返回
-                </FCButton>
+                <FCPressable
+                  className="iconBtn"
+                  onClick={() => Taro.navigateBack().catch(() => Taro.redirectTo({ url: '/pages/analyze/index' }))}
+                >
+                  <Text className="iconBtnText">←</Text>
+                </FCPressable>
                 <FCButton size="sm" variant="ghost" loading={loading} onClick={() => void load()}>
                   刷新
                 </FCButton>

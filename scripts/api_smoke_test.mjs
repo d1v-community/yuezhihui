@@ -68,6 +68,57 @@ async function main() {
   assert.equal(sync.res.status, 200, `auth/sync-cookie failed: ${sync.text}`);
   assert.equal(sync.data?.success, true, `auth/sync-cookie success=false: ${sync.text}`);
 
+  // --- Menstrual daily (auth + basic CRUD) ---
+  {
+    const d = new Date();
+    const ymd = d.toISOString().slice(0, 10);
+    const start = ymd;
+    const end = ymd;
+
+    const unauth = await jsonFetch(`/api/menstrual/daily?start=${start}&end=${end}`);
+    assert.equal(unauth.res.status, 401, `unauth menstrual range should 401: ${unauth.text}`);
+    assert.equal(unauth.data?.code, 401, `unauth menstrual range code should 401: ${unauth.text}`);
+
+    const put = await jsonFetch(`/api/menstrual/daily/${encodeURIComponent(ymd)}`, {
+      method: "PUT",
+      token,
+      body: {
+        hasBleeding: true,
+        events: [
+          {
+            eventTime: new Date().toISOString(),
+            eventType: "pad",
+            productType: "day",
+            color: "red",
+            volumeMl: 6,
+          },
+          {
+            eventTime: new Date().toISOString(),
+            eventType: "symptom",
+            symptomName: "小血块",
+          },
+        ],
+      },
+    });
+    assert.equal(put.res.status, 200, `menstrual put failed: ${put.text}`);
+    assert.equal(put.data?.code, 200, `menstrual put code!=200: ${put.text}`);
+
+    const get = await jsonFetch(`/api/menstrual/daily/${encodeURIComponent(ymd)}`, { token });
+    assert.equal(get.res.status, 200, `menstrual get failed: ${get.text}`);
+    assert.equal(get.data?.code, 200, `menstrual get code!=200: ${get.text}`);
+    assert.equal(get.data?.data?.date, ymd, `menstrual get date mismatch: ${get.text}`);
+    assert.equal(get.data?.data?.totalVolumeMl, 8, `menstrual totalVolumeMl mismatch: ${get.text}`);
+    assert.ok(Array.isArray(get.data?.data?.events), "menstrual get should include events array");
+
+    const range = await jsonFetch(`/api/menstrual/daily?start=${start}&end=${end}`, { token });
+    assert.equal(range.res.status, 200, `menstrual range failed: ${range.text}`);
+    assert.equal(range.data?.code, 200, `menstrual range code!=200: ${range.text}`);
+    assert.ok(
+      Array.isArray(range.data?.data) && range.data.data.some((x) => x?.date === ymd),
+      "menstrual range should include today record"
+    );
+  }
+
   // --- Onboarding V2 ---
   const start = await jsonFetch("/api/onboarding/v2/start", { method: "POST", token, body: {} });
   assert.equal(start.res.status, 200, `onboarding start failed: ${start.text}`);

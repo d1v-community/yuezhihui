@@ -59,6 +59,8 @@ export default function Index() {
       } catch {
         // noop: 静默处理清理 token 失败
       }
+      // 立即更新用户状态为null，确保UI正确反映登录状态
+      setClientUser(null);
       navigate("/", { replace: true });
     }
   };

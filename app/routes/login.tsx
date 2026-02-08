@@ -232,6 +232,8 @@ export default function Login() {
                 <input
                   id="code"
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   required
@@ -241,18 +243,18 @@ export default function Login() {
                 />
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={handleBackToEmail}
-                  className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-100 py-3 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-slate-700 transition"
+                  className="w-full sm:flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-100 py-3 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-slate-700 transition"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-blue-600 dark:bg-sky-500 text-white py-3 rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-sky-600 focus:ring-4 focus:ring-blue-200 dark:focus:ring-sky-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:flex-1 bg-blue-600 dark:bg-sky-500 text-white py-3 rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-sky-600 focus:ring-4 focus:ring-blue-200 dark:focus:ring-sky-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Verifying..." : "Verify & Login"}
                 </button>

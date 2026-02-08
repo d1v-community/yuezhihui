@@ -8,11 +8,20 @@ export type QuestionOption = {
 export type QuestionDef =
   | {
       id: OnboardingV2QuestionId
-      type: 'single' | 'multi'
+      type: 'single'
       title: string
       required: boolean
       options: QuestionOption[]
       note?: string
+    }
+  | {
+      id: OnboardingV2QuestionId
+      type: 'multi'
+      title: string
+      required: boolean
+      options: QuestionOption[]
+      note?: string
+      maxSelections?: number  // 限制最多选择几项
     }
   | {
       id: OnboardingV2QuestionId
@@ -303,9 +312,10 @@ export const QUESTION_DEFS: Record<OnboardingV2QuestionId, QuestionDef> = {
 
   E1_pad_brand: {
     id: 'E1_pad_brand',
-    type: 'single',
-    title: '卫生巾/护垫常用品牌（可选）',
+    type: 'multi',
+    title: '卫生巾/护垫常用品牌（可选，最多选3项）',
     required: false,
+    maxSelections: 3,
     options: [
       { value: 'sofy', label: '苏菲（SOFY）' },
       { value: 'space7', label: '七度空间' },
@@ -336,9 +346,10 @@ export const QUESTION_DEFS: Record<OnboardingV2QuestionId, QuestionDef> = {
 
   E1_tampon_brand: {
     id: 'E1_tampon_brand',
-    type: 'single',
-    title: '卫生棉条常用品牌（可选）',
+    type: 'multi',
+    title: '卫生棉条常用品牌（可选，最多选3项）',
     required: false,
+    maxSelections: 3,
     options: [
       { value: 'tampax', label: '丹碧丝（TAMPAX）' },
       { value: 'ob', label: 'o.b.' },
@@ -365,9 +376,10 @@ export const QUESTION_DEFS: Record<OnboardingV2QuestionId, QuestionDef> = {
 
   E1_cup_brand: {
     id: 'E1_cup_brand',
-    type: 'single',
-    title: '月经杯常用品牌（可选）',
+    type: 'multi',
+    title: '月经杯常用品牌（可选，最多选3项）',
     required: false,
+    maxSelections: 3,
     options: [
       { value: 'divacup', label: 'DivaCup' },
       { value: 'meluna', label: 'MeLuna' },
@@ -394,9 +406,10 @@ export const QUESTION_DEFS: Record<OnboardingV2QuestionId, QuestionDef> = {
 
   E1_disc_brand: {
     id: 'E1_disc_brand',
-    type: 'single',
-    title: '月经碟常用品牌（可选）',
+    type: 'multi',
+    title: '月经碟常用品牌（可选，最多选3项）',
     required: false,
+    maxSelections: 3,
     options: [
       { value: 'flex', label: 'Flex Disc' },
       { value: 'lunette', label: 'Lunette Disc' },
@@ -422,9 +435,10 @@ export const QUESTION_DEFS: Record<OnboardingV2QuestionId, QuestionDef> = {
 
   E1_period_underwear_brand: {
     id: 'E1_period_underwear_brand',
-    type: 'single',
-    title: '月经裤/安心裤常用品牌（可选）',
+    type: 'multi',
+    title: '月经裤/安心裤常用品牌（可选，最多选3项）',
     required: false,
+    maxSelections: 3,
     options: [
       { value: 'thinx', label: 'THINX' },
       { value: 'knix', label: 'Knixwear（Knix）' },

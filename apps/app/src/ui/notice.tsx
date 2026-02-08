@@ -16,11 +16,10 @@ export function FCNotice({ title, desc, variant = 'default', className, style }:
   return (
     <View className={['fcNotice', v, className || ''].join(' ')} style={style}>
       <View className="fcNoticeDot" />
-      <View style={{ flex: 1 }}>
+      <View className="fcNoticeBody">
         <Text className="fcNoticeTitle">{title}</Text>
         {desc ? <Text className="fcNoticeDesc">{desc}</Text> : null}
       </View>
     </View>
   )
 }
-
