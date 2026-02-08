@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
 import { Text, View } from '@tarojs/components'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './scaleBar.less'
 
 export type FCScaleBarTick = { value: number; label: string }
@@ -21,7 +21,12 @@ function clamp(n: number, a: number, b: number) {
 
 function quantize(v: number, step: number) {
   if (!Number.isFinite(step) || step <= 0) return v
-  return Math.round(v / step) * step
+  const q = Math.round(v / step) * step
+  // Avoid 0.30000000000000004 on decimal steps.
+  const s = String(step)
+  const dot = s.indexOf('.')
+  const decimals = dot >= 0 ? Math.min(6, s.length - dot - 1) : 0
+  return decimals > 0 ? Number(q.toFixed(decimals)) : q
 }
 
 function pickClientX(e: any): number | null {
@@ -40,7 +45,9 @@ export function FCScaleBar(props: FCScaleBarProps) {
   const rectRef = useRef<{ left: number; width: number } | null>(null)
   const movingRef = useRef(false)
 
-  const pct = max > min ? ((value - min) / (max - min)) * 100 : 0
+  const [dragPct, setDragPct] = useState<number | null>(null)
+  const pctFromValue = max > min ? ((value - min) / (max - min)) * 100 : 0
+  const pct = typeof dragPct === 'number' ? dragPct : pctFromValue
 
   const measure = async () => {
     // In weapp this is async; in H5 it also works.
@@ -60,6 +67,14 @@ export function FCScaleBar(props: FCScaleBarProps) {
     })
   }
 
+  useEffect(() => {
+    // Pre-measure so dragging feels immediate (avoids waiting for the first async query).
+    void measure().then((r) => {
+      if (r) rectRef.current = r
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const setFromEvent = async (e: any) => {
     const x = pickClientX(e)
     if (x == null) return
@@ -72,6 +87,7 @@ export function FCScaleBar(props: FCScaleBarProps) {
     if (!rect) return
 
     const ratio = clamp((x - rect.left) / rect.width, 0, 1)
+    setDragPct(ratio * 100)
     let next = min + ratio * (max - min)
     next = clamp(quantize(next, step), min, max)
     if (next !== value) props.onChange(next)
@@ -90,22 +106,26 @@ export function FCScaleBar(props: FCScaleBarProps) {
   return (
     <View
       className="fcScaleBar"
-      onClick={async (e) => {
-        await setFromEvent(e)
+      catchMove
+      onClick={(e) => {
+        void setFromEvent(e).finally(() => setDragPct(null))
       }}
-      onTouchStart={async (e) => {
+      onTouchStart={(e) => {
         movingRef.current = true
-        await setFromEvent(e)
+        setDragPct(null)
+        void setFromEvent(e)
       }}
-      onTouchMove={async (e) => {
+      onTouchMove={(e) => {
         if (!movingRef.current) return
-        await setFromEvent(e)
+        void setFromEvent(e)
       }}
       onTouchEnd={() => {
         movingRef.current = false
+        setDragPct(null)
       }}
       onTouchCancel={() => {
         movingRef.current = false
+        setDragPct(null)
       }}
     >
       <View className="fcScaleTrackWrap">

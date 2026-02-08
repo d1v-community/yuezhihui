@@ -14,11 +14,18 @@ export type FCProductVizProps = {
   color?: MenstrualColor | null
   label?: string
   spec?: string
+  valueMl?: number
 }
 
 function clamp(n: number, a: number, b: number) {
   if (!Number.isFinite(n)) return a
   return Math.max(a, Math.min(b, n))
+}
+
+function fmtMl(v: number) {
+  const n = Number(v || 0)
+  if (!Number.isFinite(n)) return '0'
+  return n.toFixed(1).replace(/\.0$/, '')
 }
 
 function colorToRgba(color?: MenstrualColor | null): { fill: string; outline: string } {
@@ -131,6 +138,9 @@ export function FCProductViz(props: FCProductVizProps) {
 
   return (
     <View className={cls}>
+      {typeof props.valueMl === 'number' ? (
+        <Text className="fcProdVizValue">累计 {fmtMl(props.valueMl)}mL</Text>
+      ) : null}
       <View className="fcProdVizStage">
         {props.kind === 'pad' ? (
           <View className="fcProdVizShape">

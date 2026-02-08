@@ -6,7 +6,11 @@
  * For this project we prefer a stable visual scale on mobile (closer to desktop proportions).
  */
 html {
-  font-size: 40px !important;
+  /* NOTE: We intentionally override Taro's responsive rem root-size to keep a consistent,
+   * readable scale across desktop/mobile in H5. The rest of the UI uses rem (pxtransform),
+   * so bumping the root size scales the whole app.
+   */
+  font-size: 100px !important;
 }
 
 input,

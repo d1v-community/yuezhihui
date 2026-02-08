@@ -15,17 +15,36 @@ function uid() {
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`
 }
 
-function sumVolumeMl(events: DailyRecordEvent[]) {
+function splitVolumeMl(events: DailyRecordEvent[]) {
   const CLOT_SMALL_ML = 2
   const CLOT_LARGE_ML = 4
-  return events.reduce((s, e) => {
-    if (e.eventType === 'pad' || e.eventType === 'tampon') return s + (e.volumeMl || 0)
-    if (e.eventType === 'symptom') {
-      if (e.symptomName === '小血块') return s + CLOT_SMALL_ML
-      if (e.symptomName === '大血块') return s + CLOT_LARGE_ML
-    }
-    return s
-  }, 0)
+  return events.reduce(
+    (acc, e) => {
+      if (e.eventType === 'pad') {
+        acc.padMl += Number(e.volumeMl || 0)
+        return acc
+      }
+      if (e.eventType === 'tampon') {
+        acc.tamponMl += Number(e.volumeMl || 0)
+        return acc
+      }
+      if (e.eventType === 'symptom') {
+        if (e.symptomName === '小血块') acc.clotMl += CLOT_SMALL_ML
+        if (e.symptomName === '大血块') acc.clotMl += CLOT_LARGE_ML
+        return acc
+      }
+      return acc
+    },
+    { padMl: 0, tamponMl: 0, clotMl: 0 }
+  )
+}
+
+function deriveDayColor(events: DailyRecordEvent[]): MenstrualColor | null {
+  for (let i = events.length - 1; i >= 0; i--) {
+    const c = events[i]?.color
+    if (c) return c
+  }
+  return null
 }
 
 function minYmd(a: string, b: string) {
@@ -86,10 +105,10 @@ const TAMPON_MODEL_SPECS: Record<string, string> = {
   super: '≈12-15g',
 }
 
-function volumeHint(v: number) {
-  if (v <= 3) return '少'
-  if (v <= 6) return '中'
-  return '多'
+function fmtMl(v: number) {
+  // Keep UI stable when using decimal steps.
+  const n = Number(v || 0)
+  return Number.isFinite(n) ? n.toFixed(1).replace(/\.0$/, '') : '0'
 }
 
 const STRIP_DAYS = 14
@@ -119,10 +138,24 @@ export default function HomePage() {
   const [padTypeIndex, setPadTypeIndex] = useState(1)
   const [tamponModelIndex, setTamponModelIndex] = useState(1)
   const [colorIndex, setColorIndex] = useState(1)
-  const [volumeMl, setVolumeMl] = useState(6)
+  const [padVolumeMl, setPadVolumeMl] = useState(0)
+  const [tamponVolumeMl, setTamponVolumeMl] = useState(0)
+
+  const tamponMaxMl = useMemo(() => {
+    const model = TAMPON_MODELS[tamponModelIndex]?.value
+    if (model === 'mini') return 8
+    if (model === 'regular') return 10
+    if (model === 'large') return 12
+    if (model === 'super') return 15
+    return 10
+  }, [tamponModelIndex])
 
   const dirty = useMemo(() => JSON.stringify(record) !== snapshot, [record, snapshot])
-  const totalVolume = useMemo(() => sumVolumeMl(record.events), [record.events])
+  const vols = useMemo(() => splitVolumeMl(record.events), [record.events])
+  const padTotalMl = vols.padMl
+  const tamponTotalMl = vols.tamponMl
+  const clotTotalMl = vols.clotMl
+  const totalVolume = padTotalMl + tamponTotalMl + clotTotalMl
   const hasAnyData = record.events.length > 0
   const derivedHasBleeding = totalVolume > 0
   const hasSubmitted = submittedAt != null
@@ -208,6 +241,9 @@ export default function HomePage() {
       // Update header immediately; UI shows a local loading mask while data is fetched.
       setSelectedDate(date)
       setRecord({ date, hasBleeding: false, events: [] })
+      // Reset input controls for the new day (default should be 0 until user confirms).
+      setPadVolumeMl(0)
+      setTamponVolumeMl(0)
       const stored = await loadDailyRecord(date)
       setSubmittedAt(stored.submittedAt)
       setRecord(stored.record)
@@ -467,7 +503,9 @@ export default function HomePage() {
               {recentDays.map((d) => {
                 const meta = rangeMap[d]
                 const isActive = d === selectedDate
-                const hasData = Boolean(meta)
+                const liveHasData = isActive ? record.events.length > 0 : Boolean(meta)
+                const liveTotalMl = isActive ? totalVolume : meta?.totalVolumeMl ?? 0
+                const liveColor = isActive ? deriveDayColor(record.events) ?? meta?.dayColor ?? null : meta?.dayColor ?? null
                 const dayText = d.slice(8, 10)
                 return (
                   <FCPressable
@@ -478,24 +516,24 @@ export default function HomePage() {
                       void selectDate(d)
                     }}
                     onLongPress={() => {
-                      if (rangeLoading && !meta) {
+                      if (!isActive && rangeLoading && !meta) {
                         Taro.showToast({ title: '正在加载…', icon: 'none' })
                         return
                       }
-                      if (!meta) {
+                      if (!liveHasData) {
                         Taro.showToast({ title: `${d} 无记录`, icon: 'none' })
                         return
                       }
-                      Taro.showToast({ title: `${d} · ${meta.totalVolumeMl}mL`, icon: 'none' })
+                      Taro.showToast({ title: `${d} · ${fmtMl(liveTotalMl)}mL`, icon: 'none' })
                     }}
                   >
                     <Text className={['calDayText', isActive ? 'calDayTextActive' : ''].join(' ')}>{dayText}</Text>
                     <FCVolumeVial
-                      volumeMl={meta?.totalVolumeMl ?? 0}
-                      hasData={hasData}
+                      volumeMl={liveTotalMl}
+                      hasData={liveHasData}
                       active={isActive}
-                      loading={rangeLoading && !meta}
-                      color={meta?.dayColor ?? null}
+                      loading={Boolean(!isActive && rangeLoading && !meta)}
+                      color={liveColor}
                       maxMl={40}
                     />
                   </FCPressable>
@@ -523,7 +561,7 @@ export default function HomePage() {
             {showBleedingUi ? (
               <View className="section">
                 <View className="row">
-                  <Text className="title">当日血量（示意）</Text>
+                  <Text className="title">当日总血量（卫生巾+棉条+血块，示意）</Text>
                   <View className="rowRight">
                     <View className="tagBtnRow">
                       {(['小血块', '大血块'] as const).map((name) => (
@@ -538,14 +576,17 @@ export default function HomePage() {
                         </FCChip>
                       ))}
                     </View>
-                    <Text className="muted">{totalVolume} mL</Text>
+                    <Text className="muted">{fmtMl(totalVolume)} mL</Text>
                   </View>
                 </View>
                 <View className="volumeBar">
                   <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
                 </View>
                 <View className="tagsInline">{eventTags}</View>
-                <Text className="muted">血块会按示意值计入进度条：小血块≈2mL，大血块≈4mL。</Text>
+                <Text className="muted">
+                  卫生巾累计 {fmtMl(padTotalMl)}mL + 棉条累计 {fmtMl(tamponTotalMl)}mL + 血块累计 {fmtMl(clotTotalMl)}mL
+                </Text>
+                <Text className="muted">血块按估算值计入总血量：小血块≈2mL，大血块≈4mL。</Text>
               </View>
             ) : (
               <View className="section">
@@ -600,52 +641,56 @@ export default function HomePage() {
                   >
                     <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
                   </Picker>
-                  <Text className="muted">血量：{volumeMl}mL（{volumeHint(volumeMl)}）</Text>
+                  <Text className="muted">
+                    血量：{fmtMl(padVolumeMl)}mL
+                  </Text>
                 </View>
                 <View className="scaleRow">
-                  <FCScaleBar
-                    min={1}
-                    max={10}
-                    step={1}
-                    value={volumeMl}
-                    onChange={setVolumeMl}
-                    ticks={[
-                      { value: 3, label: '少' },
-                      { value: 6, label: '中' },
-                      { value: 10, label: '多' },
-                    ]}
-                  />
-                </View>
-                <View className="prodVizRow">
-                  <FCProductViz
-                    kind="pad"
-                    padType={PAD_TYPES[padTypeIndex]?.value as any}
-                    volumeMl={volumeMl}
-                    color={COLORS[colorIndex]?.value}
-                    label={PAD_TYPES[padTypeIndex]?.label}
-                    spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
-                  />
-                  <View className="prodVizMeta">
-                    <Text className="muted">红斑仅为量级示意（随刻度变化）。</Text>
+                  <View className="scaleBarWrap">
+                    <FCScaleBar
+                      min={0}
+                      max={12}
+                      step={0.1}
+                      value={padVolumeMl}
+                      onChange={setPadVolumeMl}
+                      ticks={[
+                        { value: 3, label: '少' },
+                        { value: 6, label: '中' },
+                        { value: 10, label: '多' },
+                      ]}
+                    />
                   </View>
-                </View>
-                <View className="row section">
                   <FCButton
                     size="sm"
+                    disabled={padVolumeMl <= 0}
                     onClick={() => {
                       addEvent({
                         eventTime: new Date().toISOString(),
                         eventType: 'pad',
                         productType: PAD_TYPES[padTypeIndex]?.value,
                         color: COLORS[colorIndex]?.value,
-                        volumeMl: volumeMl,
+                        volumeMl: padVolumeMl,
                       })
                     }}
                   >
                     添加/片
                   </FCButton>
-                  <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
                 </View>
+                <View className="prodVizRow">
+                  <FCProductViz
+                    kind="pad"
+                    padType={PAD_TYPES[padTypeIndex]?.value as any}
+                    volumeMl={padVolumeMl}
+                    color={COLORS[colorIndex]?.value}
+                    label={PAD_TYPES[padTypeIndex]?.label}
+                    spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
+                    valueMl={padTotalMl}
+                  />
+                  <View className="prodVizMeta">
+                    <Text className="muted">红斑仅为量级示意（随刻度变化）。</Text>
+                  </View>
+                </View>
+                <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
               </View>
             ) : null}
 
@@ -677,52 +722,56 @@ export default function HomePage() {
                   >
                     <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
                   </Picker>
-                  <Text className="muted">血量：{volumeMl}mL（{volumeHint(volumeMl)}）</Text>
+                  <Text className="muted">
+                    血量：{fmtMl(tamponVolumeMl)}mL
+                  </Text>
                 </View>
                 <View className="scaleRow">
-                  <FCScaleBar
-                    min={1}
-                    max={10}
-                    step={1}
-                    value={volumeMl}
-                    onChange={setVolumeMl}
-                    ticks={[
-                      { value: 3, label: '少' },
-                      { value: 6, label: '中' },
-                      { value: 10, label: '多' },
-                    ]}
-                  />
-                </View>
-                <View className="prodVizRow">
-                  <FCProductViz
-                    kind="tampon"
-                    tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
-                    volumeMl={volumeMl}
-                    color={COLORS[colorIndex]?.value}
-                    label={TAMPON_MODELS[tamponModelIndex]?.label}
-                    spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
-                  />
-                  <View className="prodVizMeta">
-                    <Text className="muted">可后续把这里的“规格”替换为你选中的具体型号。</Text>
+                  <View className="scaleBarWrap">
+                    <FCScaleBar
+                      min={0}
+                      max={tamponMaxMl}
+                      step={0.1}
+                      value={tamponVolumeMl}
+                      onChange={setTamponVolumeMl}
+                      ticks={[
+                        { value: 3, label: '少' },
+                        { value: 6, label: '中' },
+                        { value: 10, label: '多' },
+                      ]}
+                    />
                   </View>
-                </View>
-                <View className="row section">
                   <FCButton
                     size="sm"
+                    disabled={tamponVolumeMl <= 0}
                     onClick={() => {
                       addEvent({
                         eventTime: new Date().toISOString(),
                         eventType: 'tampon',
                         model: TAMPON_MODELS[tamponModelIndex]?.value,
                         color: COLORS[colorIndex]?.value,
-                        volumeMl: volumeMl,
+                        volumeMl: tamponVolumeMl,
                       })
                     }}
                   >
                     添加/条
                   </FCButton>
-                  <Text className="muted">与卫生巾一样：更换时记一条事件。</Text>
                 </View>
+                <View className="prodVizRow">
+                  <FCProductViz
+                    kind="tampon"
+                    tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                    volumeMl={tamponVolumeMl}
+                    color={COLORS[colorIndex]?.value}
+                    label={TAMPON_MODELS[tamponModelIndex]?.label}
+                    spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
+                    valueMl={tamponTotalMl}
+                  />
+                  <View className="prodVizMeta">
+                    <Text className="muted">可后续把这里的“规格”替换为你选中的具体型号。</Text>
+                  </View>
+                </View>
+                <Text className="muted">与卫生巾一样：更换时记一条事件。</Text>
               </View>
             ) : null}
 
