@@ -68,6 +68,9 @@ function makeRng(seed: string) {
 
 type Blot = { xPct: number; yPct: number; sizePx: number; alpha: number }
 
+// 胶囊形状类型
+type Capsule = { widthPx: number; heightPx: number; alpha: number }
+
 function computeBlots(opts: { seed: string; volumeMl: number; kind: 'pad' | 'tampon'; padType?: PeriodPadType }): Blot[] {
   const v = clamp(Number(opts.volumeMl || 0), 0, 20)
   if (v <= 0) return []
@@ -125,6 +128,53 @@ function computeBlots(opts: { seed: string; volumeMl: number; kind: 'pad' | 'tam
   return out
 }
 
+// 计算胶囊尺寸：胶囊面积和体积成正比
+function computeCapsule(volumeMl: number, padType?: PeriodPadType): Capsule {
+  const v = clamp(Number(volumeMl || 0), 1, 20)
+  if (v <= 0) return { widthPx: 0, heightPx: 0, alpha: 0 }
+
+  // 根据卫生巾类型确定最大面积（20mL时胶囊应该和卫生巾body重合或接近重合）
+  const isPad = true // 这里只处理卫生巾
+  const pad = padType || 'day'
+
+  // 卫生巾body的尺寸（px）
+  const maxBodyArea = (() => {
+    switch (pad) {
+      case 'liner':
+        return 52 * 92 // 4784 平方像素
+      case 'night':
+        return 58 * 132 // 7656 平方像素
+      case 'day':
+      case 'pants':
+      default:
+        return 56 * 114 // 6384 平方像素
+    }
+  })()
+
+  // 胶囊面积与体积成正比，20mL时胶囊面积约为body的80%（留一点边距）
+  const areaRatio = 0.8 // 胶囊最大面积为body的80%
+  const maxCapsuleArea = maxBodyArea * areaRatio
+
+  // 线性映射：1mL -> 最小面积，20mL -> 最大面积
+  const minAreaRatio = 0.05 // 1mL时为最大面积的5%
+  const areaProgress = clamp((v - 1) / (20 - 1), 0, 1)
+  const capsuleArea = maxCapsuleArea * (minAreaRatio + (1 - minAreaRatio) * areaProgress)
+
+  // 胶囊保持一定的宽高比（1:2 左右）
+  const aspectRatio = 0.5 // height / width
+  const capsuleWidth = Math.sqrt(capsuleArea / aspectRatio)
+  const capsuleHeight = capsuleWidth * aspectRatio
+
+  // 透明度随体积增加
+  const alpha = 0.3 + 0.5 * areaProgress
+
+  return {
+    widthPx: Math.round(capsuleWidth),
+    heightPx: Math.round(capsuleHeight),
+    alpha: alpha,
+  }
+}
+
 function tamponMaxMlByModel(model: PeriodTamponModel) {
   switch (model) {
     case 'mini':
@@ -149,6 +199,8 @@ export function FCProductViz(props: FCProductVizProps) {
   const seed = `${props.kind}|${padType}|${model}`
 
   const blots = props.kind === 'pad' ? computeBlots({ seed, volumeMl, kind: props.kind, padType }) : []
+  // 计算胶囊尺寸（替代粒子动画）
+  const capsule = props.kind === 'pad' ? computeCapsule(volumeMl, padType) : { widthPx: 0, heightPx: 0, alpha: 0 }
   const wetPct =
     props.kind === 'tampon' ? clamp(volumeMl / tamponMaxMlByModel(model), 0, 1) * 100 : 0
 
@@ -200,22 +252,19 @@ export function FCProductViz(props: FCProductVizProps) {
         )}
 
         {props.kind === 'pad'
-          ? blots.map((b, idx) => (
+          ? // 渲染胶囊形状（替代粒子动画）
+            capsule.widthPx > 0 && capsule.heightPx > 0 ? (
               <View
-                key={idx}
-                className="fcProdVizBlot"
+                className="fcProdVizCapsule"
                 style={{
-                  left: `${b.xPct}%`,
-                  top: `${b.yPct}%`,
-                  width: `${b.sizePx}px`,
-                  height: `${Math.round(b.sizePx * 0.88)}px`,
-                  transform: 'translate(-50%, -50%)',
+                  width: `${capsule.widthPx}px`,
+                  height: `${capsule.heightPx}px`,
                   background: palette.fill,
                   border: `1px solid ${palette.outline}`,
-                  opacity: b.alpha,
+                  opacity: capsule.alpha,
                 }}
               />
-            ))
+            ) : null
           : null}
       </View>
 
