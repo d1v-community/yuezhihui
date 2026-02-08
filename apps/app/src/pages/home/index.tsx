@@ -646,16 +646,18 @@ export default function HomePage() {
                   </View>
                 </View>
                 <View className={`controlSplitRow ${inputMode.sanitaryPad === 'click' ? 'controlSplitRowClick' : ''}`}>
-                  <View className="controlViz">
-                    <FCProductViz
-                      kind="pad"
-                      padType={PAD_TYPES[padTypeIndex]?.value as any}
-                      volumeMl={padVolumeMl}
-                      color={dayColor}
-                      label={PAD_TYPES[padTypeIndex]?.label}
-                      spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
-                    />
-                  </View>
+                  {inputMode.sanitaryPad === 'drag' ? (
+                    <View className="controlViz">
+                      <FCProductViz
+                        kind="pad"
+                        padType={PAD_TYPES[padTypeIndex]?.value as any}
+                        volumeMl={padVolumeMl}
+                        color={dayColor}
+                        label={PAD_TYPES[padTypeIndex]?.label}
+                        spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
+                      />
+                    </View>
+                  ) : null}
 
                   <View className="controlPanel">
                     {inputMode.sanitaryPad === 'drag' ? (
@@ -756,16 +758,18 @@ export default function HomePage() {
                   </View>
                 </View>
                 <View className={`controlSplitRow ${inputMode.tampon === 'click' ? 'controlSplitRowClick' : ''}`}>
-                  <View className="controlViz">
-                    <FCProductViz
-                      kind="tampon"
-                      tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
-                      volumeMl={tamponVolumeMl}
-                      color={dayColor}
-                      label={TAMPON_MODELS[tamponModelIndex]?.label}
-                      spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
-                    />
-                  </View>
+                  {inputMode.tampon === 'drag' ? (
+                    <View className="controlViz">
+                      <FCProductViz
+                        kind="tampon"
+                        tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                        volumeMl={tamponVolumeMl}
+                        color={dayColor}
+                        label={TAMPON_MODELS[tamponModelIndex]?.label}
+                        spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
+                      />
+                    </View>
+                  ) : null}
 
                   <View className="controlPanel">
                     {inputMode.tampon === 'drag' ? (
