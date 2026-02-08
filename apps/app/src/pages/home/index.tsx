@@ -608,52 +608,55 @@ export default function HomePage() {
                     血量：{fmtMl(padVolumeMl)}mL
                   </Text>
                 </View>
-                <View className="scaleRow">
-                  <View className="scaleBarWrap">
-                    <FCScaleBar
-                      min={0}
-                      max={12}
-                      step={0.1}
-                      value={padVolumeMl}
-                      onChange={setPadVolumeMl}
-                      ticks={[
-                        { value: 3, label: '少' },
-                        { value: 6, label: '中' },
-                        { value: 10, label: '多' },
-                      ]}
+                <View className="controlSplitRow">
+                  <View className="controlLeft">
+                    <View className="scaleRow">
+                      <View className="scaleBarWrap">
+                        <FCScaleBar
+                          min={0}
+                          max={12}
+                          step={0.1}
+                          value={padVolumeMl}
+                          onChange={setPadVolumeMl}
+                          ticks={[
+                            { value: 3, label: '少' },
+                            { value: 6, label: '中' },
+                            { value: 10, label: '多' },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                    <View className="scaleAddRow">
+                      <FCButton
+                        size="sm"
+                        disabled={padVolumeMl <= 0}
+                        onClick={() => {
+                          addEvent({
+                            eventTime: new Date().toISOString(),
+                            eventType: 'pad',
+                            productType: PAD_TYPES[padTypeIndex]?.value,
+                            color: COLORS[colorIndex]?.value,
+                            volumeMl: padVolumeMl,
+                          })
+                        }}
+                      >
+                        添加/片
+                      </FCButton>
+                    </View>
+                  </View>
+
+                  <View className="controlRight">
+                    <FCProductViz
+                      kind="pad"
+                      padType={PAD_TYPES[padTypeIndex]?.value as any}
+                      volumeMl={padVolumeMl}
+                      color={COLORS[colorIndex]?.value}
+                      label={PAD_TYPES[padTypeIndex]?.label}
+                      spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
+                      valueMl={padTotalMl}
                     />
                   </View>
-                  <FCButton
-                    size="sm"
-                    disabled={padVolumeMl <= 0}
-                    onClick={() => {
-                      addEvent({
-                        eventTime: new Date().toISOString(),
-                        eventType: 'pad',
-                        productType: PAD_TYPES[padTypeIndex]?.value,
-                        color: COLORS[colorIndex]?.value,
-                        volumeMl: padVolumeMl,
-                      })
-                    }}
-                  >
-                    添加/片
-                  </FCButton>
                 </View>
-                <View className="prodVizRow">
-                  <FCProductViz
-                    kind="pad"
-                    padType={PAD_TYPES[padTypeIndex]?.value as any}
-                    volumeMl={padVolumeMl}
-                    color={COLORS[colorIndex]?.value}
-                    label={PAD_TYPES[padTypeIndex]?.label}
-                    spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
-                    valueMl={padTotalMl}
-                  />
-                  <View className="prodVizMeta">
-                    <Text className="muted">红斑仅为量级示意（随刻度变化）。</Text>
-                  </View>
-                </View>
-                <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
               </View>
             ) : null}
 
@@ -689,52 +692,55 @@ export default function HomePage() {
                     血量：{fmtMl(tamponVolumeMl)}mL
                   </Text>
                 </View>
-                <View className="scaleRow">
-                  <View className="scaleBarWrap">
-                    <FCScaleBar
-                      min={0}
-                      max={tamponMaxMl}
-                      step={0.1}
-                      value={tamponVolumeMl}
-                      onChange={setTamponVolumeMl}
-                      ticks={[
-                        { value: 3, label: '少' },
-                        { value: 6, label: '中' },
-                        { value: 10, label: '多' },
-                      ]}
+                <View className="controlSplitRow">
+                  <View className="controlLeft">
+                    <View className="scaleRow">
+                      <View className="scaleBarWrap">
+                        <FCScaleBar
+                          min={0}
+                          max={tamponMaxMl}
+                          step={0.1}
+                          value={tamponVolumeMl}
+                          onChange={setTamponVolumeMl}
+                          ticks={[
+                            { value: 3, label: '少' },
+                            { value: 6, label: '中' },
+                            { value: 10, label: '多' },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                    <View className="scaleAddRow">
+                      <FCButton
+                        size="sm"
+                        disabled={tamponVolumeMl <= 0}
+                        onClick={() => {
+                          addEvent({
+                            eventTime: new Date().toISOString(),
+                            eventType: 'tampon',
+                            model: TAMPON_MODELS[tamponModelIndex]?.value,
+                            color: COLORS[colorIndex]?.value,
+                            volumeMl: tamponVolumeMl,
+                          })
+                        }}
+                      >
+                        添加/条
+                      </FCButton>
+                    </View>
+                  </View>
+
+                  <View className="controlRight">
+                    <FCProductViz
+                      kind="tampon"
+                      tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                      volumeMl={tamponVolumeMl}
+                      color={COLORS[colorIndex]?.value}
+                      label={TAMPON_MODELS[tamponModelIndex]?.label}
+                      spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
+                      valueMl={tamponTotalMl}
                     />
                   </View>
-                  <FCButton
-                    size="sm"
-                    disabled={tamponVolumeMl <= 0}
-                    onClick={() => {
-                      addEvent({
-                        eventTime: new Date().toISOString(),
-                        eventType: 'tampon',
-                        model: TAMPON_MODELS[tamponModelIndex]?.value,
-                        color: COLORS[colorIndex]?.value,
-                        volumeMl: tamponVolumeMl,
-                      })
-                    }}
-                  >
-                    添加/条
-                  </FCButton>
                 </View>
-                <View className="prodVizRow">
-                  <FCProductViz
-                    kind="tampon"
-                    tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
-                    volumeMl={tamponVolumeMl}
-                    color={COLORS[colorIndex]?.value}
-                    label={TAMPON_MODELS[tamponModelIndex]?.label}
-                    spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
-                    valueMl={tamponTotalMl}
-                  />
-                  <View className="prodVizMeta">
-                    <Text className="muted">可后续把这里的“规格”替换为你选中的具体型号。</Text>
-                  </View>
-                </View>
-                <Text className="muted">与卫生巾一样：更换时记一条事件。</Text>
               </View>
             ) : null}
 

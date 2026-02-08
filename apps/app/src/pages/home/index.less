@@ -298,10 +298,6 @@
   gap: 12px;
 }
 
-.prodVizMeta {
-  flex: 1;
-  min-width: 0;
-}
 
 .scaleRow {
   margin-top: 6px;
@@ -313,6 +309,34 @@
 .scaleBarWrap {
   flex: 1;
   min-width: 0;
+}
+
+.controlSplitRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.controlLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.controlSplitRow .scaleRow {
+  margin-top: 0;
+}
+
+.scaleAddRow {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.controlRight {
+  flex: none;
 }
 
 .tagRow {
