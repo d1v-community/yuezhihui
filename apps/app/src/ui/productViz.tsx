@@ -134,34 +134,33 @@ function computeCapsule(volumeMl: number, padType?: PeriodPadType): Capsule {
   if (v <= 0) return { widthPx: 0, heightPx: 0, alpha: 0 }
 
   // 根据卫生巾类型确定最大面积（20mL时胶囊应该和卫生巾body重合或接近重合）
-  const isPad = true // 这里只处理卫生巾
   const pad = padType || 'day'
 
-  // 卫生巾body的尺寸（px）
-  const maxBodyArea = (() => {
+  // 卫生巾body的尺寸（px）- 保持竖长形状
+  const { width: bodyWidth, height: bodyHeight } = (() => {
     switch (pad) {
       case 'liner':
-        return 52 * 92 // 4784 平方像素
+        return { width: 52, height: 92 }
       case 'night':
-        return 58 * 132 // 7656 平方像素
+        return { width: 58, height: 132 }
       case 'day':
       case 'pants':
       default:
-        return 56 * 114 // 6384 平方像素
+        return { width: 56, height: 114 }
     }
   })()
 
   // 胶囊面积与体积成正比，20mL时胶囊面积约为body的80%（留一点边距）
   const areaRatio = 0.8 // 胶囊最大面积为body的80%
-  const maxCapsuleArea = maxBodyArea * areaRatio
+  const maxCapsuleArea = bodyWidth * bodyHeight * areaRatio
 
   // 线性映射：1mL -> 最小面积，20mL -> 最大面积
   const minAreaRatio = 0.05 // 1mL时为最大面积的5%
   const areaProgress = clamp((v - 1) / (20 - 1), 0, 1)
   const capsuleArea = maxCapsuleArea * (minAreaRatio + (1 - minAreaRatio) * areaProgress)
 
-  // 胶囊保持一定的宽高比（1:2 左右）
-  const aspectRatio = 0.5 // height / width
+  // 胶囊保持和卫生巾body相似的宽高比（竖长形）
+  const aspectRatio = bodyHeight / bodyWidth // 例如 day: 114/56 ≈ 2.04
   const capsuleWidth = Math.sqrt(capsuleArea / aspectRatio)
   const capsuleHeight = capsuleWidth * aspectRatio
 
