@@ -200,9 +200,9 @@ export function FCProductViz(props: FCProductVizProps) {
   const blots = props.kind === 'pad' ? computeBlots({ seed, volumeMl, kind: props.kind, padType }) : []
   // 计算胶囊尺寸（替代粒子动画）
   const capsule = props.kind === 'pad' ? computeCapsule(volumeMl, padType) : { widthPx: 0, heightPx: 0, alpha: 0 }
-  // 卫生棉条：1-20mL线性映射到 0-100%，从上往下染色
+  // 卫生棉条：1mL显示10%血迹，20mL显示100%血迹
   const wetPct =
-    props.kind === 'tampon' ? clamp((volumeMl - 1) / (20 - 1), 0, 1) * 100 : 0
+    props.kind === 'tampon' ? clamp(10 + (volumeMl - 1) / (20 - 1) * 90, 0, 100) : 0
 
   const cls = [
     'fcProdViz',
