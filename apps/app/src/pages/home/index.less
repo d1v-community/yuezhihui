@@ -400,3 +400,59 @@
     border-right: 0;
   }
 }
+
+/* Bottom sheet: daily volume summary */
+.volumeSheetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.volumeSheet {
+  width: 100%;
+  max-width: 560px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  max-height: 82vh;
+  overflow: auto;
+}
+
+.volumeSheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.volumeSheetClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.volumeSheetCloseText {
+  font-size: 18px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.volumeSheetMeta {
+  margin-top: 10px;
+}
+
+.volumeSheetIcon {
+  opacity: 0.92;
+}

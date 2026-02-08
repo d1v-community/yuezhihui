@@ -9,6 +9,7 @@ import { addDaysYmd, clampYmd, todayYmd } from '../../utils/date'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
 import { getMenstrualDailyRange } from '../../services/menstrual'
 import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCProductViz, FCScaleBar, FCTabBar, FCVolumeVial } from '../../ui'
+import { FCVolumeSummarySheet } from './volumeSummarySheet'
 import './index.less'
 
 function uid() {
@@ -140,6 +141,7 @@ export default function HomePage() {
   const [colorIndex, setColorIndex] = useState(1)
   const [padVolumeMl, setPadVolumeMl] = useState(0)
   const [tamponVolumeMl, setTamponVolumeMl] = useState(0)
+  const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
 
   const tamponMaxMl = useMemo(() => {
     const model = TAMPON_MODELS[tamponModelIndex]?.value
@@ -164,6 +166,17 @@ export default function HomePage() {
     const max = 40
     return Math.max(0, Math.min(1, totalVolume / max))
   }, [totalVolume])
+  const volumeFillPct = volumeFill * 100
+
+  useEffect(() => {
+    // Avoid leaving the sheet open when switching dates.
+    setVolumeSheetOpen(false)
+  }, [selectedDate])
+
+  useEffect(() => {
+    // If the day becomes "empty", close the sheet (its entry icon is also hidden).
+    if (totalVolume <= 0 && volumeSheetOpen) setVolumeSheetOpen(false)
+  }, [totalVolume, volumeSheetOpen])
 
   const editingRef = useRef<{ date: string; hasAnyData: boolean; derivedHasBleeding: boolean; totalVolume: number }>({
     date: record.date,
@@ -429,7 +442,6 @@ export default function HomePage() {
   const visibility = getStorageJson<{ sanitaryPad?: boolean; tampon?: boolean; bleeding?: boolean }>(STORAGE_KEYS.visibilitySettings) || {}
   const showPad = typeof visibility.sanitaryPad === 'boolean' ? visibility.sanitaryPad : true
   const showTampon = typeof visibility.tampon === 'boolean' ? visibility.tampon : true
-  const showBleedingUi = typeof visibility.bleeding === 'boolean' ? visibility.bleeding : true
 
   const recentDays = stripDays
 
@@ -457,6 +469,17 @@ export default function HomePage() {
             <View className="headerLeft">
               <Text className="title">按日记录</Text>
               <View className="headerStatusIcons">
+                {totalVolume > 0 ? (
+                  <FCPressable
+                    className={['statusIcon', 'statusIconOn', 'volumeSheetIcon'].join(' ')}
+                    onClick={() => {
+                      if (loading) return
+                      setVolumeSheetOpen(true)
+                    }}
+                  >
+                    <Text className="statusIconText">≋</Text>
+                  </FCPressable>
+                ) : null}
                 <FCPressable
                   className={['statusIcon', hasSubmitted ? 'statusIconOn' : ''].join(' ')}
                   onClick={() => Taro.showToast({ title: hasSubmitted ? '该日已保存' : '该日未提交', icon: 'none' })}
@@ -554,63 +577,6 @@ export default function HomePage() {
                 </View>
               </View>
             ) : null}
-
-            {/* {showBleedingUi ? (
-              <View className="section">
-                <View className="row">
-                  <Text className="title">当日总血量（卫生巾+棉条+血块，示意）</Text>
-                  <View className="rowRight">
-                    <View className="tagBtnRow">
-                      {(['小血块', '大血块'] as const).map((name) => (
-                        <FCChip
-                          key={name}
-                          className="tagBtn"
-                          onClick={() =>
-                            addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
-                          }
-                        >
-                          ＋{name}
-                        </FCChip>
-                      ))}
-                    </View>
-                    <Text className="muted">{fmtMl(totalVolume)} mL</Text>
-                  </View>
-                </View>
-                <View className="volumeBar">
-                  <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
-                </View>
-                <View className="tagsInline">{eventTags}</View>
-                <Text className="muted">
-                  卫生巾累计 {fmtMl(padTotalMl)}mL + 棉条累计 {fmtMl(tamponTotalMl)}mL + 血块累计 {fmtMl(clotTotalMl)}mL
-                </Text>
-                <Text className="muted">血块按估算值计入总血量：小血块≈2mL，大血块≈4mL。</Text>
-              </View>
-            ) : (
-              <View className="section">
-                <View className="row">
-                  <Text className="title">当日数据点</Text>
-                  <View className="rowRight">
-                    <View className="tagBtnRow">
-                      {(['小血块', '大血块'] as const).map((name) => (
-                        <FCChip
-                          key={name}
-                          className="tagBtn"
-                          onClick={() =>
-                            addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
-                          }
-                        >
-                          ＋{name}
-                        </FCChip>
-                      ))}
-                    </View>
-                    <Text className="muted">{record.events.length} 条</Text>
-                  </View>
-                </View>
-                <View className="tagsInline">{eventTags}</View>
-              </View>
-            )}
-
-            <View className="divider" /> */}
 
             {showPad ? (
               <View className="section">
@@ -795,6 +761,22 @@ export default function HomePage() {
           <FCTabBar />
         </FCActionBar>
       </View>
+
+      <FCVolumeSummarySheet
+        open={volumeSheetOpen}
+        onClose={() => setVolumeSheetOpen(false)}
+        totalVolumeMl={totalVolume}
+        volumeFillPct={volumeFillPct}
+        padTotalMl={padTotalMl}
+        tamponTotalMl={tamponTotalMl}
+        clotTotalMl={clotTotalMl}
+        events={record.events}
+        eventTags={eventTags}
+        fmtMl={fmtMl}
+        onAddClot={(name) =>
+          addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
+        }
+      />
     </View>
   )
 }
