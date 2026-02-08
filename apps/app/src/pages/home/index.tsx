@@ -253,8 +253,8 @@ export default function HomePage() {
       // Update header immediately; UI shows a local loading mask while data is fetched.
       setSelectedDate(date)
       setRecord({ date, hasBleeding: false, events: [] })
-      // Reset input controls for the new day (default should be 0 until user confirms).
-      setPadVolumeMl(0)
+      // Reset input controls for the new day (default should be 5mL).
+      setPadVolumeMl(5)
       setTamponVolumeMl(0)
       setDayColor('red')
       const stored = await loadDailyRecord(date)
