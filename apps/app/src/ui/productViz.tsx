@@ -150,8 +150,8 @@ function computeCapsule(volumeMl: number, padType?: PeriodPadType): Capsule {
     }
   })()
 
-  // 胶囊面积与体积成正比，20mL时胶囊面积约为body的80%（留一点边距）
-  const areaRatio = 0.8 // 胶囊最大面积为body的80%
+  // 胶囊面积与体积成正比，20mL时胶囊面积约为body的90%（留一点边距）
+  const areaRatio = 0.9 // 胶囊最大面积为body的90%
   const maxCapsuleArea = bodyWidth * bodyHeight * areaRatio
 
   // 线性映射：1mL -> 最小面积，20mL -> 最大面积
