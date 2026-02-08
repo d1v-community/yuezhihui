@@ -391,3 +391,20 @@
   font-size: 12px;
   color: rgba(0, 0, 0, 0.46);
 }
+
+/* Mobile: make the core record module edge-to-edge (no outer "wrap" padding),
+ * so the main content uses the full screen width.
+ */
+@media screen and (max-width: 520px) {
+  .wrap {
+    padding: 0;
+    max-width: none;
+    margin: 0;
+  }
+
+  .card {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}
