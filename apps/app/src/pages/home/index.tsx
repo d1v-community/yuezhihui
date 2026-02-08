@@ -581,7 +581,10 @@ export default function HomePage() {
             {showPad ? (
               <View className="section">
                 <View className="sectionHeadRow">
-                  <Text className="title">卫生巾</Text>
+                  <View className="sectionTitleRow">
+                    <Text className="title">卫生巾</Text>
+                    <Text className="sectionTotal">累计 {fmtMl(padTotalMl)}mL</Text>
+                  </View>
                   <View className="segRow">
                     {PAD_TYPES.map((x, idx) => (
                       <FCChip
@@ -604,12 +607,21 @@ export default function HomePage() {
                   >
                     <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
                   </Picker>
-                  <Text className="muted">
-                    血量：{fmtMl(padVolumeMl)}mL
-                  </Text>
+
                 </View>
                 <View className="controlSplitRow">
-                  <View className="controlLeft">
+                  <View className="controlViz">
+                    <FCProductViz
+                      kind="pad"
+                      padType={PAD_TYPES[padTypeIndex]?.value as any}
+                      volumeMl={padVolumeMl}
+                      color={COLORS[colorIndex]?.value}
+                      label={PAD_TYPES[padTypeIndex]?.label}
+                      spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
+                    />
+                  </View>
+
+                  <View className="controlPanel">
                     <View className="scaleRow">
                       <View className="scaleBarWrap">
                         <FCScaleBar
@@ -627,6 +639,7 @@ export default function HomePage() {
                       </View>
                     </View>
                     <View className="scaleAddRow">
+                      {padVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(padVolumeMl)} mL</Text> : null}
                       <FCButton
                         size="sm"
                         disabled={padVolumeMl <= 0}
@@ -644,18 +657,6 @@ export default function HomePage() {
                       </FCButton>
                     </View>
                   </View>
-
-                  <View className="controlRight">
-                    <FCProductViz
-                      kind="pad"
-                      padType={PAD_TYPES[padTypeIndex]?.value as any}
-                      volumeMl={padVolumeMl}
-                      color={COLORS[colorIndex]?.value}
-                      label={PAD_TYPES[padTypeIndex]?.label}
-                      spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
-                      valueMl={padTotalMl}
-                    />
-                  </View>
                 </View>
               </View>
             ) : null}
@@ -665,7 +666,10 @@ export default function HomePage() {
             {showTampon ? (
               <View className="section">
                 <View className="sectionHeadRow">
-                  <Text className="title">卫生棉条</Text>
+                  <View className="sectionTitleRow">
+                    <Text className="title">卫生棉条</Text>
+                    <Text className="sectionTotal">累计 {fmtMl(tamponTotalMl)}mL</Text>
+                  </View>
                   <View className="segRow">
                     {TAMPON_MODELS.map((x, idx) => (
                       <FCChip
@@ -688,12 +692,20 @@ export default function HomePage() {
                   >
                     <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
                   </Picker>
-                  <Text className="muted">
-                    血量：{fmtMl(tamponVolumeMl)}mL
-                  </Text>
                 </View>
                 <View className="controlSplitRow">
-                  <View className="controlLeft">
+                  <View className="controlViz">
+                    <FCProductViz
+                      kind="tampon"
+                      tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                      volumeMl={tamponVolumeMl}
+                      color={COLORS[colorIndex]?.value}
+                      label={TAMPON_MODELS[tamponModelIndex]?.label}
+                      spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
+                    />
+                  </View>
+
+                  <View className="controlPanel">
                     <View className="scaleRow">
                       <View className="scaleBarWrap">
                         <FCScaleBar
@@ -711,6 +723,7 @@ export default function HomePage() {
                       </View>
                     </View>
                     <View className="scaleAddRow">
+                      {tamponVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(tamponVolumeMl)} mL</Text> : null}
                       <FCButton
                         size="sm"
                         disabled={tamponVolumeMl <= 0}
@@ -727,18 +740,6 @@ export default function HomePage() {
                         添加/条
                       </FCButton>
                     </View>
-                  </View>
-
-                  <View className="controlRight">
-                    <FCProductViz
-                      kind="tampon"
-                      tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
-                      volumeMl={tamponVolumeMl}
-                      color={COLORS[colorIndex]?.value}
-                      label={TAMPON_MODELS[tamponModelIndex]?.label}
-                      spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
-                      valueMl={tamponTotalMl}
-                    />
                   </View>
                 </View>
               </View>

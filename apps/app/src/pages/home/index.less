@@ -67,6 +67,19 @@
   gap: 10px;
 }
 
+.sectionTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sectionTotal {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.52);
+  white-space: nowrap;
+}
+
 .segRow {
   display: flex;
   align-items: center;
@@ -320,7 +333,7 @@
   flex-wrap: nowrap;
 }
 
-.controlLeft {
+.controlPanel {
   flex: 1;
   min-width: 0;
 }
@@ -332,10 +345,18 @@
 .scaleAddRow {
   margin-top: 10px;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 10px;
 }
 
-.controlRight {
+.scaleMlText {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.controlViz {
   flex: none;
 }
 
