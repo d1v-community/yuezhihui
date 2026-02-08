@@ -131,7 +131,7 @@ export default function HomePage() {
   const [padTypeIndex, setPadTypeIndex] = useState(1)
   const [tamponModelIndex, setTamponModelIndex] = useState(1)
   const [dayColor, setDayColor] = useState<MenstrualColor>('red')
-  const [padVolumeMl, setPadVolumeMl] = useState(0)
+  const [padVolumeMl, setPadVolumeMl] = useState(5)
   const [tamponVolumeMl, setTamponVolumeMl] = useState(0)
   const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
 
@@ -636,8 +636,8 @@ export default function HomePage() {
                     <View className="scaleRow">
                       <View className="scaleBarWrap">
                         <FCScaleBar
-                          min={0}
-                          max={12}
+                          min={1}
+                          max={20}
                           step={0.1}
                           value={padVolumeMl}
                           onChange={setPadVolumeMl}
