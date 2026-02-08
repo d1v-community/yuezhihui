@@ -75,7 +75,6 @@
 
 .fcProdVizPadWing {
   position: absolute;
-  top: 54px;
   width: 20px;
   height: 26px;
   border-radius: 999px;
@@ -84,14 +83,22 @@
   opacity: 0.9;
 }
 
+.fcProdVizPadTypeDay .fcProdVizPadWing {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.fcProdVizPadTypeNight .fcProdVizPadWing {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .fcProdVizPadWingLeft {
   left: 14px;
-  transform: rotate(-12deg);
 }
 
 .fcProdVizPadWingRight {
   right: 14px;
-  transform: rotate(12deg);
 }
 
 .fcProdVizPadTypeLiner .fcProdVizPadBody {
@@ -101,6 +108,10 @@
 
 .fcProdVizPadTypeLiner .fcProdVizPadCore {
   height: 60px;
+}
+
+.fcProdVizPadTypeLiner .fcProdVizPadWing {
+  display: none;
 }
 
 .fcProdVizPadTypeDay .fcProdVizPadBody {
