@@ -12,8 +12,28 @@ import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCProductViz, FCS
 import { FCVolumeSummarySheet } from './volumeSummarySheet'
 import './index.less'
 
+type InputMode = 'click' | 'drag'
+
+type InputModeSettings = {
+  sanitaryPad: InputMode
+  tampon: InputMode
+}
+
+const DEFAULT_INPUT_MODE: InputModeSettings = {
+  sanitaryPad: 'click',
+  tampon: 'click',
+}
+
 function uid() {
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`
+}
+
+function loadInputMode(): InputModeSettings {
+  const v = getStorageJson<Partial<InputModeSettings>>(STORAGE_KEYS.inputModeSettings)
+  return {
+    sanitaryPad: (v?.sanitaryPad === 'click' || v?.sanitaryPad === 'drag') ? v.sanitaryPad : DEFAULT_INPUT_MODE.sanitaryPad,
+    tampon: (v?.tampon === 'click' || v?.tampon === 'drag') ? v.tampon : DEFAULT_INPUT_MODE.tampon,
+  }
 }
 
 function splitVolumeMl(events: DailyRecordEvent[]) {
@@ -133,6 +153,7 @@ export default function HomePage() {
   const [dayColor, setDayColor] = useState<MenstrualColor>('red')
   const [padVolumeMl, setPadVolumeMl] = useState(5)
   const [tamponVolumeMl, setTamponVolumeMl] = useState(5)
+  const [inputMode, setInputMode] = useState<InputModeSettings>(DEFAULT_INPUT_MODE)
   const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
 
   const tamponMaxMl = useMemo(() => {
@@ -159,6 +180,10 @@ export default function HomePage() {
     return Math.max(0, Math.min(1, totalVolume / max))
   }, [totalVolume])
   const volumeFillPct = volumeFill * 100
+
+  useEffect(() => {
+    setInputMode(loadInputMode())
+  }, [])
 
   useEffect(() => {
     // Avoid leaving the sheet open when switching dates.
@@ -633,40 +658,68 @@ export default function HomePage() {
                   </View>
 
                   <View className="controlPanel">
-                    <View className="scaleRow">
-                      <View className="scaleBarWrap">
-                        <FCScaleBar
-                          min={1}
-                          max={20}
-                          step={0.1}
-                          value={padVolumeMl}
-                          onChange={setPadVolumeMl}
-                          ticks={[
-                            { value: 3, label: '少' },
-                            { value: 6, label: '中' },
-                            { value: 10, label: '多' },
-                          ]}
-                        />
+                    {inputMode.sanitaryPad === 'drag' ? (
+                      <>
+                        <View className="scaleRow">
+                          <View className="scaleBarWrap">
+                            <FCScaleBar
+                              min={1}
+                              max={20}
+                              step={0.1}
+                              value={padVolumeMl}
+                              onChange={setPadVolumeMl}
+                              ticks={[
+                                { value: 3, label: '少' },
+                                { value: 6, label: '中' },
+                                { value: 10, label: '多' },
+                              ]}
+                            />
+                          </View>
+                        </View>
+                        <View className="scaleAddRow">
+                          {padVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(padVolumeMl)} mL</Text> : null}
+                          <FCButton
+                            size="sm"
+                            disabled={padVolumeMl <= 0}
+                            onClick={() => {
+                              addEvent({
+                                eventTime: new Date().toISOString(),
+                                eventType: 'pad',
+                                productType: PAD_TYPES[padTypeIndex]?.value,
+                                color: dayColor,
+                                volumeMl: padVolumeMl,
+                              })
+                            }}
+                          >
+                            添加/片
+                          </FCButton>
+                        </View>
+                      </>
+                    ) : (
+                      <View className="clickCardsRow">
+                        {[1, 5, 20].map((ml) => (
+                          <View
+                            key={ml}
+                            className="clickCard"
+                            onClick={() => {
+                              addEvent({
+                                eventTime: new Date().toISOString(),
+                                eventType: 'pad',
+                                productType: PAD_TYPES[padTypeIndex]?.value,
+                                color: dayColor,
+                                volumeMl: ml,
+                              })
+                              Taro.showToast({
+                                title: `已添加 ${ml}mL`,
+                                icon: 'none',
+                              })
+                            }}
+                          >
+                            <Text className="clickCardMl">{ml}mL</Text>
+                          </View>
+                        ))}
                       </View>
-                    </View>
-                    <View className="scaleAddRow">
-                      {padVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(padVolumeMl)} mL</Text> : null}
-                      <FCButton
-                        size="sm"
-                        disabled={padVolumeMl <= 0}
-                        onClick={() => {
-                          addEvent({
-                            eventTime: new Date().toISOString(),
-                            eventType: 'pad',
-                            productType: PAD_TYPES[padTypeIndex]?.value,
-                            color: dayColor,
-                            volumeMl: padVolumeMl,
-                          })
-                        }}
-                      >
-                        添加/片
-                      </FCButton>
-                    </View>
+                    )}
                   </View>
                 </View>
               </View>
@@ -707,40 +760,68 @@ export default function HomePage() {
                   </View>
 
                   <View className="controlPanel">
-                    <View className="scaleRow">
-                      <View className="scaleBarWrap">
-                        <FCScaleBar
-                          min={1}
-                          max={20}
-                          step={0.1}
-                          value={tamponVolumeMl}
-                          onChange={setTamponVolumeMl}
-                          ticks={[
-                            { value: 3, label: '少' },
-                            { value: 6, label: '中' },
-                            { value: 10, label: '多' },
-                          ]}
-                        />
+                    {inputMode.tampon === 'drag' ? (
+                      <>
+                        <View className="scaleRow">
+                          <View className="scaleBarWrap">
+                            <FCScaleBar
+                              min={1}
+                              max={20}
+                              step={0.1}
+                              value={tamponVolumeMl}
+                              onChange={setTamponVolumeMl}
+                              ticks={[
+                                { value: 3, label: '少' },
+                                { value: 6, label: '中' },
+                                { value: 10, label: '多' },
+                              ]}
+                            />
+                          </View>
+                        </View>
+                        <View className="scaleAddRow">
+                          {tamponVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(tamponVolumeMl)} mL</Text> : null}
+                          <FCButton
+                            size="sm"
+                            disabled={tamponVolumeMl <= 0}
+                            onClick={() => {
+                              addEvent({
+                                eventTime: new Date().toISOString(),
+                                eventType: 'tampon',
+                                model: TAMPON_MODELS[tamponModelIndex]?.value,
+                                color: dayColor,
+                                volumeMl: tamponVolumeMl,
+                              })
+                            }}
+                          >
+                            添加/条
+                          </FCButton>
+                        </View>
+                      </>
+                    ) : (
+                      <View className="clickCardsRow">
+                        {[1, 5, 20].map((ml) => (
+                          <View
+                            key={ml}
+                            className="clickCard"
+                            onClick={() => {
+                              addEvent({
+                                eventTime: new Date().toISOString(),
+                                eventType: 'tampon',
+                                model: TAMPON_MODELS[tamponModelIndex]?.value,
+                                color: dayColor,
+                                volumeMl: ml,
+                              })
+                              Taro.showToast({
+                                title: `已添加 ${ml}mL`,
+                                icon: 'none',
+                              })
+                            }}
+                          >
+                            <Text className="clickCardMl">{ml}mL</Text>
+                          </View>
+                        ))}
                       </View>
-                    </View>
-                    <View className="scaleAddRow">
-                      {tamponVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(tamponVolumeMl)} mL</Text> : null}
-                      <FCButton
-                        size="sm"
-                        disabled={tamponVolumeMl <= 0}
-                        onClick={() => {
-                          addEvent({
-                            eventTime: new Date().toISOString(),
-                            eventType: 'tampon',
-                            model: TAMPON_MODELS[tamponModelIndex]?.value,
-                            color: dayColor,
-                            volumeMl: tamponVolumeMl,
-                          })
-                        }}
-                      >
-                        添加/条
-                      </FCButton>
-                    </View>
+                    )}
                   </View>
                 </View>
               </View>

@@ -4,5 +4,6 @@ export const STORAGE_KEYS = {
   dailyFirstCompletedAt: 'daily.firstCompletedAt', // timestamp
   dailyFirstGuideShown: 'daily.firstGuideShown', // '1'
   visibilitySettings: 'settings.visibility', // JSON
+  inputModeSettings: 'settings.inputMode', // JSON
   feedbackDraft: 'feedback.draft', // JSON
 } as const

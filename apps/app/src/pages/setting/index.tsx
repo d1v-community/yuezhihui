@@ -16,10 +16,22 @@ type VisibilitySettings = {
   bleeding: boolean
 }
 
+type InputMode = 'click' | 'drag'
+
+type InputModeSettings = {
+  sanitaryPad: InputMode
+  tampon: InputMode
+}
+
 const DEFAULT_VISIBILITY: VisibilitySettings = {
   sanitaryPad: true,
   tampon: true,
   bleeding: true,
+}
+
+const DEFAULT_INPUT_MODE: InputModeSettings = {
+  sanitaryPad: 'click',
+  tampon: 'click',
 }
 
 function loadVisibility(): VisibilitySettings {
@@ -31,6 +43,14 @@ function loadVisibility(): VisibilitySettings {
   }
 }
 
+function loadInputMode(): InputModeSettings {
+  const v = getStorageJson<Partial<InputModeSettings>>(STORAGE_KEYS.inputModeSettings)
+  return {
+    sanitaryPad: (v?.sanitaryPad === 'click' || v?.sanitaryPad === 'drag') ? v.sanitaryPad : DEFAULT_INPUT_MODE.sanitaryPad,
+    tampon: (v?.tampon === 'click' || v?.tampon === 'drag') ? v.tampon : DEFAULT_INPUT_MODE.tampon,
+  }
+}
+
 export default function SettingPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -38,6 +58,7 @@ export default function SettingPage() {
   const [displayName, setDisplayName] = useState('')
   const [consentText, setConsentText] = useState<string>('未读取')
   const [visibility, setVisibility] = useState<VisibilitySettings>(DEFAULT_VISIBILITY)
+  const [inputMode, setInputMode] = useState<InputModeSettings>(DEFAULT_INPUT_MODE)
 
   useLoad(() => {
     void (async () => {
@@ -60,9 +81,11 @@ export default function SettingPage() {
         }
 
         setVisibility(loadVisibility())
+        setInputMode(loadInputMode())
       } catch {
         // keep the page usable with local values
         setVisibility(loadVisibility())
+        setInputMode(loadInputMode())
         setConsentText('未读取')
       } finally {
         setLoading(false)
@@ -73,6 +96,10 @@ export default function SettingPage() {
   useEffect(() => {
     setStorageJson(STORAGE_KEYS.visibilitySettings, visibility)
   }, [visibility])
+
+  useEffect(() => {
+    setStorageJson(STORAGE_KEYS.inputModeSettings, inputMode)
+  }, [inputMode])
 
   const canSaveProfile = useMemo(() => displayName.trim().length >= 1 && displayName.trim().length <= 64, [displayName])
 
@@ -208,6 +235,32 @@ export default function SettingPage() {
                 <Switch
                   checked={visibility.bleeding}
                   onChange={(e) => setVisibility((v) => ({ ...v, bleeding: Boolean(e.detail.value) }))}
+                />
+              </View>
+            </View>
+
+            <View className="divider" />
+
+            <View className="section">
+              <Text className="sectionTitle">输入模式</Text>
+              <View className="row">
+                <View>
+                  <Text className="rowTitle">卫生巾</Text>
+                  <Text className="muted">{inputMode.sanitaryPad === 'click' ? '点击模式' : '拖动模式'}</Text>
+                </View>
+                <Switch
+                  checked={inputMode.sanitaryPad === 'click'}
+                  onChange={(e) => setInputMode((v) => ({ ...v, sanitaryPad: e.detail.value ? 'click' : 'drag' }))}
+                />
+              </View>
+              <View className="row">
+                <View>
+                  <Text className="rowTitle">卫生棉条</Text>
+                  <Text className="muted">{inputMode.tampon === 'click' ? '点击模式' : '拖动模式'}</Text>
+                </View>
+                <Switch
+                  checked={inputMode.tampon === 'click'}
+                  onChange={(e) => setInputMode((v) => ({ ...v, tampon: e.detail.value ? 'click' : 'drag' }))}
                 />
               </View>
             </View>

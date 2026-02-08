@@ -356,6 +356,35 @@
   color: rgba(0, 0, 0, 0.62);
 }
 
+.clickCardsRow {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.clickCard {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+  border-radius: 12px;
+  background: rgba(248, 246, 244, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: background 180ms;
+
+  &:active {
+    background: rgba(232, 228, 224, 0.98);
+  }
+}
+
+.clickCardMl {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.62);
+}
+
 .controlViz {
   flex: none;
 }
