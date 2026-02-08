@@ -132,7 +132,7 @@ export default function HomePage() {
   const [tamponModelIndex, setTamponModelIndex] = useState(1)
   const [dayColor, setDayColor] = useState<MenstrualColor>('red')
   const [padVolumeMl, setPadVolumeMl] = useState(5)
-  const [tamponVolumeMl, setTamponVolumeMl] = useState(0)
+  const [tamponVolumeMl, setTamponVolumeMl] = useState(5)
   const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
 
   const tamponMaxMl = useMemo(() => {
@@ -255,7 +255,7 @@ export default function HomePage() {
       setRecord({ date, hasBleeding: false, events: [] })
       // Reset input controls for the new day (default should be 5mL).
       setPadVolumeMl(5)
-      setTamponVolumeMl(0)
+      setTamponVolumeMl(5)
       setDayColor('red')
       const stored = await loadDailyRecord(date)
       setSubmittedAt(stored.submittedAt)
@@ -710,8 +710,8 @@ export default function HomePage() {
                     <View className="scaleRow">
                       <View className="scaleBarWrap">
                         <FCScaleBar
-                          min={0}
-                          max={tamponMaxMl}
+                          min={1}
+                          max={20}
                           step={0.1}
                           value={tamponVolumeMl}
                           onChange={setTamponVolumeMl}
