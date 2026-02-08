@@ -8,7 +8,7 @@ import type { DailyRecord, DailyRecordEvent, MenstrualColor } from '../../types/
 import { addDaysYmd, clampYmd, todayYmd } from '../../utils/date'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
 import { getMenstrualDailyRange } from '../../services/menstrual'
-import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCTabBar, FCVolumeVial } from '../../ui'
+import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCProductViz, FCScaleBar, FCTabBar, FCVolumeVial } from '../../ui'
 import './index.less'
 
 function uid() {
@@ -72,11 +72,25 @@ const COLORS: Array<{ label: string; value: MenstrualColor }> = [
   { label: '棕', value: 'brown' },
 ]
 
-const VOLUMES = [
-  { label: '少（3mL）', value: 3 },
-  { label: '中（6mL）', value: 6 },
-  { label: '多（10mL）', value: 10 },
-]
+const PAD_TYPE_SPECS: Record<string, string> = {
+  liner: '≈155mm',
+  day: '≈240mm',
+  night: '≈290-420mm',
+  pants: '尺码',
+}
+
+const TAMPON_MODEL_SPECS: Record<string, string> = {
+  mini: '≈6-9g',
+  regular: '≈6-9g',
+  large: '≈9-12g',
+  super: '≈12-15g',
+}
+
+function volumeHint(v: number) {
+  if (v <= 3) return '少'
+  if (v <= 6) return '中'
+  return '多'
+}
 
 const STRIP_DAYS = 14
 const STRIP_CENTER_IDX = 6 // 0-based
@@ -105,7 +119,7 @@ export default function HomePage() {
   const [padTypeIndex, setPadTypeIndex] = useState(1)
   const [tamponModelIndex, setTamponModelIndex] = useState(1)
   const [colorIndex, setColorIndex] = useState(1)
-  const [volumeIndex, setVolumeIndex] = useState(1)
+  const [volumeMl, setVolumeMl] = useState(6)
 
   const dirty = useMemo(() => JSON.stringify(record) !== snapshot, [record, snapshot])
   const totalVolume = useMemo(() => sumVolumeMl(record.events), [record.events])
@@ -586,14 +600,34 @@ export default function HomePage() {
                   >
                     <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
                   </Picker>
-                  <Picker
-                    mode="selector"
-                    range={VOLUMES.map((x) => x.label)}
-                    value={volumeIndex}
-                    onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
-                  </Picker>
+                  <Text className="muted">血量：{volumeMl}mL（{volumeHint(volumeMl)}）</Text>
+                </View>
+                <View className="scaleRow">
+                  <FCScaleBar
+                    min={1}
+                    max={10}
+                    step={1}
+                    value={volumeMl}
+                    onChange={setVolumeMl}
+                    ticks={[
+                      { value: 3, label: '少' },
+                      { value: 6, label: '中' },
+                      { value: 10, label: '多' },
+                    ]}
+                  />
+                </View>
+                <View className="prodVizRow">
+                  <FCProductViz
+                    kind="pad"
+                    padType={PAD_TYPES[padTypeIndex]?.value as any}
+                    volumeMl={volumeMl}
+                    color={COLORS[colorIndex]?.value}
+                    label={PAD_TYPES[padTypeIndex]?.label}
+                    spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
+                  />
+                  <View className="prodVizMeta">
+                    <Text className="muted">红斑仅为量级示意（随刻度变化）。</Text>
+                  </View>
                 </View>
                 <View className="row section">
                   <FCButton
@@ -604,7 +638,7 @@ export default function HomePage() {
                         eventType: 'pad',
                         productType: PAD_TYPES[padTypeIndex]?.value,
                         color: COLORS[colorIndex]?.value,
-                        volumeMl: VOLUMES[volumeIndex]?.value,
+                        volumeMl: volumeMl,
                       })
                     }}
                   >
@@ -643,14 +677,34 @@ export default function HomePage() {
                   >
                     <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
                   </Picker>
-                  <Picker
-                    mode="selector"
-                    range={VOLUMES.map((x) => x.label)}
-                    value={volumeIndex}
-                    onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
-                  </Picker>
+                  <Text className="muted">血量：{volumeMl}mL（{volumeHint(volumeMl)}）</Text>
+                </View>
+                <View className="scaleRow">
+                  <FCScaleBar
+                    min={1}
+                    max={10}
+                    step={1}
+                    value={volumeMl}
+                    onChange={setVolumeMl}
+                    ticks={[
+                      { value: 3, label: '少' },
+                      { value: 6, label: '中' },
+                      { value: 10, label: '多' },
+                    ]}
+                  />
+                </View>
+                <View className="prodVizRow">
+                  <FCProductViz
+                    kind="tampon"
+                    tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                    volumeMl={volumeMl}
+                    color={COLORS[colorIndex]?.value}
+                    label={TAMPON_MODELS[tamponModelIndex]?.label}
+                    spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
+                  />
+                  <View className="prodVizMeta">
+                    <Text className="muted">可后续把这里的“规格”替换为你选中的具体型号。</Text>
+                  </View>
                 </View>
                 <View className="row section">
                   <FCButton
@@ -661,7 +715,7 @@ export default function HomePage() {
                         eventType: 'tampon',
                         model: TAMPON_MODELS[tamponModelIndex]?.value,
                         color: COLORS[colorIndex]?.value,
-                        volumeMl: VOLUMES[volumeIndex]?.value,
+                        volumeMl: volumeMl,
                       })
                     }}
                   >

@@ -1,0 +1,231 @@
+.fcProdViz {
+  width: 96px;
+  height: 148px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+  position: relative;
+  overflow: hidden;
+}
+
+.fcProdVizLabel {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 6px;
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fcProdVizStage {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 18px;
+}
+
+.fcProdVizShape {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.fcProdVizPadBody {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 114px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(248, 246, 244, 0.98);
+}
+
+.fcProdVizPadCore {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 76px;
+  border-radius: 999px;
+  background: rgba(208, 200, 195, 0.28);
+}
+
+.fcProdVizPadWing {
+  position: absolute;
+  top: 54px;
+  width: 20px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(248, 246, 244, 0.98);
+  opacity: 0.9;
+}
+
+.fcProdVizPadWingLeft {
+  left: 14px;
+  transform: rotate(-12deg);
+}
+
+.fcProdVizPadWingRight {
+  right: 14px;
+  transform: rotate(12deg);
+}
+
+.fcProdVizPadTypeLiner .fcProdVizPadBody {
+  width: 52px;
+  height: 92px;
+}
+
+.fcProdVizPadTypeLiner .fcProdVizPadCore {
+  height: 60px;
+}
+
+.fcProdVizPadTypeDay .fcProdVizPadBody {
+  width: 56px;
+  height: 114px;
+}
+
+.fcProdVizPadTypeNight .fcProdVizPadBody {
+  width: 58px;
+  height: 132px;
+}
+
+.fcProdVizPadTypeNight .fcProdVizPadCore {
+  height: 92px;
+}
+
+.fcProdVizPadTypePants .fcProdVizPadBody,
+.fcProdVizPadTypePants .fcProdVizPadCore,
+.fcProdVizPadTypePants .fcProdVizPadWing {
+  display: none;
+}
+
+.fcProdVizPants {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -54%);
+  width: 70px;
+  height: 92px;
+  border-radius: 18px 18px 26px 26px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(248, 246, 244, 0.98);
+}
+
+.fcProdVizPantsBand {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(208, 200, 195, 0.28);
+}
+
+.fcProdVizPantsLeg {
+  position: absolute;
+  bottom: 6px;
+  width: 28px;
+  height: 30px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.fcProdVizPantsLegLeft {
+  left: 8px;
+}
+
+.fcProdVizPantsLegRight {
+  right: 8px;
+}
+
+.fcProdVizTampon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -54%);
+  width: 28px;
+  height: 110px;
+}
+
+.fcProdVizTamponBody {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  bottom: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(248, 246, 244, 0.98);
+  overflow: hidden;
+}
+
+.fcProdVizTamponWet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0 0 999px 999px;
+}
+
+.fcProdVizTamponWetEdge {
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: -7px;
+  height: 14px;
+  border-radius: 999px;
+  opacity: 0.35;
+}
+
+.fcProdVizTamponGrip {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 10px;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(208, 200, 195, 0.32);
+}
+
+.fcProdVizTamponString {
+  position: absolute;
+  left: 50%;
+  bottom: 0px;
+  width: 2px;
+  height: 22px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.fcProdVizTamponModelMini .fcProdVizTampon {
+  height: 96px;
+}
+
+.fcProdVizTamponModelRegular .fcProdVizTampon {
+  height: 110px;
+}
+
+.fcProdVizTamponModelLarge .fcProdVizTampon {
+  height: 122px;
+}
+
+.fcProdVizTamponModelSuper .fcProdVizTampon {
+  height: 134px;
+}
+
+.fcProdVizBlot {
+  position: absolute;
+  border-radius: 999px;
+}
