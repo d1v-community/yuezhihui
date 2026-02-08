@@ -84,14 +84,6 @@ const TAMPON_MODELS = [
   { label: '超大', value: 'super' },
 ]
 
-const COLORS: Array<{ label: string; value: MenstrualColor }> = [
-  { label: '粉', value: 'pink' },
-  { label: '红', value: 'red' },
-  { label: '锈红', value: 'rust' },
-  { label: '深红', value: 'dark' },
-  { label: '棕', value: 'brown' },
-]
-
 const PAD_TYPE_SPECS: Record<string, string> = {
   liner: '≈155mm',
   day: '≈240mm',
@@ -138,7 +130,7 @@ export default function HomePage() {
 
   const [padTypeIndex, setPadTypeIndex] = useState(1)
   const [tamponModelIndex, setTamponModelIndex] = useState(1)
-  const [colorIndex, setColorIndex] = useState(1)
+  const [dayColor, setDayColor] = useState<MenstrualColor>('red')
   const [padVolumeMl, setPadVolumeMl] = useState(0)
   const [tamponVolumeMl, setTamponVolumeMl] = useState(0)
   const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
@@ -257,10 +249,12 @@ export default function HomePage() {
       // Reset input controls for the new day (default should be 0 until user confirms).
       setPadVolumeMl(0)
       setTamponVolumeMl(0)
+      setDayColor('red')
       const stored = await loadDailyRecord(date)
       setSubmittedAt(stored.submittedAt)
       setRecord(stored.record)
       setSnapshot(JSON.stringify(stored.record))
+      setDayColor(deriveDayColor(stored.record.events) || 'red')
     } finally {
       setLoading(false)
     }
@@ -392,12 +386,21 @@ export default function HomePage() {
   }
 
   const addEvent = (e: Omit<DailyRecordEvent, 'id'>) => {
-    const ev: DailyRecordEvent = { ...e, id: uid() }
+    // Color is a day-level attribute; default is 'red'. If caller doesn't specify a color,
+    // use the current day color so users don't have to pick a color for every pad/tampon.
+    const ev: DailyRecordEvent = { ...e, color: e.color ?? dayColor, id: uid() }
     setRecord((prev) => ({ ...prev, events: [...prev.events, ev] }))
   }
 
   const removeEvent = (id: string) => {
     setRecord((prev) => ({ ...prev, events: prev.events.filter((e) => e.id !== id) }))
+  }
+
+  const applyDayColor = (next: MenstrualColor) => {
+    if (!next || next === dayColor) return
+    setDayColor(next)
+    // Make the change immediately visible on product viz + calendar vial by applying to events.
+    setRecord((prev) => ({ ...prev, events: prev.events.map((e) => ({ ...e, color: next })) }))
   }
 
   const submit = async () => {
@@ -420,7 +423,7 @@ export default function HomePage() {
           [normalized.date]: {
             hasBleeding: normalized.hasBleeding,
             totalVolumeMl: totalVolume,
-            dayColor: prevMeta?.dayColor ?? null,
+            dayColor: deriveDayColor(normalized.events) ?? prevMeta?.dayColor ?? null,
           },
         }
       })
@@ -598,24 +601,13 @@ export default function HomePage() {
                     ))}
                   </View>
                 </View>
-                <View className="optRow">
-                  <Picker
-                    mode="selector"
-                    range={COLORS.map((x) => x.label)}
-                    value={colorIndex}
-                    onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
-                  </Picker>
-
-                </View>
                 <View className="controlSplitRow">
                   <View className="controlViz">
                     <FCProductViz
                       kind="pad"
                       padType={PAD_TYPES[padTypeIndex]?.value as any}
                       volumeMl={padVolumeMl}
-                      color={COLORS[colorIndex]?.value}
+                      color={dayColor}
                       label={PAD_TYPES[padTypeIndex]?.label}
                       spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
                     />
@@ -648,7 +640,7 @@ export default function HomePage() {
                             eventTime: new Date().toISOString(),
                             eventType: 'pad',
                             productType: PAD_TYPES[padTypeIndex]?.value,
-                            color: COLORS[colorIndex]?.value,
+                            color: dayColor,
                             volumeMl: padVolumeMl,
                           })
                         }}
@@ -683,23 +675,13 @@ export default function HomePage() {
                     ))}
                   </View>
                 </View>
-                <View className="optRow">
-                  <Picker
-                    mode="selector"
-                    range={COLORS.map((x) => x.label)}
-                    value={colorIndex}
-                    onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
-                  </Picker>
-                </View>
                 <View className="controlSplitRow">
                   <View className="controlViz">
                     <FCProductViz
                       kind="tampon"
                       tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
                       volumeMl={tamponVolumeMl}
-                      color={COLORS[colorIndex]?.value}
+                      color={dayColor}
                       label={TAMPON_MODELS[tamponModelIndex]?.label}
                       spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
                     />
@@ -732,7 +714,7 @@ export default function HomePage() {
                             eventTime: new Date().toISOString(),
                             eventType: 'tampon',
                             model: TAMPON_MODELS[tamponModelIndex]?.value,
-                            color: COLORS[colorIndex]?.value,
+                            color: dayColor,
                             volumeMl: tamponVolumeMl,
                           })
                         }}
@@ -772,6 +754,8 @@ export default function HomePage() {
       <FCVolumeSummarySheet
         open={volumeSheetOpen}
         onClose={() => setVolumeSheetOpen(false)}
+        dayColor={dayColor}
+        onChangeDayColor={applyDayColor}
         totalVolumeMl={totalVolume}
         volumeFillPct={volumeFillPct}
         padTotalMl={padTotalMl}

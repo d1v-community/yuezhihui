@@ -501,3 +501,39 @@
 .volumeSheetIcon {
   opacity: 0.92;
 }
+
+.colorDots {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.colorDot {
+  width: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.colorDotFill {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-sizing: border-box;
+}
+
+.colorDotLabel {
+  font-size: 10px;
+  line-height: 12px;
+  color: rgba(0, 0, 0, 0.50);
+}
+
+.colorDotActive .colorDotFill {
+  border-color: rgba(139, 94, 94, 0.55);
+  box-shadow: 0 0 0 3px rgba(200, 182, 166, 0.25);
+}

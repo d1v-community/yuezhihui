@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { View, Text } from '@tarojs/components'
-import type { DailyRecordEvent } from '../../types/dailyRecord'
+import type { DailyRecordEvent, MenstrualColor } from '../../types/dailyRecord'
 import { FCChip, FCPressable } from '../../ui'
 
 type Props = {
@@ -8,6 +8,8 @@ type Props = {
   onClose: () => void
   totalVolumeMl: number
   volumeFillPct: number // 0..100
+  dayColor: MenstrualColor
+  onChangeDayColor: (color: MenstrualColor) => void
   padTotalMl: number
   tamponTotalMl: number
   clotTotalMl: number
@@ -23,6 +25,8 @@ export function FCVolumeSummarySheet(props: Props) {
     onClose,
     totalVolumeMl,
     volumeFillPct,
+    dayColor,
+    onChangeDayColor,
     padTotalMl,
     tamponTotalMl,
     clotTotalMl,
@@ -55,6 +59,33 @@ export function FCVolumeSummarySheet(props: Props) {
         </View>
 
         <View className="section">
+          <View className="row">
+            <Text className="muted">颜色（当天）</Text>
+            <View className="colorDots">
+              {(
+                [
+                  { label: '粉', value: 'pink', fill: 'rgba(210, 122, 148, 0.85)' },
+                  { label: '红', value: 'red', fill: 'rgba(196, 64, 64, 0.85)' },
+                  { label: '锈', value: 'rust', fill: 'rgba(168, 86, 58, 0.85)' },
+                  { label: '深', value: 'dark', fill: 'rgba(110, 56, 56, 0.85)' },
+                  { label: '棕', value: 'brown', fill: 'rgba(120, 86, 66, 0.85)' },
+                ] as const
+              ).map((c) => {
+                const active = dayColor === c.value
+                return (
+                  <FCPressable
+                    key={c.value}
+                    className={['colorDot', active ? 'colorDotActive' : ''].join(' ')}
+                    onClick={() => onChangeDayColor(c.value)}
+                  >
+                    <View className="colorDotFill" style={{ background: c.fill }} />
+                    <Text className="colorDotLabel">{c.label}</Text>
+                  </FCPressable>
+                )
+              })}
+            </View>
+          </View>
+
           <View className="row">
             <Text className="muted">卫生巾 + 棉条 + 血块（估算）</Text>
             <View className="rowRight">
