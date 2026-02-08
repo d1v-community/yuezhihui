@@ -1,0 +1,65 @@
+.fcScaleBar {
+  width: 100%;
+  position: relative;
+  padding: 6px 0 16px;
+  user-select: none;
+}
+
+.fcScaleTrackWrap {
+  position: relative;
+  height: 26px;
+}
+
+.fcScaleTrack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.fcScaleFill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(139, 94, 94, 0.45);
+}
+
+.fcScaleThumb {
+  position: absolute;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+  transform: translateX(-50%);
+}
+
+.fcScaleTickWrap {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.fcScaleTick {
+  position: absolute;
+  top: 2px;
+  width: 1px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.12);
+  transform: translateX(-50%);
+}
+
+.fcScaleTickLabel {
+  position: absolute;
+  top: 24px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  line-height: 10px;
+  color: rgba(0, 0, 0, 0.52);
+  white-space: nowrap;
+}

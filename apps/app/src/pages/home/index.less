@@ -67,6 +67,19 @@
   gap: 10px;
 }
 
+.sectionTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sectionTotal {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.52);
+  white-space: nowrap;
+}
+
 .segRow {
   display: flex;
   align-items: center;
@@ -254,14 +267,6 @@
 }
 
 
-.calHintRow {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-}
-
 .volumeBar {
   margin-top: 10px;
   height: 10px;
@@ -297,6 +302,62 @@
 
 .optRow .fcBtn {
   padding: 0 12px;
+}
+
+.prodVizRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+.scaleRow {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scaleBarWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.controlSplitRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.controlPanel {
+  flex: 1;
+  min-width: 0;
+}
+
+.controlSplitRow .scaleRow {
+  margin-top: 0;
+}
+
+.scaleAddRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.scaleMlText {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.controlViz {
+  flex: none;
 }
 
 .tagRow {
@@ -366,4 +427,113 @@
   margin-top: -4px;
   font-size: 12px;
   color: rgba(0, 0, 0, 0.46);
+}
+
+/* Mobile: make the core record module edge-to-edge (no outer "wrap" padding),
+ * so the main content uses the full screen width.
+ */
+@media screen and (max-width: 520px) {
+  .wrap {
+    padding: 0;
+    max-width: none;
+    margin: 0;
+  }
+
+  .card {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
+/* Bottom sheet: daily volume summary */
+.volumeSheetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.volumeSheet {
+  width: 100%;
+  max-width: 560px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  max-height: 82vh;
+  overflow: auto;
+}
+
+.volumeSheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.volumeSheetClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.volumeSheetCloseText {
+  font-size: 18px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.volumeSheetMeta {
+  margin-top: 10px;
+}
+
+.volumeSheetIcon {
+  opacity: 0.92;
+}
+
+.colorDots {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.colorDot {
+  width: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.colorDotFill {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-sizing: border-box;
+}
+
+.colorDotLabel {
+  font-size: 10px;
+  line-height: 12px;
+  color: rgba(0, 0, 0, 0.50);
+}
+
+.colorDotActive .colorDotFill {
+  border-color: rgba(139, 94, 94, 0.55);
+  box-shadow: 0 0 0 3px rgba(200, 182, 166, 0.25);
 }

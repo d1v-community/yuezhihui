@@ -8,24 +8,44 @@ import type { DailyRecord, DailyRecordEvent, MenstrualColor } from '../../types/
 import { addDaysYmd, clampYmd, todayYmd } from '../../utils/date'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
 import { getMenstrualDailyRange } from '../../services/menstrual'
-import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCTabBar, FCVolumeVial } from '../../ui'
+import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCProductViz, FCScaleBar, FCTabBar, FCVolumeVial } from '../../ui'
+import { FCVolumeSummarySheet } from './volumeSummarySheet'
 import './index.less'
 
 function uid() {
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`
 }
 
-function sumVolumeMl(events: DailyRecordEvent[]) {
+function splitVolumeMl(events: DailyRecordEvent[]) {
   const CLOT_SMALL_ML = 2
   const CLOT_LARGE_ML = 4
-  return events.reduce((s, e) => {
-    if (e.eventType === 'pad' || e.eventType === 'tampon') return s + (e.volumeMl || 0)
-    if (e.eventType === 'symptom') {
-      if (e.symptomName === '小血块') return s + CLOT_SMALL_ML
-      if (e.symptomName === '大血块') return s + CLOT_LARGE_ML
-    }
-    return s
-  }, 0)
+  return events.reduce(
+    (acc, e) => {
+      if (e.eventType === 'pad') {
+        acc.padMl += Number(e.volumeMl || 0)
+        return acc
+      }
+      if (e.eventType === 'tampon') {
+        acc.tamponMl += Number(e.volumeMl || 0)
+        return acc
+      }
+      if (e.eventType === 'symptom') {
+        if (e.symptomName === '小血块') acc.clotMl += CLOT_SMALL_ML
+        if (e.symptomName === '大血块') acc.clotMl += CLOT_LARGE_ML
+        return acc
+      }
+      return acc
+    },
+    { padMl: 0, tamponMl: 0, clotMl: 0 }
+  )
+}
+
+function deriveDayColor(events: DailyRecordEvent[]): MenstrualColor | null {
+  for (let i = events.length - 1; i >= 0; i--) {
+    const c = events[i]?.color
+    if (c) return c
+  }
+  return null
 }
 
 function minYmd(a: string, b: string) {
@@ -64,19 +84,25 @@ const TAMPON_MODELS = [
   { label: '超大', value: 'super' },
 ]
 
-const COLORS: Array<{ label: string; value: MenstrualColor }> = [
-  { label: '粉', value: 'pink' },
-  { label: '红', value: 'red' },
-  { label: '锈红', value: 'rust' },
-  { label: '深红', value: 'dark' },
-  { label: '棕', value: 'brown' },
-]
+const PAD_TYPE_SPECS: Record<string, string> = {
+  liner: '≈155mm',
+  day: '≈240mm',
+  night: '≈290-420mm',
+  pants: '尺码',
+}
 
-const VOLUMES = [
-  { label: '少（3mL）', value: 3 },
-  { label: '中（6mL）', value: 6 },
-  { label: '多（10mL）', value: 10 },
-]
+const TAMPON_MODEL_SPECS: Record<string, string> = {
+  mini: '≈6-9g',
+  regular: '≈6-9g',
+  large: '≈9-12g',
+  super: '≈12-15g',
+}
+
+function fmtMl(v: number) {
+  // Keep UI stable when using decimal steps.
+  const n = Number(v || 0)
+  return Number.isFinite(n) ? n.toFixed(1).replace(/\.0$/, '') : '0'
+}
 
 const STRIP_DAYS = 14
 const STRIP_CENTER_IDX = 6 // 0-based
@@ -104,11 +130,26 @@ export default function HomePage() {
 
   const [padTypeIndex, setPadTypeIndex] = useState(1)
   const [tamponModelIndex, setTamponModelIndex] = useState(1)
-  const [colorIndex, setColorIndex] = useState(1)
-  const [volumeIndex, setVolumeIndex] = useState(1)
+  const [dayColor, setDayColor] = useState<MenstrualColor>('red')
+  const [padVolumeMl, setPadVolumeMl] = useState(0)
+  const [tamponVolumeMl, setTamponVolumeMl] = useState(0)
+  const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
+
+  const tamponMaxMl = useMemo(() => {
+    const model = TAMPON_MODELS[tamponModelIndex]?.value
+    if (model === 'mini') return 8
+    if (model === 'regular') return 10
+    if (model === 'large') return 12
+    if (model === 'super') return 15
+    return 10
+  }, [tamponModelIndex])
 
   const dirty = useMemo(() => JSON.stringify(record) !== snapshot, [record, snapshot])
-  const totalVolume = useMemo(() => sumVolumeMl(record.events), [record.events])
+  const vols = useMemo(() => splitVolumeMl(record.events), [record.events])
+  const padTotalMl = vols.padMl
+  const tamponTotalMl = vols.tamponMl
+  const clotTotalMl = vols.clotMl
+  const totalVolume = padTotalMl + tamponTotalMl + clotTotalMl
   const hasAnyData = record.events.length > 0
   const derivedHasBleeding = totalVolume > 0
   const hasSubmitted = submittedAt != null
@@ -117,14 +158,32 @@ export default function HomePage() {
     const max = 40
     return Math.max(0, Math.min(1, totalVolume / max))
   }, [totalVolume])
+  const volumeFillPct = volumeFill * 100
 
-  const editingRef = useRef<{ date: string; hasAnyData: boolean; derivedHasBleeding: boolean; totalVolume: number }>({
+  useEffect(() => {
+    // Avoid leaving the sheet open when switching dates.
+    setVolumeSheetOpen(false)
+  }, [selectedDate])
+
+  useEffect(() => {
+    // If the day becomes "empty", close the sheet (its entry icon is also hidden).
+    if (totalVolume <= 0 && volumeSheetOpen) setVolumeSheetOpen(false)
+  }, [totalVolume, volumeSheetOpen])
+
+  const editingRef = useRef<{
+    date: string
+    hasAnyData: boolean
+    derivedHasBleeding: boolean
+    totalVolume: number
+    dayColor: MenstrualColor
+  }>({
     date: record.date,
     hasAnyData,
     derivedHasBleeding,
     totalVolume,
+    dayColor,
   })
-  editingRef.current = { date: record.date, hasAnyData, derivedHasBleeding, totalVolume }
+  editingRef.current = { date: record.date, hasAnyData, derivedHasBleeding, totalVolume, dayColor }
 
   const stripEnd = useMemo(() => addDaysYmd(stripStart, STRIP_DAYS - 1), [stripStart])
   const stripDays = useMemo(() => Array.from({ length: STRIP_DAYS }, (_, i) => addDaysYmd(stripStart, i)), [stripStart])
@@ -162,7 +221,7 @@ export default function HomePage() {
             next[ed.date] = {
               hasBleeding: ed.derivedHasBleeding,
               totalVolumeMl: ed.totalVolume,
-              dayColor: prevMeta?.dayColor ?? null,
+              dayColor: ed.dayColor ?? prevMeta?.dayColor ?? null,
             }
           }
         }
@@ -194,10 +253,15 @@ export default function HomePage() {
       // Update header immediately; UI shows a local loading mask while data is fetched.
       setSelectedDate(date)
       setRecord({ date, hasBleeding: false, events: [] })
+      // Reset input controls for the new day (default should be 0 until user confirms).
+      setPadVolumeMl(0)
+      setTamponVolumeMl(0)
+      setDayColor('red')
       const stored = await loadDailyRecord(date)
       setSubmittedAt(stored.submittedAt)
       setRecord(stored.record)
       setSnapshot(JSON.stringify(stored.record))
+      setDayColor(deriveDayColor(stored.record.events) || 'red')
     } finally {
       setLoading(false)
     }
@@ -329,12 +393,33 @@ export default function HomePage() {
   }
 
   const addEvent = (e: Omit<DailyRecordEvent, 'id'>) => {
-    const ev: DailyRecordEvent = { ...e, id: uid() }
+    // Color is a day-level attribute; default is 'red'. If caller doesn't specify a color,
+    // use the current day color so users don't have to pick a color for every pad/tampon.
+    const ev: DailyRecordEvent = { ...e, color: e.color ?? dayColor, id: uid() }
     setRecord((prev) => ({ ...prev, events: [...prev.events, ev] }))
   }
 
   const removeEvent = (id: string) => {
     setRecord((prev) => ({ ...prev, events: prev.events.filter((e) => e.id !== id) }))
+  }
+
+  const applyDayColor = (next: MenstrualColor) => {
+    if (!next || next === dayColor) return
+    setDayColor(next)
+    // Make the change immediately visible on product viz + calendar vial by applying to events.
+    setRecord((prev) => ({ ...prev, events: prev.events.map((e) => ({ ...e, color: next })) }))
+    // Keep the 14-day strip in sync even before submit.
+    setRangeMap((prev) => {
+      if (!hasAnyData) return prev
+      return {
+        ...prev,
+        [selectedDate]: {
+          hasBleeding: derivedHasBleeding,
+          totalVolumeMl: totalVolume,
+          dayColor: next,
+        },
+      }
+    })
   }
 
   const submit = async () => {
@@ -357,7 +442,7 @@ export default function HomePage() {
           [normalized.date]: {
             hasBleeding: normalized.hasBleeding,
             totalVolumeMl: totalVolume,
-            dayColor: prevMeta?.dayColor ?? null,
+            dayColor: deriveDayColor(normalized.events) ?? prevMeta?.dayColor ?? null,
           },
         }
       })
@@ -379,7 +464,6 @@ export default function HomePage() {
   const visibility = getStorageJson<{ sanitaryPad?: boolean; tampon?: boolean; bleeding?: boolean }>(STORAGE_KEYS.visibilitySettings) || {}
   const showPad = typeof visibility.sanitaryPad === 'boolean' ? visibility.sanitaryPad : true
   const showTampon = typeof visibility.tampon === 'boolean' ? visibility.tampon : true
-  const showBleedingUi = typeof visibility.bleeding === 'boolean' ? visibility.bleeding : true
 
   const recentDays = stripDays
 
@@ -407,6 +491,17 @@ export default function HomePage() {
             <View className="headerLeft">
               <Text className="title">按日记录</Text>
               <View className="headerStatusIcons">
+                {totalVolume > 0 ? (
+                  <FCPressable
+                    className={['statusIcon', 'statusIconOn', 'volumeSheetIcon'].join(' ')}
+                    onClick={() => {
+                      if (loading) return
+                      setVolumeSheetOpen(true)
+                    }}
+                  >
+                    <Text className="statusIconText">≋</Text>
+                  </FCPressable>
+                ) : null}
                 <FCPressable
                   className={['statusIcon', hasSubmitted ? 'statusIconOn' : ''].join(' ')}
                   onClick={() => Taro.showToast({ title: hasSubmitted ? '该日已保存' : '该日未提交', icon: 'none' })}
@@ -453,7 +548,9 @@ export default function HomePage() {
               {recentDays.map((d) => {
                 const meta = rangeMap[d]
                 const isActive = d === selectedDate
-                const hasData = Boolean(meta)
+                const liveHasData = isActive ? record.events.length > 0 : Boolean(meta)
+                const liveTotalMl = isActive ? totalVolume : meta?.totalVolumeMl ?? 0
+                const liveColor = isActive ? dayColor : meta?.dayColor ?? null
                 const dayText = d.slice(8, 10)
                 return (
                   <FCPressable
@@ -464,32 +561,29 @@ export default function HomePage() {
                       void selectDate(d)
                     }}
                     onLongPress={() => {
-                      if (rangeLoading && !meta) {
+                      if (!isActive && rangeLoading && !meta) {
                         Taro.showToast({ title: '正在加载…', icon: 'none' })
                         return
                       }
-                      if (!meta) {
+                      if (!liveHasData) {
                         Taro.showToast({ title: `${d} 无记录`, icon: 'none' })
                         return
                       }
-                      Taro.showToast({ title: `${d} · ${meta.totalVolumeMl}mL`, icon: 'none' })
+                      Taro.showToast({ title: `${d} · ${fmtMl(liveTotalMl)}mL`, icon: 'none' })
                     }}
                   >
                     <Text className={['calDayText', isActive ? 'calDayTextActive' : ''].join(' ')}>{dayText}</Text>
                     <FCVolumeVial
-                      volumeMl={meta?.totalVolumeMl ?? 0}
-                      hasData={hasData}
+                      volumeMl={liveTotalMl}
+                      hasData={liveHasData}
                       active={isActive}
-                      loading={rangeLoading && !meta}
-                      color={meta?.dayColor ?? null}
+                      loading={Boolean(!isActive && rangeLoading && !meta)}
+                      color={liveColor}
                       maxMl={40}
                     />
                   </FCPressable>
                 )
               })}
-            </View>
-            <View className="calHintRow">
-              <Text className="muted">点日期切换；左右滑动下方内容可前后切换 1 天；量筒高度表示该日总血量（示意）。</Text>
             </View>
           </View>
 
@@ -506,64 +600,13 @@ export default function HomePage() {
               </View>
             ) : null}
 
-            {showBleedingUi ? (
-              <View className="section">
-                <View className="row">
-                  <Text className="title">当日血量（示意）</Text>
-                  <View className="rowRight">
-                    <View className="tagBtnRow">
-                      {(['小血块', '大血块'] as const).map((name) => (
-                        <FCChip
-                          key={name}
-                          className="tagBtn"
-                          onClick={() =>
-                            addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
-                          }
-                        >
-                          ＋{name}
-                        </FCChip>
-                      ))}
-                    </View>
-                    <Text className="muted">{totalVolume} mL</Text>
-                  </View>
-                </View>
-                <View className="volumeBar">
-                  <View className="volumeFill" style={{ width: `${Math.round(volumeFill * 100)}%` }} />
-                </View>
-                <View className="tagsInline">{eventTags}</View>
-                <Text className="muted">血块会按示意值计入进度条：小血块≈2mL，大血块≈4mL。</Text>
-              </View>
-            ) : (
-              <View className="section">
-                <View className="row">
-                  <Text className="title">当日数据点</Text>
-                  <View className="rowRight">
-                    <View className="tagBtnRow">
-                      {(['小血块', '大血块'] as const).map((name) => (
-                        <FCChip
-                          key={name}
-                          className="tagBtn"
-                          onClick={() =>
-                            addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
-                          }
-                        >
-                          ＋{name}
-                        </FCChip>
-                      ))}
-                    </View>
-                    <Text className="muted">{record.events.length} 条</Text>
-                  </View>
-                </View>
-                <View className="tagsInline">{eventTags}</View>
-              </View>
-            )}
-
-            <View className="divider" />
-
             {showPad ? (
               <View className="section">
                 <View className="sectionHeadRow">
-                  <Text className="title">卫生巾</Text>
+                  <View className="sectionTitleRow">
+                    <Text className="title">卫生巾</Text>
+                    <Text className="sectionTotal">累计 {fmtMl(padTotalMl)}mL</Text>
+                  </View>
                   <View className="segRow">
                     {PAD_TYPES.map((x, idx) => (
                       <FCChip
@@ -577,40 +620,54 @@ export default function HomePage() {
                     ))}
                   </View>
                 </View>
-                <View className="optRow">
-                  <Picker
-                    mode="selector"
-                    range={COLORS.map((x) => x.label)}
-                    value={colorIndex}
-                    onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
-                  </Picker>
-                  <Picker
-                    mode="selector"
-                    range={VOLUMES.map((x) => x.label)}
-                    value={volumeIndex}
-                    onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
-                  </Picker>
-                </View>
-                <View className="row section">
-                  <FCButton
-                    size="sm"
-                    onClick={() => {
-                      addEvent({
-                        eventTime: new Date().toISOString(),
-                        eventType: 'pad',
-                        productType: PAD_TYPES[padTypeIndex]?.value,
-                        color: COLORS[colorIndex]?.value,
-                        volumeMl: VOLUMES[volumeIndex]?.value,
-                      })
-                    }}
-                  >
-                    添加/片
-                  </FCButton>
-                  <Text className="muted">建议在更换时记录，更接近真实节律。</Text>
+                <View className="controlSplitRow">
+                  <View className="controlViz">
+                    <FCProductViz
+                      kind="pad"
+                      padType={PAD_TYPES[padTypeIndex]?.value as any}
+                      volumeMl={padVolumeMl}
+                      color={dayColor}
+                      label={PAD_TYPES[padTypeIndex]?.label}
+                      spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
+                    />
+                  </View>
+
+                  <View className="controlPanel">
+                    <View className="scaleRow">
+                      <View className="scaleBarWrap">
+                        <FCScaleBar
+                          min={0}
+                          max={12}
+                          step={0.1}
+                          value={padVolumeMl}
+                          onChange={setPadVolumeMl}
+                          ticks={[
+                            { value: 3, label: '少' },
+                            { value: 6, label: '中' },
+                            { value: 10, label: '多' },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                    <View className="scaleAddRow">
+                      {padVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(padVolumeMl)} mL</Text> : null}
+                      <FCButton
+                        size="sm"
+                        disabled={padVolumeMl <= 0}
+                        onClick={() => {
+                          addEvent({
+                            eventTime: new Date().toISOString(),
+                            eventType: 'pad',
+                            productType: PAD_TYPES[padTypeIndex]?.value,
+                            color: dayColor,
+                            volumeMl: padVolumeMl,
+                          })
+                        }}
+                      >
+                        添加/片
+                      </FCButton>
+                    </View>
+                  </View>
                 </View>
               </View>
             ) : null}
@@ -620,7 +677,10 @@ export default function HomePage() {
             {showTampon ? (
               <View className="section">
                 <View className="sectionHeadRow">
-                  <Text className="title">卫生棉条</Text>
+                  <View className="sectionTitleRow">
+                    <Text className="title">卫生棉条</Text>
+                    <Text className="sectionTotal">累计 {fmtMl(tamponTotalMl)}mL</Text>
+                  </View>
                   <View className="segRow">
                     {TAMPON_MODELS.map((x, idx) => (
                       <FCChip
@@ -634,40 +694,54 @@ export default function HomePage() {
                     ))}
                   </View>
                 </View>
-                <View className="optRow">
-                  <Picker
-                    mode="selector"
-                    range={COLORS.map((x) => x.label)}
-                    value={colorIndex}
-                    onChange={(e) => setColorIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{COLORS[colorIndex]?.label || '颜色'}</FCChip>
-                  </Picker>
-                  <Picker
-                    mode="selector"
-                    range={VOLUMES.map((x) => x.label)}
-                    value={volumeIndex}
-                    onChange={(e) => setVolumeIndex(Number(e.detail.value) || 0)}
-                  >
-                    <FCChip>{VOLUMES[volumeIndex]?.label || '量级'}</FCChip>
-                  </Picker>
-                </View>
-                <View className="row section">
-                  <FCButton
-                    size="sm"
-                    onClick={() => {
-                      addEvent({
-                        eventTime: new Date().toISOString(),
-                        eventType: 'tampon',
-                        model: TAMPON_MODELS[tamponModelIndex]?.value,
-                        color: COLORS[colorIndex]?.value,
-                        volumeMl: VOLUMES[volumeIndex]?.value,
-                      })
-                    }}
-                  >
-                    添加/条
-                  </FCButton>
-                  <Text className="muted">与卫生巾一样：更换时记一条事件。</Text>
+                <View className="controlSplitRow">
+                  <View className="controlViz">
+                    <FCProductViz
+                      kind="tampon"
+                      tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                      volumeMl={tamponVolumeMl}
+                      color={dayColor}
+                      label={TAMPON_MODELS[tamponModelIndex]?.label}
+                      spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
+                    />
+                  </View>
+
+                  <View className="controlPanel">
+                    <View className="scaleRow">
+                      <View className="scaleBarWrap">
+                        <FCScaleBar
+                          min={0}
+                          max={tamponMaxMl}
+                          step={0.1}
+                          value={tamponVolumeMl}
+                          onChange={setTamponVolumeMl}
+                          ticks={[
+                            { value: 3, label: '少' },
+                            { value: 6, label: '中' },
+                            { value: 10, label: '多' },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                    <View className="scaleAddRow">
+                      {tamponVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(tamponVolumeMl)} mL</Text> : null}
+                      <FCButton
+                        size="sm"
+                        disabled={tamponVolumeMl <= 0}
+                        onClick={() => {
+                          addEvent({
+                            eventTime: new Date().toISOString(),
+                            eventType: 'tampon',
+                            model: TAMPON_MODELS[tamponModelIndex]?.value,
+                            color: dayColor,
+                            volumeMl: tamponVolumeMl,
+                          })
+                        }}
+                      >
+                        添加/条
+                      </FCButton>
+                    </View>
+                  </View>
                 </View>
               </View>
             ) : null}
@@ -695,6 +769,24 @@ export default function HomePage() {
           <FCTabBar />
         </FCActionBar>
       </View>
+
+      <FCVolumeSummarySheet
+        open={volumeSheetOpen}
+        onClose={() => setVolumeSheetOpen(false)}
+        dayColor={dayColor}
+        onChangeDayColor={applyDayColor}
+        totalVolumeMl={totalVolume}
+        volumeFillPct={volumeFillPct}
+        padTotalMl={padTotalMl}
+        tamponTotalMl={tamponTotalMl}
+        clotTotalMl={clotTotalMl}
+        events={record.events}
+        eventTags={eventTags}
+        fmtMl={fmtMl}
+        onAddClot={(name) =>
+          addEvent({ eventTime: new Date().toISOString(), eventType: 'symptom', symptomName: name })
+        }
+      />
     </View>
   )
 }

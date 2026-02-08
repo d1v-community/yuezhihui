@@ -2,6 +2,17 @@
  * Keep input font-size >= 16px to avoid iOS Safari zooming on focus.
  */
 
+/* Taro H5 uses rem-based px transform + a runtime script to scale `html` font-size by viewport.
+ * For this project we prefer a stable visual scale on mobile (closer to desktop proportions).
+ */
+html {
+  /* NOTE: We intentionally override Taro's responsive rem root-size to keep a consistent,
+   * readable scale across desktop/mobile in H5. The rest of the UI uses rem (pxtransform),
+   * so bumping the root size scales the whole app.
+   */
+  font-size: 100px !important;
+}
+
 input,
 textarea {
   font-size: 16px;
