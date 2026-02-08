@@ -645,7 +645,7 @@ export default function HomePage() {
                     ))}
                   </View>
                 </View>
-                <View className="controlSplitRow">
+                <View className={`controlSplitRow ${inputMode.sanitaryPad === 'click' ? 'controlSplitRowClick' : ''}`}>
                   <View className="controlViz">
                     <FCProductViz
                       kind="pad"
@@ -747,7 +747,7 @@ export default function HomePage() {
                     ))}
                   </View>
                 </View>
-                <View className="controlSplitRow">
+                <View className={`controlSplitRow ${inputMode.tampon === 'click' ? 'controlSplitRowClick' : ''}`}>
                   <View className="controlViz">
                     <FCProductViz
                       kind="tampon"
