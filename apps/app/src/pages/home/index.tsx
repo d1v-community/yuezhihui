@@ -540,9 +540,6 @@ export default function HomePage() {
                 )
               })}
             </View>
-            <View className="calHintRow">
-              <Text className="muted">点日期切换；左右滑动下方内容可前后切换 1 天；量筒高度表示该日总血量（示意）。</Text>
-            </View>
           </View>
 
           <View className="divider" />
@@ -558,7 +555,7 @@ export default function HomePage() {
               </View>
             ) : null}
 
-            {showBleedingUi ? (
+            {/* {showBleedingUi ? (
               <View className="section">
                 <View className="row">
                   <Text className="title">当日总血量（卫生巾+棉条+血块，示意）</Text>
@@ -613,7 +610,7 @@ export default function HomePage() {
               </View>
             )}
 
-            <View className="divider" />
+            <View className="divider" /> */}
 
             {showPad ? (
               <View className="section">
