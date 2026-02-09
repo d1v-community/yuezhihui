@@ -272,6 +272,14 @@ export default function EncyclopediaPage() {
                 </View>
               ))}
             </View>
+            <View className="faq-more">
+              <FCButton
+                variant="primary"
+                onClick={() => Taro.navigateTo({ url: '/wiki/index' })}
+              >
+                更多百科词条
+              </FCButton>
+            </View>
           </View>
 
           <View className="section">
