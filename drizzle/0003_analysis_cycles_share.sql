@@ -21,7 +21,7 @@ create unique index if not exists menstrual_cycle_user_start_uq
 create index if not exists menstrual_cycle_user_start_idx
   on menstrual_cycle(user_id, start_date desc);
 
--- 2) Attach cycle_id to daily/event rows (nullable; recomputed on demand)
+-- 2) Attach cycle_id to daily/event rows (nullable, recomputed on demand)
 alter table menstrual_daily
   add column if not exists cycle_id integer references menstrual_cycle(id) on delete set null;
 create index if not exists menstrual_daily_cycle_id_idx on menstrual_daily(cycle_id);
@@ -30,7 +30,7 @@ alter table menstrual_event
   add column if not exists cycle_id integer references menstrual_cycle(id) on delete set null;
 create index if not exists menstrual_event_cycle_id_idx on menstrual_event(cycle_id);
 
--- 3) Share records (store params; compute data on read)
+-- 3) Share records (store params, compute data on read)
 create table if not exists share_record (
   id bigserial primary key,
   owner_user_id text not null references users(id) on delete cascade,
@@ -44,4 +44,3 @@ create table if not exists share_record (
 create unique index if not exists share_record_share_code_uq on share_record(share_code);
 create index if not exists share_record_owner_created_at_idx on share_record(owner_user_id, created_at desc);
 create index if not exists share_record_expire_at_idx on share_record(expire_at);
-

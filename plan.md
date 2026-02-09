@@ -192,6 +192,33 @@ TODO：
 
 ---
 
+## P0-7 用户偏好：是否习惯使用卫生棉条（持久化开关）
+
+背景：
+- 80% 用户不一定使用卫生棉条；默认展示会增加认知负担
+- 需要在设置页提供“我习惯用卫生棉条”开关；并持久化到 DB（跨端一致）
+
+实现拆解：
+- [x] 数据库：在 `users` 增加 `use_tampon boolean`（NULL 表示未设置）
+  - 迁移：`drizzle/0004_user_preferences.sql`
+- [x] 后端：对外返回/写入该字段（最小改动，复用现有接口）
+  - `GET /api/auth/me`：返回 `user.useTampon`
+  - `POST /api/auth/verify-login`：返回 `user.useTampon`
+  - `PATCH /api/user/profile`：支持更新 `useTampon`
+- [x] 设置页：新增“我习惯用卫生棉条”开关（保存到账号）
+  - 文件：`apps/app/src/pages/setting/index.tsx`
+  - 交互：保存失败回滚 + toast 提示；保存中禁用开关避免抖动
+- [x] 按日记录页：根据 `useTampon` 决定是否展示“卫生棉条”模块
+  - 文件：`apps/app/src/pages/home/index.tsx`
+  - 规则：`useTampon !== false` 默认展示；从设置页返回时刷新一次
+
+验收标准：
+- [x] 用户关闭开关后，按日记录页不再出现“卫生棉条”模块（刷新/重进仍生效）
+- [x] 用户打开开关后，按日记录页出现“卫生棉条”模块（无需清缓存）
+- [x] 涉及 API/后端逻辑：完成一次 API 冒烟测试（本地请求能通 + 鉴权/错误码正确）再打勾
+
+---
+
 ## P1（可选增强）
 - [x] 量筒长按/点击显示该日 `totalVolumeMl`（轻提示，避免常驻文字）
 - [x] 当日量筒可显示 `dayColor`（粉/红/锈红/深红/棕）作为填充色，提高信息密度

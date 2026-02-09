@@ -37,6 +37,7 @@ export async function action({ request }: ActionFunctionArgs) {
           email: user.email,
           displayName: user.displayName,
           avatarUrl: user.avatarUrl,
+          useTampon: user.useTampon ?? null,
         },
         token,
       },

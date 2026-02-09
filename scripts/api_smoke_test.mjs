@@ -63,6 +63,38 @@ async function main() {
   const me = await jsonFetch("/api/auth/me", { token });
   assert.equal(me.res.status, 200, `auth/me failed: ${me.text}`);
   assert.equal(me.data?.authenticated, true, `auth/me authenticated=false: ${me.text}`);
+  assert.ok(
+    me.data?.user && ("useTampon" in me.data.user),
+    `auth/me should include user.useTampon: ${me.text}`
+  );
+  assert.ok(
+    me.data.user.useTampon === null || typeof me.data.user.useTampon === "boolean",
+    `auth/me user.useTampon should be boolean|null: ${me.text}`
+  );
+
+  // User preference: use tampon
+  {
+    const off = await jsonFetch("/api/user/profile", {
+      method: "PATCH",
+      token,
+      body: { useTampon: false },
+    });
+    assert.equal(off.res.status, 200, `user/profile patch useTampon=false failed: ${off.text}`);
+    assert.equal(off.data?.code, 200, `user/profile patch code!=200: ${off.text}`);
+
+    const me2 = await jsonFetch("/api/auth/me", { token });
+    assert.equal(me2.res.status, 200);
+    assert.equal(me2.data?.authenticated, true);
+    assert.equal(me2.data?.user?.useTampon, false, `useTampon should be false after patch: ${me2.text}`);
+
+    const on = await jsonFetch("/api/user/profile", {
+      method: "PATCH",
+      token,
+      body: { useTampon: true },
+    });
+    assert.equal(on.res.status, 200, `user/profile patch useTampon=true failed: ${on.text}`);
+    assert.equal(on.data?.code, 200, `user/profile patch code!=200: ${on.text}`);
+  }
 
   const sync = await jsonFetch("/api/auth/sync-cookie", { method: "POST", token, body: {} });
   assert.equal(sync.res.status, 200, `auth/sync-cookie failed: ${sync.text}`);

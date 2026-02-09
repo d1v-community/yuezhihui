@@ -4,6 +4,7 @@ import type { ApiResponse } from './menstrual'
 export type UpdateProfilePayload = {
   displayName?: string
   avatarUrl?: string
+  useTampon?: boolean
 }
 
 function unwrap<T>(resp: ApiResponse<T> | undefined | null, fallbackMessage: string): T {
@@ -20,4 +21,3 @@ export async function updateUserProfile(payload: UpdateProfilePayload): Promise<
   })
   return unwrap(resp, '更新资料失败')
 }
-

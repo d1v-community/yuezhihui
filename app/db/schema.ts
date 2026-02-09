@@ -7,6 +7,8 @@ export const users = pgTable("users", {
   displayName: text("display_name"),
   email: text("email"),
   avatarUrl: text("avatar_url"),
+  // User preference: whether they typically use tampons. NULL means "unset".
+  useTampon: boolean("use_tampon"),
   createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
 });

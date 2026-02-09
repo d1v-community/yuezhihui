@@ -117,6 +117,9 @@ export async function findOrCreateUserByEmail(email: string) {
     displayName: username,
     email,
     avatarUrl: null as string | null,
+    useTampon: null as boolean | null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   await db.insert(users).values(newUser);

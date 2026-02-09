@@ -12,7 +12,6 @@ import './index.less'
 
 type VisibilitySettings = {
   sanitaryPad: boolean
-  tampon: boolean
   bleeding: boolean
 }
 
@@ -25,7 +24,6 @@ type InputModeSettings = {
 
 const DEFAULT_VISIBILITY: VisibilitySettings = {
   sanitaryPad: true,
-  tampon: true,
   bleeding: true,
 }
 
@@ -38,7 +36,6 @@ function loadVisibility(): VisibilitySettings {
   const v = getStorageJson<Partial<VisibilitySettings>>(STORAGE_KEYS.visibilitySettings)
   return {
     sanitaryPad: typeof v?.sanitaryPad === 'boolean' ? v.sanitaryPad : DEFAULT_VISIBILITY.sanitaryPad,
-    tampon: typeof v?.tampon === 'boolean' ? v.tampon : DEFAULT_VISIBILITY.tampon,
     bleeding: typeof v?.bleeding === 'boolean' ? v.bleeding : DEFAULT_VISIBILITY.bleeding,
   }
 }
@@ -59,6 +56,8 @@ export default function SettingPage() {
   const [consentText, setConsentText] = useState<string>('未读取')
   const [visibility, setVisibility] = useState<VisibilitySettings>(DEFAULT_VISIBILITY)
   const [inputMode, setInputMode] = useState<InputModeSettings>(DEFAULT_INPUT_MODE)
+  const [useTampon, setUseTampon] = useState(true)
+  const [savingUseTampon, setSavingUseTampon] = useState(false)
 
   useLoad(() => {
     void (async () => {
@@ -70,6 +69,7 @@ export default function SettingPage() {
         if ('authenticated' in me && me.authenticated) {
           setMeEmail(me.user.email || null)
           setDisplayName(me.user.displayName || me.user.username || '')
+          setUseTampon(me.user.useTampon !== false)
         }
 
         const st = await onboardingV2State()
@@ -113,6 +113,22 @@ export default function SettingPage() {
       Taro.showToast({ title: e instanceof Error ? e.message : '保存失败', icon: 'none' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const onToggleUseTampon = async (next: boolean) => {
+    if (savingUseTampon) return
+    const prev = useTampon
+    setUseTampon(next)
+    setSavingUseTampon(true)
+    try {
+      await updateUserProfile({ useTampon: next })
+      Taro.showToast({ title: next ? '已开启棉条模块' : '已隐藏棉条模块', icon: 'none' })
+    } catch (e) {
+      setUseTampon(prev)
+      Taro.showToast({ title: e instanceof Error ? e.message : '保存失败', icon: 'none' })
+    } finally {
+      setSavingUseTampon(false)
     }
   }
 
@@ -219,12 +235,13 @@ export default function SettingPage() {
               </View>
               <View className="row">
                 <View>
-                  <Text className="rowTitle">卫生棉条模块</Text>
-                  <Text className="muted">用于记录更换事件（可隐藏）</Text>
+                  <Text className="rowTitle">我习惯用卫生棉条</Text>
+                  <Text className="muted">用于按日记录中显示“卫生棉条”模块（会同步到账号）</Text>
                 </View>
                 <Switch
-                  checked={visibility.tampon}
-                  onChange={(e) => setVisibility((v) => ({ ...v, tampon: Boolean(e.detail.value) }))}
+                  checked={useTampon}
+                  disabled={savingUseTampon}
+                  onChange={(e) => void onToggleUseTampon(Boolean(e.detail.value))}
                 />
               </View>
               <View className="row">

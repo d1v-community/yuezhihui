@@ -6,6 +6,7 @@ export type AuthUser = {
   email: string | null
   displayName: string | null
   avatarUrl: string | null
+  useTampon?: boolean | null
 }
 
 export type AuthMeResponse =
@@ -36,4 +37,3 @@ export async function authVerifyLogin(email: string, code: string) {
     data: { email, code },
   })
 }
-

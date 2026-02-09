@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Taro, { useLoad } from '@tarojs/taro'
+import Taro, { useDidShow, useLoad } from '@tarojs/taro'
 import { View, Text, Picker } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
 import { getStorageJson, getStorageString, setStorageString } from '../../storage/storage'
@@ -8,6 +8,7 @@ import type { DailyRecord, DailyRecordEvent, MenstrualColor } from '../../types/
 import { addDaysYmd, clampYmd, todayYmd } from '../../utils/date'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
 import { getMenstrualDailyRange } from '../../services/menstrual'
+import { authMe } from '../../services/auth'
 import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCProductViz, FCScaleBar, FCTabBar, FCVolumeVial } from '../../ui'
 import { FCVolumeSummarySheet } from './volumeSummarySheet'
 import './index.less'
@@ -155,6 +156,7 @@ export default function HomePage() {
   const [tamponVolumeMl, setTamponVolumeMl] = useState(5)
   const [inputMode, setInputMode] = useState<InputModeSettings>(DEFAULT_INPUT_MODE)
   const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
+  const [useTampon, setUseTampon] = useState(true)
 
   const tamponMaxMl = useMemo(() => {
     const model = TAMPON_MODELS[tamponModelIndex]?.value
@@ -298,6 +300,16 @@ export default function HomePage() {
       const ok = await ensureAuthedAndOnboardedOrRedirect()
       if (!ok) return
 
+      // Server-persisted preference: whether to show the tampon module.
+      try {
+        const me = await authMe()
+        if ('authenticated' in me && me.authenticated) {
+          setUseTampon(me.user.useTampon !== false)
+        }
+      } catch {
+        // keep default (show)
+      }
+
       const firstCompletedAt = getStorageString(STORAGE_KEYS.dailyFirstCompletedAt)
       const anchor = getStorageString(STORAGE_KEYS.onboardingAnchorDate) || today
       const initial = firstCompletedAt ? today : clampYmd(anchor, minDate, today)
@@ -314,6 +326,20 @@ export default function HomePage() {
           showCancel: false,
           confirmText: '开始记录',
         })
+      }
+    })()
+  })
+
+  useDidShow(() => {
+    // In case the user toggles the preference in Settings and comes back.
+    void (async () => {
+      try {
+        const me = await authMe()
+        if ('authenticated' in me && me.authenticated) {
+          setUseTampon(me.user.useTampon !== false)
+        }
+      } catch {
+        // ignore
       }
     })()
   })
@@ -486,9 +512,9 @@ export default function HomePage() {
     }
   }
 
-  const visibility = getStorageJson<{ sanitaryPad?: boolean; tampon?: boolean; bleeding?: boolean }>(STORAGE_KEYS.visibilitySettings) || {}
+  const visibility = getStorageJson<{ sanitaryPad?: boolean; bleeding?: boolean }>(STORAGE_KEYS.visibilitySettings) || {}
   const showPad = typeof visibility.sanitaryPad === 'boolean' ? visibility.sanitaryPad : true
-  const showTampon = typeof visibility.tampon === 'boolean' ? visibility.tampon : true
+  const showTampon = useTampon
 
   const recentDays = stripDays
 
@@ -575,7 +601,9 @@ export default function HomePage() {
                 const isActive = d === selectedDate
                 const liveHasData = isActive ? record.events.length > 0 : Boolean(meta)
                 const liveTotalMl = isActive ? totalVolume : meta?.totalVolumeMl ?? 0
-                const liveColor = isActive ? dayColor : meta?.dayColor ?? null
+                const liveColor = isActive
+                  ? dayColor
+                  : ((meta?.dayColor ?? (meta?.hasBleeding ? 'red' : null)) as any)
                 const dayText = d.slice(8, 10)
                 return (
                   <FCPressable
