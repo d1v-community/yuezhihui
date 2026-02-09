@@ -54,8 +54,9 @@ export default function SettingPage() {
   const [meEmail, setMeEmail] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState('')
   const [consentText, setConsentText] = useState<string>('未读取')
-  const [visibility, setVisibility] = useState<VisibilitySettings>(DEFAULT_VISIBILITY)
-  const [inputMode, setInputMode] = useState<InputModeSettings>(DEFAULT_INPUT_MODE)
+  // Initialize from storage to avoid overwriting saved values on first render.
+  const [visibility, setVisibility] = useState<VisibilitySettings>(() => loadVisibility())
+  const [inputMode, setInputMode] = useState<InputModeSettings>(() => loadInputMode())
   const [useTampon, setUseTampon] = useState(true)
   const [savingUseTampon, setSavingUseTampon] = useState(false)
 
@@ -80,12 +81,9 @@ export default function SettingPage() {
           setConsentText('未填写')
         }
 
-        setVisibility(loadVisibility())
-        setInputMode(loadInputMode())
+        // Local-only settings are already hydrated from storage. Keep as-is.
       } catch {
         // keep the page usable with local values
-        setVisibility(loadVisibility())
-        setInputMode(loadInputMode())
         setConsentText('未读取')
       } finally {
         setLoading(false)
@@ -260,24 +258,33 @@ export default function SettingPage() {
 
             <View className="section">
               <Text className="sectionTitle">输入模式</Text>
+              <Text className="muted" style={{ marginTop: 6 }}>
+                打开精确模式后，将采用拖拽滑杆的方式精确控制血量；关闭则使用点击快捷添加。
+              </Text>
               <View className="row">
                 <View>
-                  <Text className="rowTitle">卫生巾</Text>
-                  <Text className="muted">{inputMode.sanitaryPad === 'click' ? '点击模式' : '拖动模式'}</Text>
+                  <Text className="rowTitle">卫生巾 · 打开精确模式</Text>
+                  <Text className="muted">{inputMode.sanitaryPad === 'drag' ? '精确（拖拽滑杆）' : '快捷（点击添加）'}</Text>
                 </View>
                 <Switch
-                  checked={inputMode.sanitaryPad === 'click'}
-                  onChange={(e) => setInputMode((v) => ({ ...v, sanitaryPad: e.detail.value ? 'click' : 'drag' }))}
+                  checked={inputMode.sanitaryPad === 'drag'}
+                  onChange={(e) => {
+                    setInputMode((v) => ({ ...v, sanitaryPad: e.detail.value ? 'drag' : 'click' }))
+                    Taro.showToast({ title: '已保存', icon: 'none' })
+                  }}
                 />
               </View>
               <View className="row">
                 <View>
-                  <Text className="rowTitle">卫生棉条</Text>
-                  <Text className="muted">{inputMode.tampon === 'click' ? '点击模式' : '拖动模式'}</Text>
+                  <Text className="rowTitle">卫生棉条 · 打开精确模式</Text>
+                  <Text className="muted">{inputMode.tampon === 'drag' ? '精确（拖拽滑杆）' : '快捷（点击添加）'}</Text>
                 </View>
                 <Switch
-                  checked={inputMode.tampon === 'click'}
-                  onChange={(e) => setInputMode((v) => ({ ...v, tampon: e.detail.value ? 'click' : 'drag' }))}
+                  checked={inputMode.tampon === 'drag'}
+                  onChange={(e) => {
+                    setInputMode((v) => ({ ...v, tampon: e.detail.value ? 'drag' : 'click' }))
+                    Taro.showToast({ title: '已保存', icon: 'none' })
+                  }}
                 />
               </View>
             </View>

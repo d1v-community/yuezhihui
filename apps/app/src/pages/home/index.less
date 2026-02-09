@@ -371,9 +371,21 @@
 }
 
 .clickCardsRow {
+  flex: 1;
   display: flex;
   gap: 10px;
   justify-content: space-between;
+}
+
+.clickCardsBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clickUndoBtn {
+  flex: none;
+  padding: 0 10px;
 }
 
 .clickCard {
@@ -382,7 +394,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px 2px;
+  padding: 4px 2px;
   border-radius: 12px;
   background: rgba(248, 246, 244, 0.98);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -395,12 +407,22 @@
 }
 
 .clickCardViz {
-  margin-bottom: 2px;
-  transform: scale(0.45);
+  margin-bottom: 0;
+  width: 44px;
+  height: 64px;
+  position: relative;
+}
+
+.clickCardVizInner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.4);
+  transform-origin: center;
 }
 
 .clickCardMl {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.62);
 }

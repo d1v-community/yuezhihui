@@ -9,7 +9,7 @@ export type FCProductVizProps = {
   kind: 'pad' | 'tampon'
   padType?: PeriodPadType
   tamponModel?: PeriodTamponModel
-  // Visual-only hint; used to scale/count blots.
+  // Visual-only hint; used to scale the stained area.
   volumeMl?: number
   color?: MenstrualColor | null
   label?: string
@@ -45,88 +45,8 @@ function colorToRgba(color?: MenstrualColor | null): { fill: string; outline: st
   }
 }
 
-function hash32(str: string) {
-  // FNV-1a (good enough for stable UI randomness).
-  let h = 2166136261
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return h >>> 0
-}
-
-function makeRng(seed: string) {
-  let s = hash32(seed) || 1
-  return () => {
-    // xorshift32
-    s ^= s << 13
-    s ^= s >>> 17
-    s ^= s << 5
-    return (s >>> 0) / 4294967296
-  }
-}
-
-type Blot = { xPct: number; yPct: number; sizePx: number; alpha: number }
-
 // 胶囊形状类型
 type Capsule = { widthPx: number; heightPx: number; alpha: number }
-
-function computeBlots(opts: { seed: string; volumeMl: number; kind: 'pad' | 'tampon'; padType?: PeriodPadType }): Blot[] {
-  const v = clamp(Number(opts.volumeMl || 0), 0, 20)
-  if (v <= 0) return []
-
-  const rng = makeRng(opts.seed)
-  const centerBias = () => {
-    // Average a few uniform samples to bias toward the center (smooth, stable, less edge-clinging).
-    return (rng() + rng() + rng()) / 3
-  }
-
-  const isPad = opts.kind === 'pad'
-  const padType = opts.padType
-  const yMin = isPad && padType === 'night' ? 16 : isPad && padType === 'liner' ? 20 : 18
-  const yMax = isPad && padType === 'night' ? 78 : isPad && padType === 'liner' ? 72 : 76
-  const yMid = (yMin + yMax) / 2
-  const ySpan = yMax - yMin
-
-  // Smooth/stable behavior:
-  // - Positions are derived only from `seed` (not volume), so dragging the slider won't "teleport" blots.
-  // - As volume increases, more blots fade in gradually, instead of re-randomizing.
-  const MAX_BLOTS = 10
-  const V_RANGE = 12 // UI slider max is ~12mL for pads; keep staging stable in that range.
-  const FADE_SPAN = 1.2 // mL span for each blot to fade/scale in
-
-  const out: Blot[] = []
-
-  const mainProg = clamp(v / 1.0, 0, 1)
-  const mainSize = clamp(12 + v * 1.35, 12, 34)
-  out.push({
-    xPct: 50,
-    yPct: isPad && padType === 'night' ? 46 : 48,
-    sizePx: mainSize,
-    alpha: 0.35 + 0.6 * mainProg,
-  })
-
-  for (let i = 1; i < MAX_BLOTS; i++) {
-    // Cluster around the center instead of hugging edges.
-    const x = 50 + (centerBias() - 0.5) * 32
-    const y = yMid + (centerBias() - 0.5) * (ySpan * 0.72)
-    const baseSize = clamp(7 + rng() * 12, 6, 22)
-    const baseAlpha = clamp(0.35 + rng() * 0.55, 0.28, 0.92)
-
-    const appearAt = (i / (MAX_BLOTS - 1)) * V_RANGE
-    const prog = clamp((v - appearAt) / FADE_SPAN, 0, 1)
-    if (prog <= 0) continue
-
-    out.push({
-      xPct: clamp(x, 22, 78),
-      yPct: clamp(y, yMin, yMax),
-      sizePx: Math.round(baseSize * (0.75 + 0.25 * prog)),
-      alpha: baseAlpha * prog,
-    })
-  }
-
-  return out
-}
 
 // 计算胶囊尺寸：胶囊面积和体积成正比
 function computeCapsule(volumeMl: number, padType?: PeriodPadType): Capsule {
@@ -174,30 +94,11 @@ function computeCapsule(volumeMl: number, padType?: PeriodPadType): Capsule {
   }
 }
 
-function tamponMaxMlByModel(model: PeriodTamponModel) {
-  switch (model) {
-    case 'mini':
-      return 8
-    case 'regular':
-      return 10
-    case 'large':
-      return 12
-    case 'super':
-      return 15
-    default:
-      return 10
-  }
-}
-
 export function FCProductViz(props: FCProductVizProps) {
   const palette = colorToRgba(props.color)
   const volumeMl = Number(props.volumeMl || 0)
   const padType = props.padType || 'day'
   const model = props.tamponModel || 'regular'
-  // Keep seed stable across slider changes (smooth "少 -> 多" transition).
-  const seed = `${props.kind}|${padType}|${model}`
-
-  const blots = props.kind === 'pad' ? computeBlots({ seed, volumeMl, kind: props.kind, padType }) : []
   // 计算胶囊尺寸（替代粒子动画）
   const capsule = props.kind === 'pad' ? computeCapsule(volumeMl, padType) : { widthPx: 0, heightPx: 0, alpha: 0 }
   // 卫生棉条：1mL显示10%血迹，20mL显示100%血迹

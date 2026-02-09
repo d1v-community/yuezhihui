@@ -157,15 +157,7 @@ export default function HomePage() {
   const [inputMode, setInputMode] = useState<InputModeSettings>(DEFAULT_INPUT_MODE)
   const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
   const [useTampon, setUseTampon] = useState(true)
-
-  const tamponMaxMl = useMemo(() => {
-    const model = TAMPON_MODELS[tamponModelIndex]?.value
-    if (model === 'mini') return 8
-    if (model === 'regular') return 10
-    if (model === 'large') return 12
-    if (model === 'super') return 15
-    return 10
-  }, [tamponModelIndex])
+  const [lastQuickAdd, setLastQuickAdd] = useState<{ id: string; kind: 'pad' | 'tampon' } | null>(null)
 
   const dirty = useMemo(() => JSON.stringify(record) !== snapshot, [record, snapshot])
   const vols = useMemo(() => splitVolumeMl(record.events), [record.events])
@@ -332,6 +324,7 @@ export default function HomePage() {
 
   useDidShow(() => {
     // In case the user toggles the preference in Settings and comes back.
+    setInputMode(loadInputMode())
     void (async () => {
       try {
         const me = await authMe()
@@ -448,10 +441,28 @@ export default function HomePage() {
     // use the current day color so users don't have to pick a color for every pad/tampon.
     const ev: DailyRecordEvent = { ...e, color: e.color ?? dayColor, id: uid() }
     setRecord((prev) => ({ ...prev, events: [...prev.events, ev] }))
+    return ev
   }
 
   const removeEvent = (id: string) => {
     setRecord((prev) => ({ ...prev, events: prev.events.filter((e) => e.id !== id) }))
+  }
+
+  useEffect(() => {
+    if (!lastQuickAdd) return
+    if (!record.events.some((e) => e.id === lastQuickAdd.id)) setLastQuickAdd(null)
+  }, [record.events, lastQuickAdd])
+
+  const lastEventId = record.events[record.events.length - 1]?.id || null
+  const showUndoQuickPad = Boolean(lastQuickAdd && lastQuickAdd.kind === 'pad' && lastQuickAdd.id === lastEventId)
+  const showUndoQuickTampon = Boolean(
+    lastQuickAdd && lastQuickAdd.kind === 'tampon' && lastQuickAdd.id === lastEventId
+  )
+  const undoLastQuickAdd = () => {
+    if (!lastQuickAdd) return
+    removeEvent(lastQuickAdd.id)
+    setLastQuickAdd(null)
+    Taro.showToast({ title: '已撤销', icon: 'none' })
   }
 
   const applyDayColor = (next: MenstrualColor) => {
@@ -726,36 +737,46 @@ export default function HomePage() {
                         </View>
                       </>
                     ) : (
-                      <View className="clickCardsRow">
-                        {[1, 5, 20].map((ml) => (
-                          <View
-                            key={ml}
-                            className="clickCard"
-                            onClick={() => {
-                              addEvent({
-                                eventTime: new Date().toISOString(),
-                                eventType: 'pad',
-                                productType: PAD_TYPES[padTypeIndex]?.value,
-                                color: dayColor,
-                                volumeMl: ml,
-                              })
-                              Taro.showToast({
-                                title: `已添加 ${ml}mL`,
-                                icon: 'none',
-                              })
-                            }}
-                          >
-                            <View className="clickCardViz">
-                              <FCProductViz
-                                kind="pad"
-                                padType={PAD_TYPES[padTypeIndex]?.value as any}
-                                volumeMl={ml}
-                                color={dayColor}
-                              />
+                      <View className="clickCardsBar">
+                        <View className="clickCardsRow">
+                          {[1, 5, 20].map((ml) => (
+                            <View
+                              key={ml}
+                              className="clickCard"
+                              onClick={() => {
+                                const ev = addEvent({
+                                  eventTime: new Date().toISOString(),
+                                  eventType: 'pad',
+                                  productType: PAD_TYPES[padTypeIndex]?.value,
+                                  color: dayColor,
+                                  volumeMl: ml,
+                                })
+                                setLastQuickAdd({ id: ev.id, kind: 'pad' })
+                                Taro.showToast({
+                                  title: `已添加 ${ml}mL`,
+                                  icon: 'none',
+                                })
+                              }}
+                            >
+                              <View className="clickCardViz">
+                                <View className="clickCardVizInner">
+                                  <FCProductViz
+                                    kind="pad"
+                                    padType={PAD_TYPES[padTypeIndex]?.value as any}
+                                    volumeMl={ml}
+                                    color={dayColor}
+                                  />
+                                </View>
+                              </View>
+                              <Text className="clickCardMl">{ml}mL</Text>
                             </View>
-                            <Text className="clickCardMl">{ml}mL</Text>
-                          </View>
-                        ))}
+                          ))}
+                        </View>
+                        {showUndoQuickPad ? (
+                          <FCButton className="clickUndoBtn" size="sm" variant="ghost" onClick={undoLastQuickAdd}>
+                            撤销
+                          </FCButton>
+                        ) : null}
                       </View>
                     )}
                   </View>
@@ -838,36 +859,46 @@ export default function HomePage() {
                         </View>
                       </>
                     ) : (
-                      <View className="clickCardsRow">
-                        {[1, 5, 20].map((ml) => (
-                          <View
-                            key={ml}
-                            className="clickCard"
-                            onClick={() => {
-                              addEvent({
-                                eventTime: new Date().toISOString(),
-                                eventType: 'tampon',
-                                model: TAMPON_MODELS[tamponModelIndex]?.value,
-                                color: dayColor,
-                                volumeMl: ml,
-                              })
-                              Taro.showToast({
-                                title: `已添加 ${ml}mL`,
-                                icon: 'none',
-                              })
-                            }}
-                          >
-                            <View className="clickCardViz">
-                              <FCProductViz
-                                kind="tampon"
-                                tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
-                                volumeMl={ml}
-                                color={dayColor}
-                              />
+                      <View className="clickCardsBar">
+                        <View className="clickCardsRow">
+                          {[1, 5, 20].map((ml) => (
+                            <View
+                              key={ml}
+                              className="clickCard"
+                              onClick={() => {
+                                const ev = addEvent({
+                                  eventTime: new Date().toISOString(),
+                                  eventType: 'tampon',
+                                  model: TAMPON_MODELS[tamponModelIndex]?.value,
+                                  color: dayColor,
+                                  volumeMl: ml,
+                                })
+                                setLastQuickAdd({ id: ev.id, kind: 'tampon' })
+                                Taro.showToast({
+                                  title: `已添加 ${ml}mL`,
+                                  icon: 'none',
+                                })
+                              }}
+                            >
+                              <View className="clickCardViz">
+                                <View className="clickCardVizInner">
+                                  <FCProductViz
+                                    kind="tampon"
+                                    tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                                    volumeMl={ml}
+                                    color={dayColor}
+                                  />
+                                </View>
+                              </View>
+                              <Text className="clickCardMl">{ml}mL</Text>
                             </View>
-                            <Text className="clickCardMl">{ml}mL</Text>
-                          </View>
-                        ))}
+                          ))}
+                        </View>
+                        {showUndoQuickTampon ? (
+                          <FCButton className="clickUndoBtn" size="sm" variant="ghost" onClick={undoLastQuickAdd}>
+                            撤销
+                          </FCButton>
+                        ) : null}
                       </View>
                     )}
                   </View>
