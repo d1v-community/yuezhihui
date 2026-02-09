@@ -123,6 +123,12 @@ export default function EncyclopediaPage() {
     [],
   )
 
+  const faqItems = [
+    { id: 'faq-1', question: '我的月经量多不多？', desc: '判断经量是否正常，通常需要综合考虑周期、持续天数和单日更换频率。' },
+    { id: 'faq-2', question: '月经量大，是气血充足吗？', desc: '经量与“气血”没有直接医学关联，过多反而可能提示贫血风险。' },
+    { id: 'faq-3', question: '为什么我有大血块？', desc: '偶尔出现小血块是正常的，但如果频繁出现大血块，建议记录并关注。' },
+  ]
+
   const sections = useMemo(() => {
     const order: CardTag[] = ['精细化管理', '常识', '反直觉', '风险', '自检']
     return order.map((tag) => ({ tag, cards: cards.filter((c) => c.tag === tag) })).filter((s) => s.cards.length > 0)
@@ -234,6 +240,18 @@ export default function EncyclopediaPage() {
               </View>
             </View>
           ))}
+
+          <View className="faq-section">
+            <Text className="faq-title">最近，很多人在问——</Text>
+            <View className="faq-list">
+              {faqItems.map((item) => (
+                <View key={item.id} className="faq-card">
+                  <Text className="faq-question">{item.question}</Text>
+                  <Text className="faq-desc">{item.desc}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
 
           <View className="section">
             <View className="cardList">
