@@ -110,7 +110,7 @@ export default function LoginPage() {
           </View>
 
           <Text className="heroTitle">FlowCycle</Text>
-          <Text className="heroDesc">用邮箱验证码登录，继续完成 Onboarding，并开始按日记录。</Text>
+          <Text className="heroDesc">邮箱验证码登录，继续引导，开始按日记录。</Text>
 
           <View className="card fc-appear">
             <FCTextField
