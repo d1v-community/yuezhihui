@@ -69,10 +69,10 @@ export default function LoginPage() {
     }
   }
 
-  const onVerify = async () => {
+  const onVerify = async (overrideCode?: string) => {
     if (loading) return
     const vEmail = email.trim()
-    const vCode = code.trim()
+    const vCode = (overrideCode ?? code).trim()
     if (!isEmail(vEmail)) {
       Taro.showToast({ title: '请输入正确邮箱', icon: 'none' })
       return
@@ -147,7 +147,10 @@ export default function LoginPage() {
                   disabled={loading}
                   autoFocus
                   onChange={(next) => setCode(next)}
-                  onComplete={() => void onVerify()}
+                  onComplete={(next) => {
+                    setCode(next)
+                    void onVerify(next)
+                  }}
                 />
                 <View className="helperRow">
                   <Text className="helperText">输入 6 位数字，将自动验证</Text>
