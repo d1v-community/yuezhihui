@@ -1,5 +1,5 @@
-import { View, Text } from '@tarojs/components'
-import Taro, { useLoad } from '@tarojs/taro'
+import { View, Text, WebView } from '@tarojs/components'
+import Taro, { useLoad, useDidShow } from '@tarojs/taro'
 import { useMemo, useState } from 'react'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
 import { FCActionBar, FCButton, FCNotice, FCPressable, FCSourceTag, FCTabBar } from '../../ui'
@@ -29,9 +29,17 @@ const SOURCES: Record<string, Source> = {
 
 export default function EncyclopediaPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [showWiki, setShowWiki] = useState(false)
 
   useLoad(() => {
     void ensureAuthedAndOnboardedOrRedirect()
+  })
+
+  useDidShow(() => {
+    // 页面显示时重置状态
+    if (showWiki) {
+      setShowWiki(false)
+    }
   })
 
   const cards: KbCard[] = useMemo(
@@ -168,135 +176,148 @@ export default function EncyclopediaPage() {
     <View className="page">
       <View className="bg">
         <View className="wrap">
-          <View className="card fc-appear">
-            <View className="row">
-              <Text className="title">百科</Text>
-              <FCButton size="sm" variant="secondary" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
-                设置
-              </FCButton>
-            </View>
-          </View>
-
-          <View className="slogan-section">
-            <Text className="slogan-title">把月经量，说清楚</Text>
-            <Text className="slogan-desc">
-              月经量不是主观感受，而是可以被理解、被估算、被判断的生理指标。
-            </Text>
-          </View>
-
-          {sections.map((sec) => (
-            <View key={sec.tag} className="section">
-              <Text className="sectionTitle">{sec.tag}</Text>
-              <View className="cardList">
-                {sec.cards.map((c) => {
-                  const expanded = expandedId === c.id
-                  return (
-                    <FCPressable
-                      key={c.id}
-                      className={['kbCard', expanded ? 'kbCardOpen' : ''].join(' ')}
-                      onClick={() => setExpandedId((prev) => (prev === c.id ? null : c.id))}
-                    >
-                      <View className="kbHead">
-                        <Text className="kbTag">{c.tag}</Text>
-                        <Text className="kbTitle">{c.title}</Text>
-                        <Text className="kbMore">{expanded ? '收起' : '展开'}</Text>
-                      </View>
-                      <Text className="kbLead">{c.lead}</Text>
-
-                      {expanded ? (
-                        <View className="kbBody">
-                          {c.body.map((p) => (
-                            <Text key={p} className="kbP">
-                              {p}
-                            </Text>
-                          ))}
-
-                          {c.bullets?.length ? (
-                            <View className="kbBlock">
-                              <Text className="kbSub">要点</Text>
-                              {c.bullets.map((b) => (
-                                <Text key={b} className="kbLi">
-                                  · {b}
-                                </Text>
-                              ))}
-                            </View>
-                          ) : null}
-
-                          {c.redFlags?.length ? (
-                            <View className="kbWarn">
-                              <Text className="kbSub">红旗（建议尽快就医/咨询）</Text>
-                              {c.redFlags.map((b) => (
-                                <Text key={b} className="kbLi">
-                                  · {b}
-                                </Text>
-                              ))}
-                            </View>
-                          ) : null}
-
-                          <View className="kbBlock">
-                            <View className="kbSourcesTop">
-                              <Text className="kbSub">来源</Text>
-                              <FCButton
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  const text = c.sources.map((s) => `${s.label}\n${s.url}`).join('\n\n')
-                                  void copyUrl(text)
-                                }}
-                              >
-                                复制全部
-                              </FCButton>
-                            </View>
-                            <View className="kbSources">
-                              {c.sources.map((s) => (
-                                <FCSourceTag key={s.url} label={s.label} onClick={() => void copyUrl(s.url)} />
-                              ))}
-                            </View>
-                          </View>
-                        </View>
-                      ) : null}
-                    </FCPressable>
-                  )
-                })}
+          {showWiki ? (
+            <View className="wiki-container">
+              <View className="wiki-header">
+                <FCButton size="sm" variant="ghost" onClick={() => setShowWiki(false)}>
+                  返回百科
+                </FCButton>
               </View>
+              <WebView src="https://female-menstrual-record-819e28-5caaed-dev.d0v.xyz/wiki/" />
             </View>
-          ))}
+          ) : (
+            <>
+              <View className="card fc-appear">
+                <View className="row">
+                  <Text className="title">百科</Text>
+                  <FCButton size="sm" variant="secondary" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
+                    设置
+                  </FCButton>
+                </View>
+              </View>
 
-          <View className="faq-section">
-            <Text className="faq-title">最近，很多人在问——</Text>
-            <View className="faq-list">
-              {faqItems.map((item) => (
-                <View key={item.id} className="faq-card">
-                  <Text className="faq-question">{item.question}</Text>
-                  <Text className="faq-desc">{item.desc}</Text>
+              <View className="slogan-section">
+                <Text className="slogan-title">把月经量，说清楚</Text>
+                <Text className="slogan-desc">
+                  月经量不是主观感受，而是可以被理解、被估算、被判断的生理指标。
+                </Text>
+              </View>
+
+              {sections.map((sec) => (
+                <View key={sec.tag} className="section">
+                  <Text className="sectionTitle">{sec.tag}</Text>
+                  <View className="cardList">
+                    {sec.cards.map((c) => {
+                      const expanded = expandedId === c.id
+                      return (
+                        <FCPressable
+                          key={c.id}
+                          className={['kbCard', expanded ? 'kbCardOpen' : ''].join(' ')}
+                          onClick={() => setExpandedId((prev) => (prev === c.id ? null : c.id))}
+                        >
+                          <View className="kbHead">
+                            <Text className="kbTag">{c.tag}</Text>
+                            <Text className="kbTitle">{c.title}</Text>
+                            <Text className="kbMore">{expanded ? '收起' : '展开'}</Text>
+                          </View>
+                          <Text className="kbLead">{c.lead}</Text>
+
+                          {expanded ? (
+                            <View className="kbBody">
+                              {c.body.map((p) => (
+                                <Text key={p} className="kbP">
+                                  {p}
+                                </Text>
+                              ))}
+
+                              {c.bullets?.length ? (
+                                <View className="kbBlock">
+                                  <Text className="kbSub">要点</Text>
+                                  {c.bullets.map((b) => (
+                                    <Text key={b} className="kbLi">
+                                      · {b}
+                                    </Text>
+                                  ))}
+                                </View>
+                              ) : null}
+
+                              {c.redFlags?.length ? (
+                                <View className="kbWarn">
+                                  <Text className="kbSub">红旗（建议尽快就医/咨询）</Text>
+                                  {c.redFlags.map((b) => (
+                                    <Text key={b} className="kbLi">
+                                      · {b}
+                                    </Text>
+                                  ))}
+                                </View>
+                              ) : null}
+
+                              <View className="kbBlock">
+                                <View className="kbSourcesTop">
+                                  <Text className="kbSub">来源</Text>
+                                  <FCButton
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      const text = c.sources.map((s) => `${s.label}\n${s.url}`).join('\n\n')
+                                      void copyUrl(text)
+                                    }}
+                                  >
+                                    复制全部
+                                  </FCButton>
+                                </View>
+                                <View className="kbSources">
+                                  {c.sources.map((s) => (
+                                    <FCSourceTag key={s.url} label={s.label} onClick={() => void copyUrl(s.url)} />
+                                  ))}
+                                </View>
+                              </View>
+                            </View>
+                          ) : null}
+                        </FCPressable>
+                      )
+                    })}
+                  </View>
                 </View>
               ))}
-            </View>
-            <View className="faq-more">
-              <FCButton
-                variant="primary"
-                onClick={() => Taro.navigateTo({ url: '/wiki/index' })}
-              >
-                更多百科词条
-              </FCButton>
-            </View>
-          </View>
 
-          <View className="section">
-            <View className="cardList">
-              <View className="card">
-                <FCNotice
-                  variant="warn"
-                  title="科普信息不替代诊断"
-                  desc="若出现大量出血、晕厥/胸闷气短、持续加重的剧痛、或怀疑怀孕相关出血，请尽快就医或按当地急救流程处理。"
-                />
+              <View className="faq-section">
+                <Text className="faq-title">最近，很多人在问——</Text>
+                <View className="faq-list">
+                  {faqItems.map((item) => (
+                    <View key={item.id} className="faq-card">
+                      <Text className="faq-question">{item.question}</Text>
+                      <Text className="faq-desc">{item.desc}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View className="faq-more">
+                  <FCButton
+                    variant="primary"
+                    onClick={() => setShowWiki(true)}
+                  >
+                    更多百科词条
+                  </FCButton>
+                </View>
               </View>
-            </View>
-          </View>
 
-          <FCActionBar>
-            <FCTabBar />
-          </FCActionBar>
+              <View className="section">
+                <View className="cardList">
+                  <View className="card">
+                    <FCNotice
+                      variant="warn"
+                      title="科普信息不替代诊断"
+                      desc="若出现大量出血、晕厥/胸闷气短、持续加重的剧痛、或怀疑怀孕相关出血，请尽快就医或按当地急救流程处理。"
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <FCActionBar>
+                <FCTabBar />
+              </FCActionBar>
+            </>
+          )}
         </View>
       </View>
     </View>
