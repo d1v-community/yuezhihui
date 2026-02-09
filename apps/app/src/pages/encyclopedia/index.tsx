@@ -150,6 +150,13 @@ export default function EncyclopediaPage() {
             </View>
           </View>
 
+          <View className="slogan-section">
+            <Text className="slogan-title">把月经量，说清楚</Text>
+            <Text className="slogan-desc">
+              月经量不是主观感受，而是可以被理解、被估算、被判断的生理指标。
+            </Text>
+          </View>
+
           {sections.map((sec) => (
             <View key={sec.tag} className="section">
               <Text className="sectionTitle">{sec.tag}</Text>
