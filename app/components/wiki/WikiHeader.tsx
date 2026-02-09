@@ -26,6 +26,12 @@ export function WikiHeader({ user, onLogout }: WikiHeaderProps) {
             >
               百科
             </NavLink>
+            <NavLink
+              to="/faq"
+              className={({ isActive }) => isActive ? "text-brand-text" : "hover:text-brand-text transition-colors"}
+            >
+              问答
+            </NavLink>
             <Link to="/" className="hover:text-brand-text transition-colors">
               首页
             </Link>
