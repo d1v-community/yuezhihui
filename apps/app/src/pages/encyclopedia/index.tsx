@@ -228,15 +228,20 @@ export default function EncyclopediaPage() {
             </View>
           ))}
 
+          <View className="section">
+            <View className="cardList">
+              <View className="card">
+                <FCNotice
+                  variant="warn"
+                  title="科普信息不替代诊断"
+                  desc="若出现大量出血、晕厥/胸闷气短、持续加重的剧痛、或怀疑怀孕相关出血，请尽快就医或按当地急救流程处理。"
+                />
+              </View>
+            </View>
+          </View>
+
           <FCActionBar>
             <FCTabBar />
-            <View className="card" style={{ marginTop: 12 }}>
-              <FCNotice
-                variant="warn"
-                title="科普信息不替代诊断"
-                desc="若出现大量出血、晕厥/胸闷气短、持续加重的剧痛、或怀疑怀孕相关出血，请尽快就医或按当地急救流程处理。"
-              />
-            </View>
           </FCActionBar>
         </View>
       </View>
