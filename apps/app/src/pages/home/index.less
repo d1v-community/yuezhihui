@@ -333,6 +333,20 @@
   flex-wrap: nowrap;
 }
 
+.controlSplitRow.controlSplitRowClick {
+  flex-direction: column;
+  align-items: center;
+}
+
+.controlSplitRow.controlSplitRowClick .controlViz {
+  margin-bottom: 12px;
+}
+
+.controlSplitRow.controlSplitRowClick .controlPanel {
+  width: 100%;
+  max-width: 300px;
+}
+
 .controlPanel {
   flex: 1;
   min-width: 0;
@@ -353,6 +367,63 @@
 .scaleMlText {
   font-size: 12px;
   font-weight: 700;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.clickCardsRow {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.clickCardsBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clickUndoBtn {
+  flex: none;
+  padding: 0 10px;
+}
+
+.clickCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border-radius: 12px;
+  background: rgba(248, 246, 244, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: background 180ms;
+
+  &:active {
+    background: rgba(232, 228, 224, 0.98);
+  }
+}
+
+.clickCardViz {
+  margin-bottom: 0;
+  width: 44px;
+  height: 64px;
+  position: relative;
+}
+
+.clickCardVizInner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.4);
+  transform-origin: center;
+}
+
+.clickCardMl {
+  font-size: 12px;
+  font-weight: 600;
   color: rgba(0, 0, 0, 0.62);
 }
 

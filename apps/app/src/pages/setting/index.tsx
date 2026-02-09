@@ -12,22 +12,39 @@ import './index.less'
 
 type VisibilitySettings = {
   sanitaryPad: boolean
-  tampon: boolean
   bleeding: boolean
+}
+
+type InputMode = 'click' | 'drag'
+
+type InputModeSettings = {
+  sanitaryPad: InputMode
+  tampon: InputMode
 }
 
 const DEFAULT_VISIBILITY: VisibilitySettings = {
   sanitaryPad: true,
-  tampon: true,
   bleeding: true,
+}
+
+const DEFAULT_INPUT_MODE: InputModeSettings = {
+  sanitaryPad: 'click',
+  tampon: 'click',
 }
 
 function loadVisibility(): VisibilitySettings {
   const v = getStorageJson<Partial<VisibilitySettings>>(STORAGE_KEYS.visibilitySettings)
   return {
     sanitaryPad: typeof v?.sanitaryPad === 'boolean' ? v.sanitaryPad : DEFAULT_VISIBILITY.sanitaryPad,
-    tampon: typeof v?.tampon === 'boolean' ? v.tampon : DEFAULT_VISIBILITY.tampon,
     bleeding: typeof v?.bleeding === 'boolean' ? v.bleeding : DEFAULT_VISIBILITY.bleeding,
+  }
+}
+
+function loadInputMode(): InputModeSettings {
+  const v = getStorageJson<Partial<InputModeSettings>>(STORAGE_KEYS.inputModeSettings)
+  return {
+    sanitaryPad: (v?.sanitaryPad === 'click' || v?.sanitaryPad === 'drag') ? v.sanitaryPad : DEFAULT_INPUT_MODE.sanitaryPad,
+    tampon: (v?.tampon === 'click' || v?.tampon === 'drag') ? v.tampon : DEFAULT_INPUT_MODE.tampon,
   }
 }
 
@@ -37,7 +54,11 @@ export default function SettingPage() {
   const [meEmail, setMeEmail] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState('')
   const [consentText, setConsentText] = useState<string>('未读取')
-  const [visibility, setVisibility] = useState<VisibilitySettings>(DEFAULT_VISIBILITY)
+  // Initialize from storage to avoid overwriting saved values on first render.
+  const [visibility, setVisibility] = useState<VisibilitySettings>(() => loadVisibility())
+  const [inputMode, setInputMode] = useState<InputModeSettings>(() => loadInputMode())
+  const [useTampon, setUseTampon] = useState(true)
+  const [savingUseTampon, setSavingUseTampon] = useState(false)
 
   useLoad(() => {
     void (async () => {
@@ -49,6 +70,7 @@ export default function SettingPage() {
         if ('authenticated' in me && me.authenticated) {
           setMeEmail(me.user.email || null)
           setDisplayName(me.user.displayName || me.user.username || '')
+          setUseTampon(me.user.useTampon !== false)
         }
 
         const st = await onboardingV2State()
@@ -59,10 +81,9 @@ export default function SettingPage() {
           setConsentText('未填写')
         }
 
-        setVisibility(loadVisibility())
+        // Local-only settings are already hydrated from storage. Keep as-is.
       } catch {
         // keep the page usable with local values
-        setVisibility(loadVisibility())
         setConsentText('未读取')
       } finally {
         setLoading(false)
@@ -73,6 +94,10 @@ export default function SettingPage() {
   useEffect(() => {
     setStorageJson(STORAGE_KEYS.visibilitySettings, visibility)
   }, [visibility])
+
+  useEffect(() => {
+    setStorageJson(STORAGE_KEYS.inputModeSettings, inputMode)
+  }, [inputMode])
 
   const canSaveProfile = useMemo(() => displayName.trim().length >= 1 && displayName.trim().length <= 64, [displayName])
 
@@ -86,6 +111,22 @@ export default function SettingPage() {
       Taro.showToast({ title: e instanceof Error ? e.message : '保存失败', icon: 'none' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const onToggleUseTampon = async (next: boolean) => {
+    if (savingUseTampon) return
+    const prev = useTampon
+    setUseTampon(next)
+    setSavingUseTampon(true)
+    try {
+      await updateUserProfile({ useTampon: next })
+      Taro.showToast({ title: next ? '已开启棉条模块' : '已隐藏棉条模块', icon: 'none' })
+    } catch (e) {
+      setUseTampon(prev)
+      Taro.showToast({ title: e instanceof Error ? e.message : '保存失败', icon: 'none' })
+    } finally {
+      setSavingUseTampon(false)
     }
   }
 
@@ -192,12 +233,13 @@ export default function SettingPage() {
               </View>
               <View className="row">
                 <View>
-                  <Text className="rowTitle">卫生棉条模块</Text>
-                  <Text className="muted">用于记录更换事件（可隐藏）</Text>
+                  <Text className="rowTitle">我习惯用卫生棉条</Text>
+                  <Text className="muted">用于按日记录中显示“卫生棉条”模块（会同步到账号）</Text>
                 </View>
                 <Switch
-                  checked={visibility.tampon}
-                  onChange={(e) => setVisibility((v) => ({ ...v, tampon: Boolean(e.detail.value) }))}
+                  checked={useTampon}
+                  disabled={savingUseTampon}
+                  onChange={(e) => void onToggleUseTampon(Boolean(e.detail.value))}
                 />
               </View>
               <View className="row">
@@ -208,6 +250,41 @@ export default function SettingPage() {
                 <Switch
                   checked={visibility.bleeding}
                   onChange={(e) => setVisibility((v) => ({ ...v, bleeding: Boolean(e.detail.value) }))}
+                />
+              </View>
+            </View>
+
+            <View className="divider" />
+
+            <View className="section">
+              <Text className="sectionTitle">输入模式</Text>
+              <Text className="muted" style={{ marginTop: 6 }}>
+                打开精确模式后，将采用拖拽滑杆的方式精确控制血量；关闭则使用点击快捷添加。
+              </Text>
+              <View className="row">
+                <View>
+                  <Text className="rowTitle">卫生巾 · 打开精确模式</Text>
+                  <Text className="muted">{inputMode.sanitaryPad === 'drag' ? '精确（拖拽滑杆）' : '快捷（点击添加）'}</Text>
+                </View>
+                <Switch
+                  checked={inputMode.sanitaryPad === 'drag'}
+                  onChange={(e) => {
+                    setInputMode((v) => ({ ...v, sanitaryPad: e.detail.value ? 'drag' : 'click' }))
+                    Taro.showToast({ title: '已保存', icon: 'none' })
+                  }}
+                />
+              </View>
+              <View className="row">
+                <View>
+                  <Text className="rowTitle">卫生棉条 · 打开精确模式</Text>
+                  <Text className="muted">{inputMode.tampon === 'drag' ? '精确（拖拽滑杆）' : '快捷（点击添加）'}</Text>
+                </View>
+                <Switch
+                  checked={inputMode.tampon === 'drag'}
+                  onChange={(e) => {
+                    setInputMode((v) => ({ ...v, tampon: e.detail.value ? 'drag' : 'click' }))
+                    Taro.showToast({ title: '已保存', icon: 'none' })
+                  }}
                 />
               </View>
             </View>

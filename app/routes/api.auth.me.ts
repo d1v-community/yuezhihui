@@ -16,6 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       email: user.email,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
+      useTampon: user.useTampon ?? null,
     },
   });
 }

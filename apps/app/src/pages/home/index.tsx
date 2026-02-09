@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Taro, { useLoad } from '@tarojs/taro'
+import Taro, { useDidShow, useLoad } from '@tarojs/taro'
 import { View, Text, Picker } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
 import { getStorageJson, getStorageString, setStorageString } from '../../storage/storage'
@@ -8,12 +8,33 @@ import type { DailyRecord, DailyRecordEvent, MenstrualColor } from '../../types/
 import { addDaysYmd, clampYmd, todayYmd } from '../../utils/date'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
 import { getMenstrualDailyRange } from '../../services/menstrual'
+import { authMe } from '../../services/auth'
 import { FCActionBar, FCButton, FCChip, FCNotice, FCPressable, FCProductViz, FCScaleBar, FCTabBar, FCVolumeVial } from '../../ui'
 import { FCVolumeSummarySheet } from './volumeSummarySheet'
 import './index.less'
 
+type InputMode = 'click' | 'drag'
+
+type InputModeSettings = {
+  sanitaryPad: InputMode
+  tampon: InputMode
+}
+
+const DEFAULT_INPUT_MODE: InputModeSettings = {
+  sanitaryPad: 'click',
+  tampon: 'click',
+}
+
 function uid() {
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`
+}
+
+function loadInputMode(): InputModeSettings {
+  const v = getStorageJson<Partial<InputModeSettings>>(STORAGE_KEYS.inputModeSettings)
+  return {
+    sanitaryPad: (v?.sanitaryPad === 'click' || v?.sanitaryPad === 'drag') ? v.sanitaryPad : DEFAULT_INPUT_MODE.sanitaryPad,
+    tampon: (v?.tampon === 'click' || v?.tampon === 'drag') ? v.tampon : DEFAULT_INPUT_MODE.tampon,
+  }
 }
 
 function splitVolumeMl(events: DailyRecordEvent[]) {
@@ -131,18 +152,12 @@ export default function HomePage() {
   const [padTypeIndex, setPadTypeIndex] = useState(1)
   const [tamponModelIndex, setTamponModelIndex] = useState(1)
   const [dayColor, setDayColor] = useState<MenstrualColor>('red')
-  const [padVolumeMl, setPadVolumeMl] = useState(0)
-  const [tamponVolumeMl, setTamponVolumeMl] = useState(0)
+  const [padVolumeMl, setPadVolumeMl] = useState(5)
+  const [tamponVolumeMl, setTamponVolumeMl] = useState(5)
+  const [inputMode, setInputMode] = useState<InputModeSettings>(DEFAULT_INPUT_MODE)
   const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
-
-  const tamponMaxMl = useMemo(() => {
-    const model = TAMPON_MODELS[tamponModelIndex]?.value
-    if (model === 'mini') return 8
-    if (model === 'regular') return 10
-    if (model === 'large') return 12
-    if (model === 'super') return 15
-    return 10
-  }, [tamponModelIndex])
+  const [useTampon, setUseTampon] = useState(true)
+  const [lastQuickAdd, setLastQuickAdd] = useState<{ id: string; kind: 'pad' | 'tampon' } | null>(null)
 
   const dirty = useMemo(() => JSON.stringify(record) !== snapshot, [record, snapshot])
   const vols = useMemo(() => splitVolumeMl(record.events), [record.events])
@@ -159,6 +174,10 @@ export default function HomePage() {
     return Math.max(0, Math.min(1, totalVolume / max))
   }, [totalVolume])
   const volumeFillPct = volumeFill * 100
+
+  useEffect(() => {
+    setInputMode(loadInputMode())
+  }, [])
 
   useEffect(() => {
     // Avoid leaving the sheet open when switching dates.
@@ -253,9 +272,9 @@ export default function HomePage() {
       // Update header immediately; UI shows a local loading mask while data is fetched.
       setSelectedDate(date)
       setRecord({ date, hasBleeding: false, events: [] })
-      // Reset input controls for the new day (default should be 0 until user confirms).
-      setPadVolumeMl(0)
-      setTamponVolumeMl(0)
+      // Reset input controls for the new day (default should be 5mL).
+      setPadVolumeMl(5)
+      setTamponVolumeMl(5)
       setDayColor('red')
       const stored = await loadDailyRecord(date)
       setSubmittedAt(stored.submittedAt)
@@ -273,6 +292,16 @@ export default function HomePage() {
       const ok = await ensureAuthedAndOnboardedOrRedirect()
       if (!ok) return
 
+      // Server-persisted preference: whether to show the tampon module.
+      try {
+        const me = await authMe()
+        if ('authenticated' in me && me.authenticated) {
+          setUseTampon(me.user.useTampon !== false)
+        }
+      } catch {
+        // keep default (show)
+      }
+
       const firstCompletedAt = getStorageString(STORAGE_KEYS.dailyFirstCompletedAt)
       const anchor = getStorageString(STORAGE_KEYS.onboardingAnchorDate) || today
       const initial = firstCompletedAt ? today : clampYmd(anchor, minDate, today)
@@ -289,6 +318,21 @@ export default function HomePage() {
           showCancel: false,
           confirmText: '开始记录',
         })
+      }
+    })()
+  })
+
+  useDidShow(() => {
+    // In case the user toggles the preference in Settings and comes back.
+    setInputMode(loadInputMode())
+    void (async () => {
+      try {
+        const me = await authMe()
+        if ('authenticated' in me && me.authenticated) {
+          setUseTampon(me.user.useTampon !== false)
+        }
+      } catch {
+        // ignore
       }
     })()
   })
@@ -397,10 +441,28 @@ export default function HomePage() {
     // use the current day color so users don't have to pick a color for every pad/tampon.
     const ev: DailyRecordEvent = { ...e, color: e.color ?? dayColor, id: uid() }
     setRecord((prev) => ({ ...prev, events: [...prev.events, ev] }))
+    return ev
   }
 
   const removeEvent = (id: string) => {
     setRecord((prev) => ({ ...prev, events: prev.events.filter((e) => e.id !== id) }))
+  }
+
+  useEffect(() => {
+    if (!lastQuickAdd) return
+    if (!record.events.some((e) => e.id === lastQuickAdd.id)) setLastQuickAdd(null)
+  }, [record.events, lastQuickAdd])
+
+  const lastEventId = record.events[record.events.length - 1]?.id || null
+  const showUndoQuickPad = Boolean(lastQuickAdd && lastQuickAdd.kind === 'pad' && lastQuickAdd.id === lastEventId)
+  const showUndoQuickTampon = Boolean(
+    lastQuickAdd && lastQuickAdd.kind === 'tampon' && lastQuickAdd.id === lastEventId
+  )
+  const undoLastQuickAdd = () => {
+    if (!lastQuickAdd) return
+    removeEvent(lastQuickAdd.id)
+    setLastQuickAdd(null)
+    Taro.showToast({ title: '已撤销', icon: 'none' })
   }
 
   const applyDayColor = (next: MenstrualColor) => {
@@ -461,9 +523,9 @@ export default function HomePage() {
     }
   }
 
-  const visibility = getStorageJson<{ sanitaryPad?: boolean; tampon?: boolean; bleeding?: boolean }>(STORAGE_KEYS.visibilitySettings) || {}
+  const visibility = getStorageJson<{ sanitaryPad?: boolean; bleeding?: boolean }>(STORAGE_KEYS.visibilitySettings) || {}
   const showPad = typeof visibility.sanitaryPad === 'boolean' ? visibility.sanitaryPad : true
-  const showTampon = typeof visibility.tampon === 'boolean' ? visibility.tampon : true
+  const showTampon = useTampon
 
   const recentDays = stripDays
 
@@ -550,7 +612,9 @@ export default function HomePage() {
                 const isActive = d === selectedDate
                 const liveHasData = isActive ? record.events.length > 0 : Boolean(meta)
                 const liveTotalMl = isActive ? totalVolume : meta?.totalVolumeMl ?? 0
-                const liveColor = isActive ? dayColor : meta?.dayColor ?? null
+                const liveColor = isActive
+                  ? dayColor
+                  : ((meta?.dayColor ?? (meta?.hasBleeding ? 'red' : null)) as any)
                 const dayText = d.slice(8, 10)
                 return (
                   <FCPressable
@@ -620,53 +684,101 @@ export default function HomePage() {
                     ))}
                   </View>
                 </View>
-                <View className="controlSplitRow">
-                  <View className="controlViz">
-                    <FCProductViz
-                      kind="pad"
-                      padType={PAD_TYPES[padTypeIndex]?.value as any}
-                      volumeMl={padVolumeMl}
-                      color={dayColor}
-                      label={PAD_TYPES[padTypeIndex]?.label}
-                      spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
-                    />
-                  </View>
+                <View className={`controlSplitRow ${inputMode.sanitaryPad === 'click' ? 'controlSplitRowClick' : ''}`}>
+                  {inputMode.sanitaryPad === 'drag' ? (
+                    <View className="controlViz">
+                      <FCProductViz
+                        kind="pad"
+                        padType={PAD_TYPES[padTypeIndex]?.value as any}
+                        volumeMl={padVolumeMl}
+                        color={dayColor}
+                        label={PAD_TYPES[padTypeIndex]?.label}
+                        spec={PAD_TYPE_SPECS[PAD_TYPES[padTypeIndex]?.value] || ''}
+                      />
+                    </View>
+                  ) : null}
 
                   <View className="controlPanel">
-                    <View className="scaleRow">
-                      <View className="scaleBarWrap">
-                        <FCScaleBar
-                          min={0}
-                          max={12}
-                          step={0.1}
-                          value={padVolumeMl}
-                          onChange={setPadVolumeMl}
-                          ticks={[
-                            { value: 3, label: '少' },
-                            { value: 6, label: '中' },
-                            { value: 10, label: '多' },
-                          ]}
-                        />
+                    {inputMode.sanitaryPad === 'drag' ? (
+                      <>
+                        <View className="scaleRow">
+                          <View className="scaleBarWrap">
+                            <FCScaleBar
+                              min={1}
+                              max={20}
+                              step={0.1}
+                              value={padVolumeMl}
+                              onChange={setPadVolumeMl}
+                              ticks={[
+                                { value: 3, label: '少' },
+                                { value: 6, label: '中' },
+                                { value: 10, label: '多' },
+                              ]}
+                            />
+                          </View>
+                        </View>
+                        <View className="scaleAddRow">
+                          {padVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(padVolumeMl)} mL</Text> : null}
+                          <FCButton
+                            size="sm"
+                            disabled={padVolumeMl <= 0}
+                            onClick={() => {
+                              addEvent({
+                                eventTime: new Date().toISOString(),
+                                eventType: 'pad',
+                                productType: PAD_TYPES[padTypeIndex]?.value,
+                                color: dayColor,
+                                volumeMl: padVolumeMl,
+                              })
+                            }}
+                          >
+                            添加/片
+                          </FCButton>
+                        </View>
+                      </>
+                    ) : (
+                      <View className="clickCardsBar">
+                        <View className="clickCardsRow">
+                          {[1, 5, 20].map((ml) => (
+                            <View
+                              key={ml}
+                              className="clickCard"
+                              onClick={() => {
+                                const ev = addEvent({
+                                  eventTime: new Date().toISOString(),
+                                  eventType: 'pad',
+                                  productType: PAD_TYPES[padTypeIndex]?.value,
+                                  color: dayColor,
+                                  volumeMl: ml,
+                                })
+                                setLastQuickAdd({ id: ev.id, kind: 'pad' })
+                                Taro.showToast({
+                                  title: `已添加 ${ml}mL`,
+                                  icon: 'none',
+                                })
+                              }}
+                            >
+                              <View className="clickCardViz">
+                                <View className="clickCardVizInner">
+                                  <FCProductViz
+                                    kind="pad"
+                                    padType={PAD_TYPES[padTypeIndex]?.value as any}
+                                    volumeMl={ml}
+                                    color={dayColor}
+                                  />
+                                </View>
+                              </View>
+                              <Text className="clickCardMl">{ml}mL</Text>
+                            </View>
+                          ))}
+                        </View>
+                        {showUndoQuickPad ? (
+                          <FCButton className="clickUndoBtn" size="sm" variant="ghost" onClick={undoLastQuickAdd}>
+                            撤销
+                          </FCButton>
+                        ) : null}
                       </View>
-                    </View>
-                    <View className="scaleAddRow">
-                      {padVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(padVolumeMl)} mL</Text> : null}
-                      <FCButton
-                        size="sm"
-                        disabled={padVolumeMl <= 0}
-                        onClick={() => {
-                          addEvent({
-                            eventTime: new Date().toISOString(),
-                            eventType: 'pad',
-                            productType: PAD_TYPES[padTypeIndex]?.value,
-                            color: dayColor,
-                            volumeMl: padVolumeMl,
-                          })
-                        }}
-                      >
-                        添加/片
-                      </FCButton>
-                    </View>
+                    )}
                   </View>
                 </View>
               </View>
@@ -694,53 +806,101 @@ export default function HomePage() {
                     ))}
                   </View>
                 </View>
-                <View className="controlSplitRow">
-                  <View className="controlViz">
-                    <FCProductViz
-                      kind="tampon"
-                      tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
-                      volumeMl={tamponVolumeMl}
-                      color={dayColor}
-                      label={TAMPON_MODELS[tamponModelIndex]?.label}
-                      spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
-                    />
-                  </View>
+                <View className={`controlSplitRow ${inputMode.tampon === 'click' ? 'controlSplitRowClick' : ''}`}>
+                  {inputMode.tampon === 'drag' ? (
+                    <View className="controlViz">
+                      <FCProductViz
+                        kind="tampon"
+                        tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                        volumeMl={tamponVolumeMl}
+                        color={dayColor}
+                        label={TAMPON_MODELS[tamponModelIndex]?.label}
+                        spec={TAMPON_MODEL_SPECS[TAMPON_MODELS[tamponModelIndex]?.value] || ''}
+                      />
+                    </View>
+                  ) : null}
 
                   <View className="controlPanel">
-                    <View className="scaleRow">
-                      <View className="scaleBarWrap">
-                        <FCScaleBar
-                          min={0}
-                          max={tamponMaxMl}
-                          step={0.1}
-                          value={tamponVolumeMl}
-                          onChange={setTamponVolumeMl}
-                          ticks={[
-                            { value: 3, label: '少' },
-                            { value: 6, label: '中' },
-                            { value: 10, label: '多' },
-                          ]}
-                        />
+                    {inputMode.tampon === 'drag' ? (
+                      <>
+                        <View className="scaleRow">
+                          <View className="scaleBarWrap">
+                            <FCScaleBar
+                              min={1}
+                              max={20}
+                              step={0.1}
+                              value={tamponVolumeMl}
+                              onChange={setTamponVolumeMl}
+                              ticks={[
+                                { value: 3, label: '少' },
+                                { value: 6, label: '中' },
+                                { value: 10, label: '多' },
+                              ]}
+                            />
+                          </View>
+                        </View>
+                        <View className="scaleAddRow">
+                          {tamponVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(tamponVolumeMl)} mL</Text> : null}
+                          <FCButton
+                            size="sm"
+                            disabled={tamponVolumeMl <= 0}
+                            onClick={() => {
+                              addEvent({
+                                eventTime: new Date().toISOString(),
+                                eventType: 'tampon',
+                                model: TAMPON_MODELS[tamponModelIndex]?.value,
+                                color: dayColor,
+                                volumeMl: tamponVolumeMl,
+                              })
+                            }}
+                          >
+                            添加/条
+                          </FCButton>
+                        </View>
+                      </>
+                    ) : (
+                      <View className="clickCardsBar">
+                        <View className="clickCardsRow">
+                          {[1, 5, 20].map((ml) => (
+                            <View
+                              key={ml}
+                              className="clickCard"
+                              onClick={() => {
+                                const ev = addEvent({
+                                  eventTime: new Date().toISOString(),
+                                  eventType: 'tampon',
+                                  model: TAMPON_MODELS[tamponModelIndex]?.value,
+                                  color: dayColor,
+                                  volumeMl: ml,
+                                })
+                                setLastQuickAdd({ id: ev.id, kind: 'tampon' })
+                                Taro.showToast({
+                                  title: `已添加 ${ml}mL`,
+                                  icon: 'none',
+                                })
+                              }}
+                            >
+                              <View className="clickCardViz">
+                                <View className="clickCardVizInner">
+                                  <FCProductViz
+                                    kind="tampon"
+                                    tamponModel={TAMPON_MODELS[tamponModelIndex]?.value as any}
+                                    volumeMl={ml}
+                                    color={dayColor}
+                                  />
+                                </View>
+                              </View>
+                              <Text className="clickCardMl">{ml}mL</Text>
+                            </View>
+                          ))}
+                        </View>
+                        {showUndoQuickTampon ? (
+                          <FCButton className="clickUndoBtn" size="sm" variant="ghost" onClick={undoLastQuickAdd}>
+                            撤销
+                          </FCButton>
+                        ) : null}
                       </View>
-                    </View>
-                    <View className="scaleAddRow">
-                      {tamponVolumeMl > 0 ? <Text className="scaleMlText">{fmtMl(tamponVolumeMl)} mL</Text> : null}
-                      <FCButton
-                        size="sm"
-                        disabled={tamponVolumeMl <= 0}
-                        onClick={() => {
-                          addEvent({
-                            eventTime: new Date().toISOString(),
-                            eventType: 'tampon',
-                            model: TAMPON_MODELS[tamponModelIndex]?.value,
-                            color: dayColor,
-                            volumeMl: tamponVolumeMl,
-                          })
-                        }}
-                      >
-                        添加/条
-                      </FCButton>
-                    </View>
+                    )}
                   </View>
                 </View>
               </View>

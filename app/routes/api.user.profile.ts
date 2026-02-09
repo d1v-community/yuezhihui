@@ -9,6 +9,7 @@ import { fail, ok } from "~/utils/apiResponse.server";
 const schema = z.object({
   displayName: z.string().trim().min(1).max(64).optional(),
   avatarUrl: z.string().trim().url().max(2048).optional(),
+  useTampon: z.boolean().optional(),
 });
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -20,7 +21,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const user = await requireUser(request);
     const body = schema.parse(await request.json());
 
-    if (!body.displayName && !body.avatarUrl) {
+    if (body.displayName === undefined && body.avatarUrl === undefined && body.useTampon === undefined) {
       return Response.json(fail("至少提供一个字段", 400), { status: 400 });
     }
 
@@ -29,6 +30,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .set({
         ...(body.displayName ? { displayName: body.displayName } : {}),
         ...(body.avatarUrl ? { avatarUrl: body.avatarUrl } : {}),
+        ...(body.useTampon !== undefined ? { useTampon: body.useTampon } : {}),
         updatedAt: new Date(),
       })
       .where(eq(users.id, user.id));
@@ -43,4 +45,3 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json(fail(msg, status), { status });
   }
 }
-
