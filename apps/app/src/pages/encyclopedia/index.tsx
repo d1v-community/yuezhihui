@@ -1,5 +1,5 @@
-import { View, Text } from '@tarojs/components'
-import Taro, { useLoad } from '@tarojs/taro'
+import { View, Text, WebView } from '@tarojs/components'
+import Taro, { useLoad, useDidShow } from '@tarojs/taro'
 import { useMemo, useState } from 'react'
 import { ensureAuthedAndOnboardedOrRedirect } from '../../utils/authGuard'
 import { FCActionBar, FCButton, FCNotice, FCPressable, FCSourceTag, FCTabBar } from '../../ui'
@@ -29,9 +29,17 @@ const SOURCES: Record<string, Source> = {
 
 export default function EncyclopediaPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [showWiki, setShowWiki] = useState(false)
 
   useLoad(() => {
     void ensureAuthedAndOnboardedOrRedirect()
+  })
+
+  useDidShow(() => {
+    // 页面显示时重置状态
+    if (showWiki) {
+      setShowWiki(false)
+    }
   })
 
   const cards: KbCard[] = useMemo(
@@ -63,14 +71,24 @@ export default function EncyclopediaPage() {
       {
         id: 'cycle-basics',
         tag: '常识',
-        title: '“正常范围”比你想的更宽，但也有底线',
-        lead: '周期并不总是 28 天；关键是“稳定的你”而不是“标准的别人”。',
+        title: '了解月经的正常范围，才能识别异常',
+        lead: '月经不止有周期和经期，流量、血块、颜色、痛感都有参考范围。',
         body: [
-          '很多人会把 28 天当成标准，但医学上更常见的做法是看一个范围，并关注“你自己的稳定模式”。',
-          '如果你的周期突然明显变短/变长、出血持续时间明显拉长、或伴随新的异常出血模式（例如非经期出血），更值得优先关注。',
+          '很多人只知道"28天周期、3-8天经期"，但月经的健康维度远不止这些。了解各维度的正常范围，才能判断自己的月经是否真的"正常"。',
+          '如果你的各项指标突然明显变化，比单纯的"偏高/偏低"更值得关注——因为突然变化往往是身体在发出信号。',
+          '我们可以帮你：测试自己是否处于正常范围、理解身体的变化规律、长期监测身体变化趋势。',
         ],
-        bullets: ['把“突然变化”标出来：它往往比“绝对数值”更重要', '用同一套口径记录（开始/结束、量峰值、痛感）才能形成可比趋势'],
-        sources: [SOURCES.mayo_cycle, SOURCES.acog_vital_sign],
+        bullets: [
+          '周期：21-35天都是常见范围，重点是你自己的规律',
+          '经期：3-8天为正常，过长需要关注',
+          '流量：20-80mL/周期为正常，过多可能提示疾病',
+          '血块：小于一枚硬币大小为正常，超过需记录',
+          '更换频率：2小时以上更换为正常，明显短于平时需关注',
+          '颜色：鲜红到暗红都是正常的，灰褐或异常需警惕',
+          '痛感：轻度不适为正常，影响生活的疼痛需关注',
+          '"突然变化"比单一数值更值得重视',
+        ],
+        sources: [SOURCES.mayo_cycle, SOURCES.cdc_hmb, SOURCES.acog_vital_sign],
       },
       {
         id: 'hmb-redflags',
@@ -90,16 +108,27 @@ export default function EncyclopediaPage() {
         sources: [SOURCES.cdc_hmb, SOURCES.nhs_heavy_periods, SOURCES.mayo_hmb],
       },
       {
-        id: 'pain-not-normal',
+        id: 'counter-intuitive',
         tag: '反直觉',
-        title: '痛经不是“必须忍”的成人礼',
-        lead: '如果疼痛持续加重、影响学习/工作/睡眠，值得认真评估。',
+        title: '关于月经，你可能被误导的那些事',
+        lead: '月经不是"感觉"，而是可被量化、可被追踪的生理信号。',
         body: [
-          '很多人从小被告知“痛经很正常”，但临床上更关键的问题是：疼痛是否影响生活、是否在加重、是否伴随其他异常（经量过多、性交痛、排便痛等）。',
-          '精细化记录能帮助你识别：疼痛发生在第几天、持续多久、是否与经量峰值同步、止痛药是否有效——这会显著提升就医沟通效率。',
+          '从小到大，我们接收了很多关于月经的"常识"，但其中不少是文化误解而非科学事实。',
+          '了解这些反直觉的真相，才能更科学地看待自己的身体变化。',
         ],
-        redFlags: ['疼痛越来越重，或止痛药效果越来越差', '疼痛导致无法正常上学/上班', '伴随经期外出血、发热、或异常分泌物（需尽快排查）'],
-        sources: [SOURCES.who_endometriosis, SOURCES.acog_vital_sign],
+        bullets: [
+          '月经不是"废血"或"排毒"，月经血由血液、子宫内膜碎片和正常分泌物组成',
+          '月经量不是越多越好，正常范围是每周期30-80mL，过多反而要警惕其原因',
+          '月经流量大不代表"气血足"，医学上与贫血风险更相关',
+          '月经颜色不是越鲜红越好，偏暗红是正常的氧化现象',
+          '血块不是"血流太慢"，恰恰相反：血流太快、抗凝血机制来不及反应时才更容易形成',
+          '夜里不需要总是起夜换卫生巾，如果经常侧漏或需要起夜，可能提示经量过多',
+          '青春期月经不规律、围绝经期月经不规律是常见现象，但非正常现象',
+          '两小时卫生巾就完全浸满不属于正常现象，属于月经过多的表现',
+          '月经相关的不适（无论是量多、疼痛还是生活受影响）都不应该"忍忍就好"',
+        ],
+        redFlags: ['经量持续超过80mL/周期，或出现贫血症状（乏力、头晕、心慌）', '经期超过7天且量无减少趋势', '伴随严重疼痛、发热或异常分泌物'],
+        sources: [SOURCES.cdc_hmb, SOURCES.mayo_hmb, SOURCES.mayo_cycle],
       },
       {
         id: 'how-to-track',
@@ -123,6 +152,12 @@ export default function EncyclopediaPage() {
     [],
   )
 
+  const faqItems = [
+    { id: 'faq-1', question: '我的月经量多不多？', desc: '判断经量是否正常，通常需要综合考虑周期、持续天数和单日更换频率。' },
+    { id: 'faq-2', question: '月经量大，是气血充足吗？', desc: '经量与“气血”没有直接医学关联，过多反而可能提示贫血风险。' },
+    { id: 'faq-3', question: '为什么我有大血块？', desc: '偶尔出现小血块是正常的，但如果频繁出现大血块，建议记录并关注。' },
+  ]
+
   const sections = useMemo(() => {
     const order: CardTag[] = ['精细化管理', '常识', '反直觉', '风险', '自检']
     return order.map((tag) => ({ tag, cards: cards.filter((c) => c.tag === tag) })).filter((s) => s.cards.length > 0)
@@ -141,102 +176,148 @@ export default function EncyclopediaPage() {
     <View className="page">
       <View className="bg">
         <View className="wrap">
-          <View className="card fc-appear">
-            <View className="row">
-              <Text className="title">百科</Text>
-              <FCButton size="sm" variant="secondary" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
-                设置
-              </FCButton>
-            </View>
-            <FCNotice
-              variant="warn"
-              title="科普信息不替代诊断"
-              desc="若出现大量出血、晕厥/胸闷气短、持续加重的剧痛、或怀疑怀孕相关出血，请尽快就医或按当地急救流程处理。"
-              style={{ marginTop: 12 }}
-            />
-          </View>
-
-          {sections.map((sec) => (
-            <View key={sec.tag} className="section">
-              <Text className="sectionTitle">{sec.tag}</Text>
-              <View className="cardList">
-                {sec.cards.map((c) => {
-                  const expanded = expandedId === c.id
-                  return (
-                    <FCPressable
-                      key={c.id}
-                      className={['kbCard', expanded ? 'kbCardOpen' : ''].join(' ')}
-                      onClick={() => setExpandedId((prev) => (prev === c.id ? null : c.id))}
-                    >
-                      <View className="kbHead">
-                        <Text className="kbTag">{c.tag}</Text>
-                        <Text className="kbTitle">{c.title}</Text>
-                        <Text className="kbMore">{expanded ? '收起' : '展开'}</Text>
-                      </View>
-                      <Text className="kbLead">{c.lead}</Text>
-
-                      {expanded ? (
-                        <View className="kbBody">
-                          {c.body.map((p) => (
-                            <Text key={p} className="kbP">
-                              {p}
-                            </Text>
-                          ))}
-
-                          {c.bullets?.length ? (
-                            <View className="kbBlock">
-                              <Text className="kbSub">要点</Text>
-                              {c.bullets.map((b) => (
-                                <Text key={b} className="kbLi">
-                                  · {b}
-                                </Text>
-                              ))}
-                            </View>
-                          ) : null}
-
-                          {c.redFlags?.length ? (
-                            <View className="kbWarn">
-                              <Text className="kbSub">红旗（建议尽快就医/咨询）</Text>
-                              {c.redFlags.map((b) => (
-                                <Text key={b} className="kbLi">
-                                  · {b}
-                                </Text>
-                              ))}
-                            </View>
-                          ) : null}
-
-                          <View className="kbBlock">
-                            <View className="kbSourcesTop">
-                              <Text className="kbSub">来源</Text>
-                              <FCButton
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  const text = c.sources.map((s) => `${s.label}\n${s.url}`).join('\n\n')
-                                  void copyUrl(text)
-                                }}
-                              >
-                                复制全部
-                              </FCButton>
-                            </View>
-                            <View className="kbSources">
-                              {c.sources.map((s) => (
-                                <FCSourceTag key={s.url} label={s.label} onClick={() => void copyUrl(s.url)} />
-                              ))}
-                            </View>
-                          </View>
-                        </View>
-                      ) : null}
-                    </FCPressable>
-                  )
-                })}
+          {showWiki ? (
+            <View className="wiki-container">
+              <View className="wiki-header">
+                <FCButton size="sm" variant="ghost" onClick={() => setShowWiki(false)}>
+                  返回百科
+                </FCButton>
               </View>
+              <WebView src="https://female-menstrual-record-819e28-5caaed-dev.d0v.xyz/wiki/" />
             </View>
-          ))}
+          ) : (
+            <>
+              <View className="card fc-appear">
+                <View className="row">
+                  <Text className="title">百科</Text>
+                  <FCButton size="sm" variant="secondary" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
+                    设置
+                  </FCButton>
+                </View>
+              </View>
 
-          <FCActionBar>
-            <FCTabBar />
-          </FCActionBar>
+              <View className="slogan-section">
+                <Text className="slogan-title">把月经量，说清楚</Text>
+                <Text className="slogan-desc">
+                  月经量不是主观感受，而是可以被理解、被估算、被判断的生理指标。
+                </Text>
+              </View>
+
+              {sections.map((sec) => (
+                <View key={sec.tag} className="section">
+                  <Text className="sectionTitle">{sec.tag}</Text>
+                  <View className="cardList">
+                    {sec.cards.map((c) => {
+                      const expanded = expandedId === c.id
+                      return (
+                        <FCPressable
+                          key={c.id}
+                          className={['kbCard', expanded ? 'kbCardOpen' : ''].join(' ')}
+                          onClick={() => setExpandedId((prev) => (prev === c.id ? null : c.id))}
+                        >
+                          <View className="kbHead">
+                            <Text className="kbTag">{c.tag}</Text>
+                            <Text className="kbTitle">{c.title}</Text>
+                            <Text className="kbMore">{expanded ? '收起' : '展开'}</Text>
+                          </View>
+                          <Text className="kbLead">{c.lead}</Text>
+
+                          {expanded ? (
+                            <View className="kbBody">
+                              {c.body.map((p) => (
+                                <Text key={p} className="kbP">
+                                  {p}
+                                </Text>
+                              ))}
+
+                              {c.bullets?.length ? (
+                                <View className="kbBlock">
+                                  <Text className="kbSub">要点</Text>
+                                  {c.bullets.map((b) => (
+                                    <Text key={b} className="kbLi">
+                                      · {b}
+                                    </Text>
+                                  ))}
+                                </View>
+                              ) : null}
+
+                              {c.redFlags?.length ? (
+                                <View className="kbWarn">
+                                  <Text className="kbSub">红旗（建议尽快就医/咨询）</Text>
+                                  {c.redFlags.map((b) => (
+                                    <Text key={b} className="kbLi">
+                                      · {b}
+                                    </Text>
+                                  ))}
+                                </View>
+                              ) : null}
+
+                              <View className="kbBlock">
+                                <View className="kbSourcesTop">
+                                  <Text className="kbSub">来源</Text>
+                                  <FCButton
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      const text = c.sources.map((s) => `${s.label}\n${s.url}`).join('\n\n')
+                                      void copyUrl(text)
+                                    }}
+                                  >
+                                    复制全部
+                                  </FCButton>
+                                </View>
+                                <View className="kbSources">
+                                  {c.sources.map((s) => (
+                                    <FCSourceTag key={s.url} label={s.label} onClick={() => void copyUrl(s.url)} />
+                                  ))}
+                                </View>
+                              </View>
+                            </View>
+                          ) : null}
+                        </FCPressable>
+                      )
+                    })}
+                  </View>
+                </View>
+              ))}
+
+              <View className="faq-section">
+                <Text className="faq-title">最近，很多人在问——</Text>
+                <View className="faq-list">
+                  {faqItems.map((item) => (
+                    <View key={item.id} className="faq-card">
+                      <Text className="faq-question">{item.question}</Text>
+                      <Text className="faq-desc">{item.desc}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View className="faq-more">
+                  <FCButton
+                    variant="primary"
+                    onClick={() => setShowWiki(true)}
+                  >
+                    更多百科词条
+                  </FCButton>
+                </View>
+              </View>
+
+              <View className="section">
+                <View className="cardList">
+                  <View className="card">
+                    <FCNotice
+                      variant="warn"
+                      title="科普信息不替代诊断"
+                      desc="若出现大量出血、晕厥/胸闷气短、持续加重的剧痛、或怀疑怀孕相关出血，请尽快就医或按当地急救流程处理。"
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <FCActionBar>
+                <FCTabBar />
+              </FCActionBar>
+            </>
+          )}
         </View>
       </View>
     </View>

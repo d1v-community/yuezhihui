@@ -383,9 +383,48 @@
   gap: 10px;
 }
 
-.clickUndoBtn {
+.clickUndoWrap {
   flex: none;
-  padding: 0 10px;
+  width: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.clickUndoHint {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.clickUndoIconBtn {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(248, 246, 244, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active {
+    background: rgba(232, 228, 224, 0.98);
+  }
+}
+
+.clickUndoIcon {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1;
 }
 
 .clickCard {
@@ -409,7 +448,7 @@
 .clickCardViz {
   margin-bottom: 0;
   width: 44px;
-  height: 64px;
+  height: 60px;
   position: relative;
 }
 

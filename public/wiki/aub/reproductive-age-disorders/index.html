@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>育龄期 - 月知百科</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+
+    .wiki-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .wiki-nav {
+      width: 280px;
+      background: #fff;
+      border-right: 1px solid #e5e5e5;
+      padding: 20px;
+      flex-shrink: 0;
+    }
+
+    .wiki-nav ul {
+      list-style: none;
+    }
+
+    .wiki-nav .nav-group {
+      margin-bottom: 16px;
+    }
+
+    .wiki-nav .nav-group-title {
+      font-weight: 600;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .wiki-nav li a {
+      display: block;
+      padding: 8px 12px;
+      color: #333;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+
+    .wiki-nav li a:hover {
+      background: #f0f0f0;
+    }
+
+    .wiki-nav li.active > a {
+      background: #e8f4f8;
+      color: #007bff;
+    }
+
+    .wiki-content {
+      flex: 1;
+      padding: 40px;
+      background: #fff;
+      max-width: calc(100% - 280px);
+    }
+
+    .wiki-content h1 {
+      font-size: 28px;
+      margin-bottom: 24px;
+      color: #333;
+    }
+
+    .wiki-content h2 {
+      font-size: 22px;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      color: #333;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 8px;
+    }
+
+    .wiki-content h3 {
+      font-size: 18px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .wiki-content h4 {
+      font-size: 16px;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .wiki-content p {
+      margin-bottom: 16px;
+      color: #555;
+    }
+
+    .wiki-content ul, .wiki-content ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .wiki-content li {
+      margin-bottom: 8px;
+    }
+
+    .wiki-content a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .wiki-content a:hover {
+      text-decoration: underline;
+    }
+
+    .wiki-content img {
+      max-width: 100%;
+      height: auto;
+      margin: 16px 0;
+      border-radius: 4px;
+    }
+
+    .wiki-content hr {
+      border: none;
+      border-top: 1px solid #e5e5e5;
+      margin: 32px 0;
+    }
+
+    .wiki-content blockquote {
+      background: #f9f9f9;
+      border-left: 4px solid #007bff;
+      padding: 16px;
+      margin: 16px 0;
+      color: #666;
+    }
+
+    .wiki-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    .wiki-content table th,
+    .wiki-content table td {
+      border: 1px solid #e5e5e5;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .wiki-content table th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+
+    .footnote-ref {
+      color: #007bff;
+      font-size: 12px;
+    }
+
+    .footnote-backref {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .headerlink {
+      color: #ccc;
+      text-decoration: none;
+      margin-left: 8px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    h1:hover .headerlink,
+    h2:hover .headerlink,
+    h3:hover .headerlink,
+    h4:hover .headerlink {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .wiki-container {
+        flex-direction: column;
+      }
+
+      .wiki-nav {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e5e5e5;
+      }
+
+      .wiki-content {
+        max-width: 100%;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wiki-container">
+    <nav class="wiki-nav"><ul><li class="nav-group"><span class="nav-group-title">常见症状</span><ul><li><a href="../symptom/period-pain/">痛经</a></li><li><a href="../symptom/period-pain_QA/">痛经QA</a></li></ul></li><li class="nav-group"><span class="nav-group-title">共创</span><ul><li><a href="../how-to-participate/">想一起共创？</a></li></ul></li><li class="nav-group"><span class="nav-group-title">基础知识</span><ul><li><a href="../basic/no-s/">月经不是什么</a></li><li><a href="../basic/menstrual-basic/">月经基础知识</a></li><li><a href="../basic/yes-s/">月经是什么</a></li></ul></li><li class="nav-group"><span class="nav-group-title">其他出血</span><ul><li><a href="../otherbleed/female-hemophilia/">女性血友病</a></li><li><a href="../otherbleed/ectopic-pregnancy_QA/">异位妊娠QA</a></li><li><a href="../otherbleed/ectopic-pregnancy/">子宫异位妊娠</a></li></ul></li><li class="nav-group"><span class="nav-group-title">异常子宫出血（AUB）</span><ul><li><a href="../aub/adolescent-menstrual-disorders/">青春期</a></li><li><a href="../aub/adolescent-menstrual-disorders_QA/">青春期月经不规律QA</a></li><li class="active"><a href="../aub/reproductive-age-disorders/">育龄期</a></li><li><a href="../aub/reproductive-age-disorders_QA/">育龄期子宫异常出血QA</a></li><li><a href="../aub/hmb_QA/">月经过多QA</a></li><li><a href="../aub/scanty-menstruation_QA/">月经过少QA</a></li><li><a href="../aub/hmb/">月经量过多</a></li><li><a href="../aub/scanty-menstruation/">月经量过少</a></li></ul></li><li class="nav-group"><span class="nav-group-title">月经相关疾病</span><ul><li><a href="../physiology/pcos/">多囊卵巢综合征</a></li><li><a href="../physiology/dysfunctional-uterine-bleeding/">功能失调性子宫出血</a></li><li><a href="../physiology/dysfunctional-uterine-bleeding_QA/">功能失调性子宫出血QA</a></li><li><a href="../physiology/corpus-luteum-cysts/">黄体囊肿（破裂）</a></li><li><a href="../physiology/corpus-luteum-cysts_QA/">黄体囊肿破裂QA</a></li><li><a href="../physiology/adolescent-ovulation-disorder/">青春期排卵障碍</a></li><li><a href="../physiology/adolescent-ovulation-disorder_QA/">青春期排卵障碍QA</a></li><li><a href="../physiology/uterine-fibroids/">子宫肌瘤</a></li><li><a href="../physiology/uterine-fibroids_QA/">子宫肌瘤QA</a></li><li><a href="../physiology/endometrial-polyps/">子宫内膜息肉</a></li><li><a href="../physiology/endometrial-polyps_QA/">子宫内膜息肉QA</a></li><li><a href="../physiology/endometriosis/">子宫内膜异位症</a></li><li><a href="../physiology/endometriosis_QA/">子宫内膜异位症QA</a></li><li><a href="../physiology/adenomyosis_QA/">子宫腺肌病QA</a></li><li><a href="../physiology/adenomyosis/">子宫腺肌症</a></li><li><a href="../physiology/hpv-infection/">HPV感染</a></li></ul></li></ul></nav>
+    <main class="wiki-content">
+      <h1 id="_1">育龄期子宫异常出血<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<h2 id="_2">定义<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>异常子宫出血（abnormal uterine bleeding，AUB）是妇科临床常见的症状和疾病，指与正常月经的周期频率、规律性、经期长度、经期出血量中任何一项不符合、源自子宫腔的异常出血。<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></p>
+<p>本词条限定于育龄期非妊娠妇女，因此还需排除妊娠和产褥期相关的出血，也不包含青春发育前和绝经后出血。本词条中的AUB不包括其他生殖道部位以及泌尿道或消化道等非子宫来源的异常出血。</p>
+<h2 id="_3">病因<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>AUB的病因复杂多样，国际妇产科联合会（FIGO）提出了PALM-COEIN分类系统，将AUB分为结构性原因（PALM）和非结构性原因（COEIN）两大类<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup>:</p>
+<ol>
+<li>
+<p><strong>结构性原因 (PALM)</strong>：</p>
+</li>
+<li>
+<p><strong>息肉</strong>：子宫内膜息肉是子宫内膜的异常生长，可能导致出血</p>
+</li>
+<li>
+<p><strong>腺肌症</strong> ：子宫腺肌症是指子宫内膜腺体和间质侵入子宫肌层，导致子宫增大和出血</p>
+</li>
+<li>
+<p><strong>肌瘤</strong>：子宫肌瘤是子宫的良性肿瘤，可能引起月经量增多或经期延长</p>
+</li>
+<li>
+<p><strong>恶性病变和癌前病变</strong>：子宫内膜癌或癌前病变也可能导致AUB</p>
+</li>
+<li>
+<p><strong>非结构性原因 (COEIN)</strong>：</p>
+</li>
+<li>
+<p><strong>凝血功能障碍</strong>：凝血功能障碍可能导致月经量过多</p>
+</li>
+<li>
+<p><strong>卵巢功能障碍</strong>：排卵异常可能导致月经周期不规律和出血</p>
+</li>
+<li>
+<p><strong>子宫内膜局部病变</strong>：子宫内膜炎症或感染可能引起出血</p>
+</li>
+<li>
+<p><strong>医源性因素</strong>：某些药物或宫内节育器可能导致AUB</p>
+</li>
+</ol>
+<h2 id="_4">临床表现<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="_5">症状<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>月经频发</strong>：月经周期短于21天。</p>
+</li>
+<li>
+<p><strong>月经稀发</strong>：月经周期超过35天。</p>
+</li>
+<li>
+<p><strong>月经量过多</strong>：每个月经周期失血量超过80ml。</p>
+</li>
+<li>
+<p><strong>经期延长</strong>：经期持续超过7天。</p>
+</li>
+<li>
+<p><strong>不规则出血</strong>：非月经期阴道出血，包括月经间期出血、性交后出血等。</p>
+</li>
+</ol>
+<h3 id="_6">体征<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>盆腔检查</strong>：评估子宫、卵巢和阴道的状况，检查是否有肿块、压痛或其他异常。</p>
+</li>
+<li>
+<p><strong>子宫大小和形态</strong>：检查子宫是否增大或形态异常，这可能提示子宫肌瘤或腺肌症。</p>
+</li>
+<li>
+<p><strong>其他体征</strong>：观察是否有贫血、甲状腺肿大等其他可能与AUB相关的体征。</p>
+</li>
+</ol>
+<h2 id="_7">诊断<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p><strong>病史询问</strong>：详细了解月经史、既往病史、用药史等，以初步判断病因。</p>
+</li>
+<li>
+<p>体格检查：进行盆腔检查，评估子宫和附件的情况。</p>
+</li>
+<li>
+<p><strong>辅助检查</strong>：</p>
+</li>
+<li>
+<p><strong>血常规</strong>：检查是否有贫血。</p>
+</li>
+<li>
+<p><strong>激素水平测定</strong>：评估卵巢功能，检查是否有排卵异常。</p>
+</li>
+<li>
+<p><strong>甲状腺功能检查</strong>：排除甲状腺疾病引起的AUB。</p>
+</li>
+<li>
+<p><strong>凝血功能检查</strong>：检查是否有凝血功能障碍。</p>
+</li>
+<li>
+<p><strong>经阴道超声</strong>：观察子宫内膜的厚度和形态，发现子宫内膜息肉、子宫肌瘤等结构性异常。</p>
+</li>
+<li>
+<p><strong>宫腔镜检查</strong>：可以直接观察子宫腔内的病变，并进行活检。</p>
+</li>
+<li>
+<p><strong>子宫内膜活检</strong>：通过取子宫内膜组织进行病理检查，可以确定病变的性质，排除恶性病变的可能。</p>
+</li>
+</ol>
+<h2 id="_8">治疗<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<h3 id="_9">药物治疗<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>非甾体抗炎药</strong>：可以减轻痛经和减少月经量，适用于月经量过多但无结构性病变的患者</p>
+</li>
+<li>
+<p><strong>口服避孕药</strong>：可以调节月经周期，减少月经量，适用于无生育要求的患者</p>
+</li>
+<li>
+<p><strong>孕激素</strong>：可以减少子宫内膜的增生，降低月经量，适用于无排卵性AUB</p>
+</li>
+<li>
+<p><strong>氨甲环酸</strong>：一种抗纤维蛋白溶解药，可以减少月经量，适用于月经量过多但无凝血功能障碍的患者</p>
+</li>
+<li>
+<p><strong>达那唑</strong>：一种雄激素衍生物，可以抑制卵巢功能，减少月经量，但副作用较多，不常用</p>
+</li>
+<li>
+<p><strong>促性腺激素释放激素激动剂（GnRH-a）</strong>：可以抑制卵巢功能，降低雌激素水平，但副作用较多，不建议长期使用</p>
+</li>
+</ul>
+<h3 id="_10">手术治疗<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>宫腔镜手术</strong>：适用于子宫内膜息肉、子宫肌瘤等结构性病变的治疗。可以在直视下切除病灶，损伤小，恢复快。</p>
+</li>
+<li>
+<p><strong>子宫内膜消融术</strong>：通过物理或化学方法破坏子宫内膜，减少月经量，适用于无生育要求且药物治疗无效的患者。</p>
+</li>
+<li>
+<p><strong>子宫切除术</strong>：对于无生育要求、症状严重且保守治疗无效的患者，可以考虑子宫切除术。</p>
+</li>
+<li>
+<p><strong>子宫动脉栓塞术</strong>：通过介入方法阻断子宫动脉的血供，使子宫肌瘤缩小，减少月经量，适用于有生育要求的子宫肌瘤患者。</p>
+</li>
+</ul>
+<h2 id="_11">就医建议<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p><strong>及时就医</strong>：如出现月经周期、经期长度或出血量异常，应及时就医，明确诊断。</p>
+</li>
+<li>
+<p><strong>详细描述</strong>：就诊时，详细描述月经情况、既往病史、用药史等，有助于医生判断病因。</p>
+</li>
+<li>
+<p><strong>遵医嘱</strong>：积极配合医生进行检查和治疗，按时复诊。</p>
+</li>
+<li>
+<p><strong>个体化治疗</strong>：根据自身情况，与医生充分沟通，选择合适的治疗方案。</p>
+</li>
+<li>
+<p>定期复查：对于已诊断为AUB的患者，应定期复查，监测病情变化。</p>
+</li>
+</ol>
+<hr />
+<p><strong>编写者：</strong> 颜妞  <strong>上传者：</strong> 张梓润</p>
+<h2 id="_12">参考文献<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h2>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p><a href="https://pubmed.ncbi.nlm.nih.gov/22065325/">The FIGO recommendations on terminologies and definitions for normal and abnormal uterine bleeding</a>&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://www.researchgate.net/publication/376004338_The_study_of_thyroid_dysfunction_in_patients_with_abnormal_uterine_bleeding">The Study of Thyroid Function in Abnormal Uterine Bleeding. </a>&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+
+    </main>
+  </div>
+</body>
+</html>

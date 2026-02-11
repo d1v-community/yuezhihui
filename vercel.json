@@ -1,6 +1,7 @@
 {
   "installCommand": "pnpm install --no-frozen-lockfile",
   "buildCommand": "pnpm run build",
+  "outputDirectory": "build/client",
   "headers": [
     {
       "source": "/app/(.*)",

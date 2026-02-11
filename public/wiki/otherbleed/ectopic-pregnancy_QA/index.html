@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>异位妊娠QA - 月知百科</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+
+    .wiki-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .wiki-nav {
+      width: 280px;
+      background: #fff;
+      border-right: 1px solid #e5e5e5;
+      padding: 20px;
+      flex-shrink: 0;
+    }
+
+    .wiki-nav ul {
+      list-style: none;
+    }
+
+    .wiki-nav .nav-group {
+      margin-bottom: 16px;
+    }
+
+    .wiki-nav .nav-group-title {
+      font-weight: 600;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .wiki-nav li a {
+      display: block;
+      padding: 8px 12px;
+      color: #333;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+
+    .wiki-nav li a:hover {
+      background: #f0f0f0;
+    }
+
+    .wiki-nav li.active > a {
+      background: #e8f4f8;
+      color: #007bff;
+    }
+
+    .wiki-content {
+      flex: 1;
+      padding: 40px;
+      background: #fff;
+      max-width: calc(100% - 280px);
+    }
+
+    .wiki-content h1 {
+      font-size: 28px;
+      margin-bottom: 24px;
+      color: #333;
+    }
+
+    .wiki-content h2 {
+      font-size: 22px;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      color: #333;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 8px;
+    }
+
+    .wiki-content h3 {
+      font-size: 18px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .wiki-content h4 {
+      font-size: 16px;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .wiki-content p {
+      margin-bottom: 16px;
+      color: #555;
+    }
+
+    .wiki-content ul, .wiki-content ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .wiki-content li {
+      margin-bottom: 8px;
+    }
+
+    .wiki-content a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .wiki-content a:hover {
+      text-decoration: underline;
+    }
+
+    .wiki-content img {
+      max-width: 100%;
+      height: auto;
+      margin: 16px 0;
+      border-radius: 4px;
+    }
+
+    .wiki-content hr {
+      border: none;
+      border-top: 1px solid #e5e5e5;
+      margin: 32px 0;
+    }
+
+    .wiki-content blockquote {
+      background: #f9f9f9;
+      border-left: 4px solid #007bff;
+      padding: 16px;
+      margin: 16px 0;
+      color: #666;
+    }
+
+    .wiki-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    .wiki-content table th,
+    .wiki-content table td {
+      border: 1px solid #e5e5e5;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .wiki-content table th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+
+    .footnote-ref {
+      color: #007bff;
+      font-size: 12px;
+    }
+
+    .footnote-backref {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .headerlink {
+      color: #ccc;
+      text-decoration: none;
+      margin-left: 8px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    h1:hover .headerlink,
+    h2:hover .headerlink,
+    h3:hover .headerlink,
+    h4:hover .headerlink {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .wiki-container {
+        flex-direction: column;
+      }
+
+      .wiki-nav {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e5e5e5;
+      }
+
+      .wiki-content {
+        max-width: 100%;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wiki-container">
+    <nav class="wiki-nav"><ul><li class="nav-group"><span class="nav-group-title">常见症状</span><ul><li><a href="../symptom/period-pain/">痛经</a></li><li><a href="../symptom/period-pain_QA/">痛经QA</a></li></ul></li><li class="nav-group"><span class="nav-group-title">共创</span><ul><li><a href="../how-to-participate/">想一起共创？</a></li></ul></li><li class="nav-group"><span class="nav-group-title">基础知识</span><ul><li><a href="../basic/no-s/">月经不是什么</a></li><li><a href="../basic/menstrual-basic/">月经基础知识</a></li><li><a href="../basic/yes-s/">月经是什么</a></li></ul></li><li class="nav-group"><span class="nav-group-title">其他出血</span><ul><li><a href="../otherbleed/female-hemophilia/">女性血友病</a></li><li class="active"><a href="../otherbleed/ectopic-pregnancy_QA/">异位妊娠QA</a></li><li><a href="../otherbleed/ectopic-pregnancy/">子宫异位妊娠</a></li></ul></li><li class="nav-group"><span class="nav-group-title">异常子宫出血（AUB）</span><ul><li><a href="../aub/adolescent-menstrual-disorders/">青春期</a></li><li><a href="../aub/adolescent-menstrual-disorders_QA/">青春期月经不规律QA</a></li><li><a href="../aub/reproductive-age-disorders/">育龄期</a></li><li><a href="../aub/reproductive-age-disorders_QA/">育龄期子宫异常出血QA</a></li><li><a href="../aub/hmb_QA/">月经过多QA</a></li><li><a href="../aub/scanty-menstruation_QA/">月经过少QA</a></li><li><a href="../aub/hmb/">月经量过多</a></li><li><a href="../aub/scanty-menstruation/">月经量过少</a></li></ul></li><li class="nav-group"><span class="nav-group-title">月经相关疾病</span><ul><li><a href="../physiology/pcos/">多囊卵巢综合征</a></li><li><a href="../physiology/dysfunctional-uterine-bleeding/">功能失调性子宫出血</a></li><li><a href="../physiology/dysfunctional-uterine-bleeding_QA/">功能失调性子宫出血QA</a></li><li><a href="../physiology/corpus-luteum-cysts/">黄体囊肿（破裂）</a></li><li><a href="../physiology/corpus-luteum-cysts_QA/">黄体囊肿破裂QA</a></li><li><a href="../physiology/adolescent-ovulation-disorder/">青春期排卵障碍</a></li><li><a href="../physiology/adolescent-ovulation-disorder_QA/">青春期排卵障碍QA</a></li><li><a href="../physiology/uterine-fibroids/">子宫肌瘤</a></li><li><a href="../physiology/uterine-fibroids_QA/">子宫肌瘤QA</a></li><li><a href="../physiology/endometrial-polyps/">子宫内膜息肉</a></li><li><a href="../physiology/endometrial-polyps_QA/">子宫内膜息肉QA</a></li><li><a href="../physiology/endometriosis/">子宫内膜异位症</a></li><li><a href="../physiology/endometriosis_QA/">子宫内膜异位症QA</a></li><li><a href="../physiology/adenomyosis_QA/">子宫腺肌病QA</a></li><li><a href="../physiology/adenomyosis/">子宫腺肌症</a></li><li><a href="../physiology/hpv-infection/">HPV感染</a></li></ul></li></ul></nav>
+    <main class="wiki-content">
+      <h1 id="qa">异位妊娠QA<a class="headerlink" href="#qa" title="Permanent link">&para;</a></h1>
+<h2 id="_1">用户画像：<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>30岁，育龄女性，近期月经推迟10天，自测验孕阳性。近两天突感一侧下腹持续性隐痛，并伴随少量阴道出血（比月经少），但颜色较深。情绪焦虑，有轻微恶心、乏力。过去有输卵管炎病史。</p>
+<h2 id="_2">数字特征：<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<ul>
+<li>停经时间：推迟10天</li>
+<li>验孕结果：阳性</li>
+<li>β-hCG数值：低于正常妊娠进展曲线（具体值视时间点而定）</li>
+<li>阴道出血量：每天≤1片护垫量</li>
+<li>腹痛评分：4~6分（隐痛持续）</li>
+<li>输卵管病史：阳性</li>
+</ul>
+<h2 id="_3">回答示例<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="_4">情感安抚<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>姐妹，刚测出怀孕本来是超开心的事，结果突然腹痛出血，换谁都会慌得手抖吧？我懂你现在又担
+心又焦虑的心情，咱们先深呼吸，一步步来，别自己吓自己。</p>
+<h3 id="_5">温和提醒<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>你刚刚提到一侧下腹隐痛并且出现深色少量出血，加上之前有过输卵管炎，这些可能是身体在提醒”需要重点保护子宫和输卵管啦“！比如胚胎着床位置异常、或者旧炎症影响，都可能引起这些症状，咱们得赶紧找医生确认安全</p>
+<h3 id="_6">科普讲解<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>正常怀孕后，hCG会每48小时翻倍增长，但你的数值偏低，可能和胚胎发育速度、或者着床位置有关，比如发生宫外孕时hCG增长慢。输卵管炎病史会让你的输卵管变狭窄，胚胎如果卡在这里着床，就会引起一侧腹痛和出血，就像种子没种在正常肥沃的土壤里，反而扎到了管道壁。</p>
+<h3 id="_7">就医引导<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>立刻挂妇科或急诊妇科！医生会安排B超等检查来确定胚胎位置，同时复查hCG和孕酮。如果B超看不到宫内孕囊，但hCG持续升高，可能要警惕宫外孕；如果确认宫内孕，出血可能是先兆流产，医生会开保胎药。记得带上之前的检查报告，穿宽松裤子，最好要有一个人陪着你去医院哟~</p>
+<h3 id="_8">生活建议<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<p>现在要绝对避免剧烈运动、提重物，连弯腰捡东西都要慢。出血期间用护垫就行，别用卫生棉条；乏力就多平躺休息，别硬撑。</p>
+<h3 id="_9">关切问句<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<p>你之前输卵管炎是左侧还是右侧呀？现在腹痛是同一侧吗？</p>
+<h3 id="_10">推荐词条名<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<p>异位妊娠、月经推迟、早孕、先兆流产</p>
+<h3 id="_11">猜你想问<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<ul>
+<li>宫外孕一定会大出血吗？</li>
+<li>宫外孕危险吗？</li>
+<li>hCG低孩子能保住吗？</li>
+<li>输卵管炎治好后还会复发吗？</li>
+<li>保胎需要卧床多久？</li>
+</ul>
+<hr />
+<p><strong>编写者：</strong> 颜妞  <strong>上传者：</strong> 张梓润</p>
+
+    </main>
+  </div>
+</body>
+</html>

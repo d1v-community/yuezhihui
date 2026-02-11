@@ -14,9 +14,11 @@ type Props = {
 export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, onComplete }: Props) {
   const inputRef = useRef<any>(null)
   const [focusTick, setFocusTick] = useState(0)
+  const [focused, setFocused] = useState(Boolean(autoFocus))
 
   const requestFocus = () => {
     if (disabled) return
+    setFocused(true)
     setFocusTick((v) => v + 1)
     setTimeout(() => {
       try {
@@ -33,6 +35,11 @@ export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFocus])
 
+  useEffect(() => {
+    if (!disabled) return
+    setFocused(false)
+  }, [disabled])
+
   const v = (value || '').replace(/\D/g, '').slice(0, length)
   const digits = v.split('')
   const activeIdx = Math.min(digits.length, length - 1)
@@ -47,8 +54,11 @@ export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, 
         type="number"
         maxlength={length as any}
         confirmType="done"
-        focus={Boolean(autoFocus)}
+        focus={focused}
         disabled={disabled}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onClick={requestFocus}
         onInput={(e) => {
           const raw = String((e as any).detail?.value ?? '')
           const next = raw.replace(/\D/g, '').slice(0, length)
@@ -70,4 +80,3 @@ export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, 
     </View>
   )
 }
-

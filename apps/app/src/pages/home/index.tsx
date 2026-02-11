@@ -157,7 +157,8 @@ export default function HomePage() {
   const [inputMode, setInputMode] = useState<InputModeSettings>(DEFAULT_INPUT_MODE)
   const [volumeSheetOpen, setVolumeSheetOpen] = useState(false)
   const [useTampon, setUseTampon] = useState(true)
-  const [lastQuickAdd, setLastQuickAdd] = useState<{ id: string; kind: 'pad' | 'tampon' } | null>(null)
+  const [padUndoStack, setPadUndoStack] = useState<string[]>([])
+  const [tamponUndoStack, setTamponUndoStack] = useState<string[]>([])
 
   const dirty = useMemo(() => JSON.stringify(record) !== snapshot, [record, snapshot])
   const vols = useMemo(() => splitVolumeMl(record.events), [record.events])
@@ -272,6 +273,8 @@ export default function HomePage() {
       // Update header immediately; UI shows a local loading mask while data is fetched.
       setSelectedDate(date)
       setRecord({ date, hasBleeding: false, events: [] })
+      setPadUndoStack([])
+      setTamponUndoStack([])
       // Reset input controls for the new day (default should be 5mL).
       setPadVolumeMl(5)
       setTamponVolumeMl(5)
@@ -449,19 +452,86 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    if (!lastQuickAdd) return
-    if (!record.events.some((e) => e.id === lastQuickAdd.id)) setLastQuickAdd(null)
-  }, [record.events, lastQuickAdd])
+    // Keep stack clean even if events are removed elsewhere (e.g. manual delete).
+    const live = new Set(record.events.map((e) => e.id))
+    setPadUndoStack((prev) => {
+      if (prev.length <= 0) return prev
+      const next = prev.filter((id) => live.has(id))
+      return next.length === prev.length ? prev : next
+    })
+  }, [record.events])
 
-  const lastEventId = record.events[record.events.length - 1]?.id || null
-  const showUndoQuickPad = Boolean(lastQuickAdd && lastQuickAdd.kind === 'pad' && lastQuickAdd.id === lastEventId)
-  const showUndoQuickTampon = Boolean(
-    lastQuickAdd && lastQuickAdd.kind === 'tampon' && lastQuickAdd.id === lastEventId
-  )
-  const undoLastQuickAdd = () => {
-    if (!lastQuickAdd) return
-    removeEvent(lastQuickAdd.id)
-    setLastQuickAdd(null)
+  useEffect(() => {
+    const live = new Set(record.events.map((e) => e.id))
+    setTamponUndoStack((prev) => {
+      if (prev.length <= 0) return prev
+      const next = prev.filter((id) => live.has(id))
+      return next.length === prev.length ? prev : next
+    })
+  }, [record.events])
+
+  const lastPadAddEvent = useMemo(() => {
+    for (let i = padUndoStack.length - 1; i >= 0; i--) {
+      const id = padUndoStack[i]
+      const ev = record.events.find((e) => e.id === id)
+      if (ev && ev.eventType === 'pad') return ev
+    }
+    return null
+  }, [padUndoStack, record.events])
+
+  const lastTamponAddEvent = useMemo(() => {
+    for (let i = tamponUndoStack.length - 1; i >= 0; i--) {
+      const id = tamponUndoStack[i]
+      const ev = record.events.find((e) => e.id === id)
+      if (ev && ev.eventType === 'tampon') return ev
+    }
+    return null
+  }, [tamponUndoStack, record.events])
+
+  const showUndoPad = Boolean(lastPadAddEvent)
+  const showUndoTampon = Boolean(lastTamponAddEvent)
+
+  const padUndoLabel = useMemo(() => {
+    if (!lastPadAddEvent) return ''
+    const typeLabel = PAD_TYPES.find((x) => x.value === lastPadAddEvent.productType)?.label || '卫生巾'
+    const ml = fmtMl(Number(lastPadAddEvent.volumeMl || 0))
+    return `${typeLabel}${ml}mL`
+  }, [lastPadAddEvent])
+
+  const tamponUndoLabel = useMemo(() => {
+    if (!lastTamponAddEvent) return ''
+    const modelLabel = TAMPON_MODELS.find((x) => x.value === lastTamponAddEvent.model)?.label || '卫生棉条'
+    const ml = fmtMl(Number(lastTamponAddEvent.volumeMl || 0))
+    return `${modelLabel}${ml}mL`
+  }, [lastTamponAddEvent])
+
+  const undoLastPadAdd = () => {
+    if (padUndoStack.length <= 0) return
+    const id = lastPadAddEvent?.id
+    if (!id) {
+      setPadUndoStack([])
+      return
+    }
+    removeEvent(id)
+    setPadUndoStack((prev) => {
+      const idx = prev.lastIndexOf(id)
+      return idx >= 0 ? prev.slice(0, idx) : prev
+    })
+    Taro.showToast({ title: '已撤销', icon: 'none' })
+  }
+
+  const undoLastTamponAdd = () => {
+    if (tamponUndoStack.length <= 0) return
+    const id = lastTamponAddEvent?.id
+    if (!id) {
+      setTamponUndoStack([])
+      return
+    }
+    removeEvent(id)
+    setTamponUndoStack((prev) => {
+      const idx = prev.lastIndexOf(id)
+      return idx >= 0 ? prev.slice(0, idx) : prev
+    })
     Taro.showToast({ title: '已撤销', icon: 'none' })
   }
 
@@ -723,13 +793,14 @@ export default function HomePage() {
                             size="sm"
                             disabled={padVolumeMl <= 0}
                             onClick={() => {
-                              addEvent({
+                              const ev = addEvent({
                                 eventTime: new Date().toISOString(),
                                 eventType: 'pad',
                                 productType: PAD_TYPES[padTypeIndex]?.value,
                                 color: dayColor,
                                 volumeMl: padVolumeMl,
                               })
+                              setPadUndoStack((prev) => [...prev, ev.id])
                             }}
                           >
                             添加/片
@@ -739,7 +810,7 @@ export default function HomePage() {
                     ) : (
                       <View className="clickCardsBar">
                         <View className="clickCardsRow">
-                          {[1, 5, 20].map((ml) => (
+                          {[1, 5, 10, 20].map((ml) => (
                             <View
                               key={ml}
                               className="clickCard"
@@ -751,7 +822,7 @@ export default function HomePage() {
                                   color: dayColor,
                                   volumeMl: ml,
                                 })
-                                setLastQuickAdd({ id: ev.id, kind: 'pad' })
+                                setPadUndoStack((prev) => [...prev, ev.id])
                                 Taro.showToast({
                                   title: `已添加 ${ml}mL`,
                                   icon: 'none',
@@ -772,11 +843,14 @@ export default function HomePage() {
                             </View>
                           ))}
                         </View>
-                        {showUndoQuickPad ? (
-                          <FCButton className="clickUndoBtn" size="sm" variant="ghost" onClick={undoLastQuickAdd}>
-                            撤销
-                          </FCButton>
-                        ) : null}
+                        <View className="clickUndoWrap" style={{ visibility: showUndoPad ? 'visible' : 'hidden' }}>
+                          <Text className="clickUndoHint" numberOfLines={1}>
+                            {padUndoLabel}
+                          </Text>
+                          <FCPressable className="clickUndoIconBtn" disabled={!showUndoPad} onClick={undoLastPadAdd}>
+                            <Text className="clickUndoIcon">⟲</Text>
+                          </FCPressable>
+                        </View>
                       </View>
                     )}
                   </View>
@@ -845,13 +919,14 @@ export default function HomePage() {
                             size="sm"
                             disabled={tamponVolumeMl <= 0}
                             onClick={() => {
-                              addEvent({
+                              const ev = addEvent({
                                 eventTime: new Date().toISOString(),
                                 eventType: 'tampon',
                                 model: TAMPON_MODELS[tamponModelIndex]?.value,
                                 color: dayColor,
                                 volumeMl: tamponVolumeMl,
                               })
+                              setTamponUndoStack((prev) => [...prev, ev.id])
                             }}
                           >
                             添加/条
@@ -861,7 +936,7 @@ export default function HomePage() {
                     ) : (
                       <View className="clickCardsBar">
                         <View className="clickCardsRow">
-                          {[1, 5, 20].map((ml) => (
+                          {[1, 5, 10, 20].map((ml) => (
                             <View
                               key={ml}
                               className="clickCard"
@@ -873,7 +948,7 @@ export default function HomePage() {
                                   color: dayColor,
                                   volumeMl: ml,
                                 })
-                                setLastQuickAdd({ id: ev.id, kind: 'tampon' })
+                                setTamponUndoStack((prev) => [...prev, ev.id])
                                 Taro.showToast({
                                   title: `已添加 ${ml}mL`,
                                   icon: 'none',
@@ -894,11 +969,18 @@ export default function HomePage() {
                             </View>
                           ))}
                         </View>
-                        {showUndoQuickTampon ? (
-                          <FCButton className="clickUndoBtn" size="sm" variant="ghost" onClick={undoLastQuickAdd}>
-                            撤销
-                          </FCButton>
-                        ) : null}
+                        <View className="clickUndoWrap" style={{ visibility: showUndoTampon ? 'visible' : 'hidden' }}>
+                          <Text className="clickUndoHint" numberOfLines={1}>
+                            {tamponUndoLabel}
+                          </Text>
+                          <FCPressable
+                            className="clickUndoIconBtn"
+                            disabled={!showUndoTampon}
+                            onClick={undoLastTamponAdd}
+                          >
+                            <Text className="clickUndoIcon">⟲</Text>
+                          </FCPressable>
+                        </View>
                       </View>
                     )}
                   </View>
