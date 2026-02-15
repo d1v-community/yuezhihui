@@ -29,12 +29,12 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 text-sm text-brand-muted">
-            <a
-              href="/wiki/"
+            <Link
+              to="/wiki"
               className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70"
             >
               百科
-            </a>
+            </Link>
             <a
               href="#problem"
               onClick={(e) => scrollToSection(e, '#problem')}
