@@ -114,7 +114,7 @@ export default function FaqRoute() {
             <Link to="/" className="hover:text-brand-text transition-colors">
               首页
             </Link>
-            <span aria-hidden="/">/</span>
+            <span aria-hidden="true">/</span>
             <span className="text-brand-text">{pageTitle}</span>
           </div>
 
