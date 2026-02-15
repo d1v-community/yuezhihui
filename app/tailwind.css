@@ -46,7 +46,7 @@
   }
 
   .wiki-article img {
-    @apply mt-4 rounded-2xl border border-black/5 bg-white;
+    @apply mt-4 max-w-xs rounded-2xl border border-black/5 bg-white;
   }
 
   .wiki-article table {
