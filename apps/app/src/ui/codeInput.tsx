@@ -22,14 +22,18 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
   const inputRef = useRef<any>(null)
   const [focused, setFocused] = useState(Boolean(autoFocus))
 
-  const requestFocus = () => {
-    if (disabled) return
-    setFocused(true)
+  const focusInputNow = () => {
     try {
       inputRef.current?.focus?.()
     } catch {
       // ignore
     }
+  }
+
+  const requestFocus = () => {
+    if (disabled) return
+    setFocused(true)
+    focusInputNow()
   }
 
   useImperativeHandle(
@@ -57,23 +61,33 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
   const v = (value || '').replace(/\D/g, '').slice(0, length)
   const digits = v.split('')
   const activeIdx = Math.min(digits.length, length - 1)
+  // Taro Input types do not expose all H5-only attributes.
+  // Pass-through keeps mobile numeric keyboard + OTP autofill hints on H5.
+  const h5InputProps = {
+    inputMode: 'numeric',
+    autocomplete: 'one-time-code',
+  } as any
 
   return (
     <View
       className={['fcCodeWrap', disabled ? 'fcCodeDisabled' : ''].join(' ')}
+      onTouchStart={requestFocus}
       onClick={requestFocus}
     >
       <Input
         ref={inputRef}
         className="fcCodeHiddenInput"
         value={v}
-        type="number"
+        type="digit"
         maxlength={length as any}
         confirmType="done"
+        {...h5InputProps}
         focus={focused}
         disabled={disabled}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false)
+        }}
         onInput={(e) => {
           const raw = String((e as any).detail?.value ?? '')
           const next = raw.replace(/\D/g, '').slice(0, length)
