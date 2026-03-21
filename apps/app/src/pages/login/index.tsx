@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
@@ -6,6 +6,7 @@ import { removeStorage, setStorageString } from '../../storage/storage'
 import { authMe, authSendCode, authVerifyLogin } from '../../services/auth'
 import { onboardingV2State } from '../../services/onboardingV2'
 import { FCButton, FCCodeInput, FCTextButton, FCTextField } from '../../ui'
+import type { FCCodeInputRef } from '../../ui'
 import './index.less'
 
 function isEmail(email: string) {
@@ -20,6 +21,8 @@ export default function LoginPage() {
   const [devCode, setDevCode] = useState<string | null>(null)
   const [cooldown, setCooldown] = useState(0)
 
+  const codeInputRef = useRef<FCCodeInputRef | null>(null)
+
   const emailOk = useMemo(() => isEmail(email.trim()), [email])
   const codeOk = useMemo(() => code.trim().length === 6, [code])
 
@@ -28,6 +31,15 @@ export default function LoginPage() {
     const t = setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000)
     return () => clearInterval(t)
   }, [cooldown])
+
+  useEffect(() => {
+    if (step !== 'code' || loading) return
+    try {
+      codeInputRef.current?.focus()
+    } catch {
+      // ignore focus errors
+    }
+  }, [step, loading])
 
   const goNextAfterLogin = async () => {
     const me = await authMe()
@@ -150,6 +162,7 @@ export default function LoginPage() {
               <View className="field">
                 <Text className="label">验证码</Text>
                 <FCCodeInput
+                  ref={codeInputRef}
                   value={code}
                   length={6}
                   disabled={loading}
@@ -218,3 +231,4 @@ export default function LoginPage() {
     </View>
   )
 }
+

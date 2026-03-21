@@ -1,5 +1,5 @@
 import { Input, Text, View } from '@tarojs/components'
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import './codeInput.less'
 
 type Props = {
@@ -11,7 +11,14 @@ type Props = {
   onComplete?: (code: string) => void
 }
 
-export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, onComplete }: Props) {
+export type FCCodeInputRef = {
+  focus: () => void
+}
+
+export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInput(
+  { value, length = 6, disabled, autoFocus, onChange, onComplete }: Props,
+  ref,
+) {
   const inputRef = useRef<any>(null)
   const [focusTick, setFocusTick] = useState(0)
   const [focused, setFocused] = useState(Boolean(autoFocus))
@@ -28,6 +35,13 @@ export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, 
       }
     }, 0)
   }
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      focus: requestFocus,
+    }),
+  )
 
   // Keep focus behaviour in sync with disabled/autoFocus states.
   // When the field is re-enabled while autoFocus is true (for example
@@ -83,4 +97,5 @@ export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, 
       </View>
     </View>
   )
-}
+})
+
