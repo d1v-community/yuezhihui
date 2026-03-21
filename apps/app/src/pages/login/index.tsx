@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
@@ -6,6 +6,7 @@ import { removeStorage, setStorageString } from '../../storage/storage'
 import { authMe, authSendCode, authVerifyLogin } from '../../services/auth'
 import { onboardingV2State } from '../../services/onboardingV2'
 import { FCButton, FCCodeInput, FCTextButton, FCTextField } from '../../ui'
+import type { FCCodeInputRef } from '../../ui'
 import './index.less'
 
 function isEmail(email: string) {
@@ -20,6 +21,8 @@ export default function LoginPage() {
   const [devCode, setDevCode] = useState<string | null>(null)
   const [cooldown, setCooldown] = useState(0)
 
+  const codeInputRef = useRef<FCCodeInputRef | null>(null)
+
   const emailOk = useMemo(() => isEmail(email.trim()), [email])
   const codeOk = useMemo(() => code.trim().length === 6, [code])
 
@@ -28,6 +31,15 @@ export default function LoginPage() {
     const t = setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000)
     return () => clearInterval(t)
   }, [cooldown])
+
+  useEffect(() => {
+    if (step !== 'code' || loading) return
+    try {
+      codeInputRef.current?.focus()
+    } catch {
+      // ignore focus errors
+    }
+  }, [step, loading])
 
   const goNextAfterLogin = async () => {
     const me = await authMe()
@@ -51,6 +63,11 @@ export default function LoginPage() {
       Taro.showToast({ title: '请输入正确邮箱', icon: 'none' })
       return
     }
+    // 先切换到验证码步骤，保证在桌面端浏览器中
+    // FCCodeInput 能在用户点击按钮后立刻获得焦点。
+    setStep('code')
+    setCode('')
+    setDevCode(null)
     setLoading(true)
     try {
       const res = await authSendCode(v)
@@ -58,11 +75,14 @@ export default function LoginPage() {
         throw new Error(res?.error || '发送失败，请稍后重试')
       }
       setDevCode(res?.dev && res?.code ? String(res.code) : null)
-      setStep('code')
       setCooldown(60)
-      setCode('')
       Taro.showToast({ title: '验证码已发送', icon: 'none' })
     } catch (e) {
+      // 如果发送失败，恢复到邮箱输入步骤
+      setStep('email')
+      setCode('')
+      setDevCode(null)
+      setCooldown(0)
       Taro.showToast({ title: e instanceof Error ? e.message : '发送失败', icon: 'none' })
     } finally {
       setLoading(false)
@@ -96,6 +116,56 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (step !== 'code' || loading || typeof window === 'undefined') return
+
+    const isEditableTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false
+      if (target.isContentEditable) return true
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        return !target.disabled && !target.readOnly
+      }
+      if (target instanceof HTMLSelectElement) {
+        return !target.disabled
+      }
+      return false
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      if (isEditableTarget(event.target)) return
+
+      if (/^\d$/.test(event.key)) {
+        event.preventDefault()
+        setCode((prev) => {
+          if (prev.length >= 6) return prev
+          const next = `${prev}${event.key}`.slice(0, 6)
+          if (next.length === 6) {
+            void onVerify(next)
+          }
+          return next
+        })
+        return
+      }
+
+      if (event.key === 'Backspace') {
+        event.preventDefault()
+        setCode((prev) => prev.slice(0, -1))
+        return
+      }
+
+      if (event.key === 'Enter' && code.trim().length === 6) {
+        event.preventDefault()
+        void onVerify(code)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [step, loading, code, onVerify])
 
   const resendText = cooldown > 0 ? `重新发送（${cooldown}s）` : '重新发送'
 
@@ -142,6 +212,7 @@ export default function LoginPage() {
               <View className="field">
                 <Text className="label">验证码</Text>
                 <FCCodeInput
+                  ref={codeInputRef}
                   value={code}
                   length={6}
                   disabled={loading}
