@@ -74,7 +74,7 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
               进入应用
             </Link>
 
-            {user ? (
+            {user && (
               <div className="relative group">
                 <span className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-brand-text hover:bg-brand-primary/35 transition cursor-pointer">
                   {displayName}
@@ -89,13 +89,6 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
                   </button>
                 </div>
               </div>
-            ) : (
-              <Link
-                to="/login"
-                className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-brand-muted hover:text-brand-text hover:bg-brand-primary/35 transition"
-              >
-                登录
-              </Link>
             )}
           </div>
         </div>
