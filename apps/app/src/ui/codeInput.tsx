@@ -111,8 +111,6 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
           setFocused(false)
         }}
         onInput={handleValueChange}
-        onChange={handleValueChange}
-        onConfirm={handleValueChange}
       />
       <View className="fcCodeBoxes" onTouchStart={requestFocus} onTouchEnd={requestFocus} onClick={requestFocus}>
         {Array.from({ length }, (_, i) => {
