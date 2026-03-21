@@ -32,8 +32,14 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
 
   const requestFocus = () => {
     if (disabled) return
-    setFocused(true)
     focusInputNow()
+    setFocused(true)
+    // Retry once on next tick for mobile browsers that can drop the first focus.
+    setTimeout(() => {
+      if (disabled) return
+      focusInputNow()
+      setFocused(true)
+    }, 0)
   }
 
   useImperativeHandle(
@@ -96,12 +102,18 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
           if (next.length === length) onComplete?.(next)
         }}
       />
-      <View className="fcCodeBoxes">
+      <View className="fcCodeBoxes" onTouchStart={requestFocus} onTouchEnd={requestFocus} onClick={requestFocus}>
         {Array.from({ length }, (_, i) => {
           const ch = digits[i] || ''
           const active = i === activeIdx
           return (
-            <View key={i} className={['fcCodeBox', active ? 'fcCodeBoxActive' : ''].join(' ')}>
+            <View
+              key={i}
+              className={['fcCodeBox', active ? 'fcCodeBoxActive' : ''].join(' ')}
+              onTouchStart={requestFocus}
+              onTouchEnd={requestFocus}
+              onClick={requestFocus}
+            >
               <Text className="fcCodeChar">{ch || ' '}</Text>
             </View>
           )
