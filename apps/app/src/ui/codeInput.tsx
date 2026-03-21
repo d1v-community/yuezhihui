@@ -29,16 +29,20 @@ export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, 
     }, 0)
   }
 
+  // Keep focus behaviour in sync with disabled/autoFocus states.
+  // When the field is re-enabled while autoFocus is true (for example
+  // after sending the code on desktop web), we request focus again so
+  // the user can type immediately without extra Tab/click actions.
   useEffect(() => {
-    if (!autoFocus) return
-    requestFocus()
+    if (disabled) {
+      setFocused(false)
+      return
+    }
+    if (autoFocus) {
+      requestFocus()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoFocus])
-
-  useEffect(() => {
-    if (!disabled) return
-    setFocused(false)
-  }, [disabled])
+  }, [autoFocus, disabled])
 
   const v = (value || '').replace(/\D/g, '').slice(0, length)
   const digits = v.split('')
