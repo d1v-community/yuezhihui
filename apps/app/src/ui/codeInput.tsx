@@ -20,15 +20,14 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
   ref,
 ) {
   const inputRef = useRef<any>(null)
+  const [focusTick, setFocusTick] = useState(0)
   const [focused, setFocused] = useState(Boolean(autoFocus))
 
   const requestFocus = () => {
     if (disabled) return
-    // Some mobile keyboards can be dismissed while input is still "focused".
-    // Toggle focus to force the keyboard to reopen on the next tap.
-    setFocused(false)
+    setFocused(true)
+    setFocusTick((v) => v + 1)
     setTimeout(() => {
-      setFocused(true)
       try {
         inputRef.current?.focus?.()
       } catch {
@@ -64,13 +63,10 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
   const activeIdx = Math.min(digits.length, length - 1)
 
   return (
-    <View
-      className={['fcCodeWrap', disabled ? 'fcCodeDisabled' : ''].join(' ')}
-      onClick={requestFocus}
-      onTouchStart={requestFocus}
-    >
+    <View className={['fcCodeWrap', disabled ? 'fcCodeDisabled' : ''].join(' ')} onClick={requestFocus}>
       <Input
         ref={inputRef}
+        key={`fc-code-${focusTick}`}
         className="fcCodeHiddenInput"
         value={v}
         type="number"
@@ -102,3 +98,4 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
     </View>
   )
 })
+
