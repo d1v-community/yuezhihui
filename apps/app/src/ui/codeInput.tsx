@@ -20,7 +20,6 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
   ref,
 ) {
   const inputRef = useRef<any>(null)
-  const lastEmittedRef = useRef<string>((value || '').replace(/\D/g, '').slice(0, length))
   const [focused, setFocused] = useState(Boolean(autoFocus))
 
   const focusInputNow = () => {
@@ -68,20 +67,6 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
   const v = (value || '').replace(/\D/g, '').slice(0, length)
   const digits = v.split('')
   const activeIdx = Math.min(digits.length, length - 1)
-
-  useEffect(() => {
-    lastEmittedRef.current = v
-  }, [v])
-
-  const handleValueChange = (event: any) => {
-    const raw = String(event?.detail?.value ?? event?.target?.value ?? '')
-    const next = raw.replace(/\D/g, '').slice(0, length)
-    if (next === lastEmittedRef.current) return
-    lastEmittedRef.current = next
-    onChange(next)
-    if (next.length === length) onComplete?.(next)
-  }
-
   // Taro Input types do not expose all H5-only attributes.
   // Pass-through keeps mobile numeric keyboard + OTP autofill hints on H5.
   const h5InputProps = {
@@ -110,9 +95,12 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
         onBlur={() => {
           setFocused(false)
         }}
-        onInput={handleValueChange}
-        onChange={handleValueChange}
-        onConfirm={handleValueChange}
+        onInput={(e) => {
+          const raw = String((e as any).detail?.value ?? '')
+          const next = raw.replace(/\D/g, '').slice(0, length)
+          onChange(next)
+          if (next.length === length) onComplete?.(next)
+        }}
       />
       <View className="fcCodeBoxes" onTouchStart={requestFocus} onTouchEnd={requestFocus} onClick={requestFocus}>
         {Array.from({ length }, (_, i) => {
