@@ -20,7 +20,14 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
   ref,
 ) {
   const inputRef = useRef<any>(null)
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [focused, setFocused] = useState(Boolean(autoFocus))
+
+  const clearFocusTimer = () => {
+    if (!focusTimerRef.current) return
+    clearTimeout(focusTimerRef.current)
+    focusTimerRef.current = null
+  }
 
   const focusInputNow = () => {
     try {
@@ -32,8 +39,15 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
 
   const requestFocus = () => {
     if (disabled) return
-    setFocused(true)
-    focusInputNow()
+    clearFocusTimer()
+    setFocused(false)
+    // Force a blur->focus transition so mobile browsers can re-open keyboard
+    // after users manually dismiss it.
+    focusTimerRef.current = setTimeout(() => {
+      setFocused(true)
+      focusInputNow()
+      focusTimerRef.current = null
+    }, 0)
   }
 
   useImperativeHandle(
@@ -49,6 +63,7 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
   // the user can type immediately without extra Tab/click actions.
   useEffect(() => {
     if (disabled) {
+      clearFocusTimer()
       setFocused(false)
       return
     }
@@ -58,15 +73,15 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFocus, disabled])
 
+  useEffect(() => {
+    return () => {
+      clearFocusTimer()
+    }
+  }, [])
+
   const v = (value || '').replace(/\D/g, '').slice(0, length)
   const digits = v.split('')
   const activeIdx = Math.min(digits.length, length - 1)
-  // Taro Input types do not expose all H5-only attributes.
-  // Pass-through keeps mobile numeric keyboard + OTP autofill hints on H5.
-  const h5InputProps = {
-    inputMode: 'numeric',
-    autocomplete: 'one-time-code',
-  } as any
 
   return (
     <View
@@ -78,14 +93,14 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
         ref={inputRef}
         className="fcCodeHiddenInput"
         value={v}
-        type="digit"
+        type="number"
         maxlength={length as any}
         confirmType="done"
-        {...h5InputProps}
         focus={focused}
         disabled={disabled}
         onFocus={() => setFocused(true)}
         onBlur={() => {
+          clearFocusTimer()
           setFocused(false)
         }}
         onInput={(e) => {
