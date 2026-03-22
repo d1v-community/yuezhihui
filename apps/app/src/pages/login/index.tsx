@@ -117,51 +117,6 @@ export default function LoginPage() {
     }
   }
 
-  useEffect(() => {
-    if (step !== 'code' || loading || typeof window === 'undefined') return
-
-    const isEditableTarget = (target: EventTarget | null) => {
-      if (!(target instanceof HTMLElement)) return false
-      if (target.isContentEditable) return true
-      const tag = target.tagName
-      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey || event.ctrlKey || event.altKey) return
-      if (isEditableTarget(event.target)) return
-
-      if (/^\d$/.test(event.key)) {
-        event.preventDefault()
-        setCode((prev) => {
-          if (prev.length >= 6) return prev
-          const next = `${prev}${event.key}`.slice(0, 6)
-          if (next.length === 6) {
-            void onVerify(next)
-          }
-          return next
-        })
-        return
-      }
-
-      if (event.key === 'Backspace') {
-        event.preventDefault()
-        setCode((prev) => prev.slice(0, -1))
-        return
-      }
-
-      if (event.key === 'Enter' && code.trim().length === 6) {
-        event.preventDefault()
-        void onVerify(code)
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => {
-      window.removeEventListener('keydown', onKeyDown)
-    }
-  }, [step, loading, code, onVerify])
-
   const resendText = cooldown > 0 ? `重新发送（${cooldown}s）` : '重新发送'
 
   return (
@@ -276,3 +231,4 @@ export default function LoginPage() {
     </View>
   )
 }
+
