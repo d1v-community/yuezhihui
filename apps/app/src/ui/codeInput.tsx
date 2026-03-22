@@ -72,7 +72,6 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
     <View
       className={['fcCodeWrap', disabled ? 'fcCodeDisabled' : ''].join(' ')}
       onTouchStart={requestFocus}
-      onTouchEnd={requestFocus}
       onClick={requestFocus}
     >
       <Input
