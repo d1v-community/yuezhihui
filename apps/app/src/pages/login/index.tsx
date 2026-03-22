@@ -51,11 +51,6 @@ export default function LoginPage() {
       Taro.showToast({ title: '请输入正确邮箱', icon: 'none' })
       return
     }
-    // 先切换到验证码步骤，保证在桌面端浏览器中
-    // FCCodeInput 能在用户点击按钮后立刻获得焦点。
-    setStep('code')
-    setCode('')
-    setDevCode(null)
     setLoading(true)
     try {
       const res = await authSendCode(v)
@@ -63,14 +58,11 @@ export default function LoginPage() {
         throw new Error(res?.error || '发送失败，请稍后重试')
       }
       setDevCode(res?.dev && res?.code ? String(res.code) : null)
+      setStep('code')
       setCooldown(60)
+      setCode('')
       Taro.showToast({ title: '验证码已发送', icon: 'none' })
     } catch (e) {
-      // 如果发送失败，恢复到邮箱输入步骤
-      setStep('email')
-      setCode('')
-      setDevCode(null)
-      setCooldown(0)
       Taro.showToast({ title: e instanceof Error ? e.message : '发送失败', icon: 'none' })
     } finally {
       setLoading(false)
