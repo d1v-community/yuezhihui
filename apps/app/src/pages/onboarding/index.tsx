@@ -793,30 +793,24 @@ export default function OnboardingPage() {
                   <Picker
                     mode="selector"
                     range={Array.from({ length: 80 }, (_, i) => String(new Date().getFullYear() - i))}
-                    disabled={submitting}
                     onChange={(e) => {
                       if (draft.kind !== 'birth_date_object') return
                       const years = Array.from({ length: 80 }, (_, i) => String(new Date().getFullYear() - i))
                       setDraft({ ...draft, year: years[Number(e.detail.value) || 0] || draft.year })
                     }}
                   >
-                    <View className={['ymPickerBtn', submitting ? 'ymPickerBtnDisabled' : ''].join(' ')}>
-                      <Text className="ymPickerBtnText">{draft.year}年</Text>
-                    </View>
+                    <FCChip disabled={submitting}>{draft.year}年</FCChip>
                   </Picker>
                   <Picker
                     mode="selector"
                     range={Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))}
-                    disabled={submitting}
                     onChange={(e) => {
                       if (draft.kind !== 'birth_date_object') return
                       const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
                       setDraft({ ...draft, month: months[Number(e.detail.value) || 0] || draft.month })
                     }}
                   >
-                    <View className={['ymPickerBtn', submitting ? 'ymPickerBtnDisabled' : ''].join(' ')}>
-                      <Text className="ymPickerBtnText">{draft.month}月</Text>
-                    </View>
+                    <FCChip disabled={submitting}>{draft.month}月</FCChip>
                   </Picker>
                 </View>
               </View>

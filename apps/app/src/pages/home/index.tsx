@@ -666,9 +666,7 @@ export default function HomePage() {
                   void selectDateWithReanchor(String(e.detail.value))
                 }}
               >
-                <View className="dateChip">
-                  <Text className="dateChipText">{selectedDate}</Text>
-                </View>
+                <FCChip className="dateChip">{selectedDate}</FCChip>
               </Picker>
 
               <FCPressable className="headerGear" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
