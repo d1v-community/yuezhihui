@@ -24,12 +24,17 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
 
   const requestFocus = () => {
     if (disabled) return
-    setFocused(true)
-    try {
-      inputRef.current?.focus?.()
-    } catch {
-      // ignore
-    }
+    // Some mobile keyboards can be dismissed while input is still "focused".
+    // Toggle focus to force the keyboard to reopen on the next tap.
+    setFocused(false)
+    setTimeout(() => {
+      setFocused(true)
+      try {
+        inputRef.current?.focus?.()
+      } catch {
+        // ignore
+      }
+    }, 0)
   }
 
   useImperativeHandle(
@@ -62,6 +67,7 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
     <View
       className={['fcCodeWrap', disabled ? 'fcCodeDisabled' : ''].join(' ')}
       onClick={requestFocus}
+      onTouchStart={requestFocus}
     >
       <Input
         ref={inputRef}
@@ -74,6 +80,7 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
         disabled={disabled}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        onClick={requestFocus}
         onInput={(e) => {
           const raw = String((e as any).detail?.value ?? '')
           const next = raw.replace(/\D/g, '').slice(0, length)
