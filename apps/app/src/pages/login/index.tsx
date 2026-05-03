@@ -31,6 +31,14 @@ export default function LoginPage() {
     return () => clearInterval(t)
   }, [cooldown])
 
+  useEffect(() => {
+    if (step !== 'code') return
+    const timer = setTimeout(() => {
+      void Taro.pageScrollTo({ selector: '#verification-section', duration: 250 })
+    }, 60)
+    return () => clearTimeout(timer)
+  }, [step])
+
   const goNextAfterLogin = async () => {
     const me = await authMe()
     if (!('authenticated' in me) || me.authenticated !== true) {
@@ -151,7 +159,7 @@ export default function LoginPage() {
             />
 
             {step === 'code' ? (
-              <View className="field">
+              <View id="verification-section" className="field">
                 <Text className="label">验证码</Text>
                 <FCCodeInput
                   value={code}
@@ -160,6 +168,7 @@ export default function LoginPage() {
                   autoFocus
                   onChange={(next) => setCode(next)}
                 />
+                <Text className="keypadTitle">数字键盘</Text>
                 <View className="keypad">
                   {CODE_PAD_KEYS.map((digit) => (
                     <View key={digit} className="keypadCell">

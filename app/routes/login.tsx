@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThemeToggleButton } from "~/components/ThemeToggleButton";
 import { ClientOnly } from "~/components/ClientOnly";
 import type { LoaderFunctionArgs } from "@remix-run/node";
@@ -24,6 +24,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
   const [info, setInfo] = useState("");
+  const codeSectionRef = useRef<HTMLDivElement | null>(null);
 
   // Client-side guard: if token exists and is valid, redirect
   useEffect(() => {
@@ -44,6 +45,11 @@ export default function Login() {
       // noop: 静默处理初始化错误
     }
   }, []);
+
+  useEffect(() => {
+    if (step !== "code") return;
+    codeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [step]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +161,7 @@ export default function Login() {
 
   return (
     <ClientOnly>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4 relative">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-950 dark:to-slate-900 flex items-start sm:items-center justify-center p-4 sm:py-8 relative">
       <ThemeToggleButton className="absolute top-4 right-4" />
       <button
         onClick={handleBack}
@@ -240,7 +246,7 @@ export default function Login() {
                 </div>
               )}
 
-              <div>
+              <div ref={codeSectionRef}>
                 <label htmlFor="code" className="block text-xs font-medium tracking-[0.08em] uppercase text-gray-700 dark:text-slate-200 mb-2">
                   Verification Code
                 </label>
@@ -258,6 +264,9 @@ export default function Login() {
                 />
                 <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
                   You can use your system keyboard or tap the keypad below.
+                </p>
+                <p className="mt-4 mb-2 text-xs font-medium tracking-[0.08em] uppercase text-gray-700 dark:text-slate-300">
+                  Number Keypad
                 </p>
                 <div className="mt-4 grid grid-cols-3 gap-3">
                   {CODE_PAD_KEYS.map((digit) => (
