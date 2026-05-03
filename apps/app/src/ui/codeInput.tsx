@@ -1,5 +1,5 @@
 import { Input, Text, View } from '@tarojs/components'
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './codeInput.less'
 
 type Props = {
@@ -11,119 +11,67 @@ type Props = {
   onComplete?: (code: string) => void
 }
 
-export type FCCodeInputRef = {
-  focus: () => void
-}
-
-export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInput(
-  { value, length = 6, disabled, autoFocus, onChange, onComplete }: Props,
-  ref,
-) {
+export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, onComplete }: Props) {
   const inputRef = useRef<any>(null)
-  const lastEmittedRef = useRef<string>((value || '').replace(/\D/g, '').slice(0, length))
+  const [focusTick, setFocusTick] = useState(0)
   const [focused, setFocused] = useState(Boolean(autoFocus))
-
-  const focusInputNow = () => {
-    try {
-      inputRef.current?.focus?.()
-    } catch {
-      // ignore
-    }
-  }
 
   const requestFocus = () => {
     if (disabled) return
-    focusInputNow()
     setFocused(true)
-    // Retry once on next tick for mobile browsers that can drop the first focus.
+    setFocusTick((v) => v + 1)
     setTimeout(() => {
-      if (disabled) return
-      focusInputNow()
-      setFocused(true)
+      try {
+        inputRef.current?.focus?.()
+      } catch {
+        // ignore
+      }
     }, 0)
   }
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      focus: requestFocus,
-    }),
-  )
-
-  // Keep focus behaviour in sync with disabled/autoFocus states.
-  // When the field is re-enabled while autoFocus is true (for example
-  // after sending the code on desktop web), we request focus again so
-  // the user can type immediately without extra Tab/click actions.
   useEffect(() => {
-    if (disabled) {
-      setFocused(false)
-      return
-    }
-    if (autoFocus) {
-      requestFocus()
-    }
+    if (!autoFocus) return
+    requestFocus()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoFocus, disabled])
+  }, [autoFocus])
+
+  useEffect(() => {
+    if (!disabled) return
+    setFocused(false)
+  }, [disabled])
 
   const v = (value || '').replace(/\D/g, '').slice(0, length)
   const digits = v.split('')
   const activeIdx = Math.min(digits.length, length - 1)
 
-  useEffect(() => {
-    lastEmittedRef.current = v
-  }, [v])
-
-  const handleValueChange = (event: any) => {
-    const raw = String(event?.detail?.value ?? event?.target?.value ?? '')
-    const next = raw.replace(/\D/g, '').slice(0, length)
-    if (next === lastEmittedRef.current) return
-    lastEmittedRef.current = next
-    onChange(next)
-    if (next.length === length) onComplete?.(next)
-  }
-
-  // Taro Input types do not expose all H5-only attributes.
-  // Pass-through keeps mobile numeric keyboard + OTP autofill hints on H5.
-  const h5InputProps = {
-    inputMode: 'numeric',
-    autocomplete: 'one-time-code',
-  } as any
-
   return (
-    <View
-      className={['fcCodeWrap', disabled ? 'fcCodeDisabled' : ''].join(' ')}
-      onTouchStart={requestFocus}
-      onTouchEnd={requestFocus}
-      onClick={requestFocus}
-    >
+    <View className={['fcCodeWrap', disabled ? 'fcCodeDisabled' : ''].join(' ')} onClick={requestFocus}>
       <Input
         ref={inputRef}
+        key={`fc-code-${focusTick}`}
         className="fcCodeHiddenInput"
         value={v}
-        type="digit"
+        type="number"
         maxlength={length as any}
         confirmType="done"
-        {...h5InputProps}
         focus={focused}
         disabled={disabled}
         onFocus={() => setFocused(true)}
-        onBlur={() => {
-          setFocused(false)
+        onBlur={() => setFocused(false)}
+        onClick={requestFocus}
+        onInput={(e) => {
+          const raw = String((e as any).detail?.value ?? '')
+          const next = raw.replace(/\D/g, '').slice(0, length)
+          onChange(next)
+          if (next.length === length) onComplete?.(next)
         }}
-        onInput={handleValueChange}
       />
-      <View className="fcCodeBoxes" onTouchStart={requestFocus} onTouchEnd={requestFocus} onClick={requestFocus}>
+      <View className="fcCodeBoxes">
         {Array.from({ length }, (_, i) => {
           const ch = digits[i] || ''
           const active = i === activeIdx
           return (
-            <View
-              key={i}
-              className={['fcCodeBox', active ? 'fcCodeBoxActive' : ''].join(' ')}
-              onTouchStart={requestFocus}
-              onTouchEnd={requestFocus}
-              onClick={requestFocus}
-            >
+            <View key={i} className={['fcCodeBox', active ? 'fcCodeBoxActive' : ''].join(' ')}>
               <Text className="fcCodeChar">{ch || ' '}</Text>
             </View>
           )
@@ -131,4 +79,4 @@ export const FCCodeInput = forwardRef<FCCodeInputRef, Props>(function FCCodeInpu
       </View>
     </View>
   )
-})
+}

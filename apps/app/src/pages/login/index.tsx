@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
@@ -6,8 +6,9 @@ import { removeStorage, setStorageString } from '../../storage/storage'
 import { authMe, authSendCode, authVerifyLogin } from '../../services/auth'
 import { onboardingV2State } from '../../services/onboardingV2'
 import { FCButton, FCCodeInput, FCTextButton, FCTextField } from '../../ui'
-import type { FCCodeInputRef } from '../../ui'
 import './index.less'
+
+const CODE_PAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 function isEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -21,8 +22,6 @@ export default function LoginPage() {
   const [devCode, setDevCode] = useState<string | null>(null)
   const [cooldown, setCooldown] = useState(0)
 
-  const codeInputRef = useRef<FCCodeInputRef | null>(null)
-
   const emailOk = useMemo(() => isEmail(email.trim()), [email])
   const codeOk = useMemo(() => code.trim().length === 6, [code])
 
@@ -33,13 +32,12 @@ export default function LoginPage() {
   }, [cooldown])
 
   useEffect(() => {
-    if (step !== 'code' || loading) return
-    try {
-      codeInputRef.current?.focus()
-    } catch {
-      // ignore focus errors
-    }
-  }, [step, loading])
+    if (step !== 'code') return
+    const timer = setTimeout(() => {
+      void Taro.pageScrollTo({ selector: '#verification-section', duration: 250 })
+    }, 60)
+    return () => clearTimeout(timer)
+  }, [step])
 
   const goNextAfterLogin = async () => {
     const me = await authMe()
@@ -63,11 +61,6 @@ export default function LoginPage() {
       Taro.showToast({ title: '请输入正确邮箱', icon: 'none' })
       return
     }
-    // 先切换到验证码步骤，保证在桌面端浏览器中
-    // FCCodeInput 能在用户点击按钮后立刻获得焦点。
-    setStep('code')
-    setCode('')
-    setDevCode(null)
     setLoading(true)
     try {
       const res = await authSendCode(v)
@@ -75,14 +68,11 @@ export default function LoginPage() {
         throw new Error(res?.error || '发送失败，请稍后重试')
       }
       setDevCode(res?.dev && res?.code ? String(res.code) : null)
+      setStep('code')
       setCooldown(60)
+      setCode('')
       Taro.showToast({ title: '验证码已发送', icon: 'none' })
     } catch (e) {
-      // 如果发送失败，恢复到邮箱输入步骤
-      setStep('email')
-      setCode('')
-      setDevCode(null)
-      setCooldown(0)
       Taro.showToast({ title: e instanceof Error ? e.message : '发送失败', icon: 'none' })
     } finally {
       setLoading(false)
@@ -117,55 +107,15 @@ export default function LoginPage() {
     }
   }
 
-  useEffect(() => {
-    if (step !== 'code' || loading || typeof window === 'undefined') return
+  const appendCodeDigit = (digit: string) => {
+    if (loading) return
+    setCode((prev) => `${prev.replace(/\D/g, '').slice(0, 6)}${digit}`.slice(0, 6))
+  }
 
-    const isEditableTarget = (target: EventTarget | null) => {
-      if (!(target instanceof HTMLElement)) return false
-      if (target.isContentEditable) return true
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-        return !target.disabled && !target.readOnly
-      }
-      if (target instanceof HTMLSelectElement) {
-        return !target.disabled
-      }
-      return false
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey || event.ctrlKey || event.altKey) return
-      if (isEditableTarget(event.target)) return
-
-      if (/^\d$/.test(event.key)) {
-        event.preventDefault()
-        setCode((prev) => {
-          if (prev.length >= 6) return prev
-          const next = `${prev}${event.key}`.slice(0, 6)
-          if (next.length === 6) {
-            void onVerify(next)
-          }
-          return next
-        })
-        return
-      }
-
-      if (event.key === 'Backspace') {
-        event.preventDefault()
-        setCode((prev) => prev.slice(0, -1))
-        return
-      }
-
-      if (event.key === 'Enter' && code.trim().length === 6) {
-        event.preventDefault()
-        void onVerify(code)
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => {
-      window.removeEventListener('keydown', onKeyDown)
-    }
-  }, [step, loading, code, onVerify])
+  const deleteCodeDigit = () => {
+    if (loading) return
+    setCode((prev) => prev.replace(/\D/g, '').slice(0, -1))
+  }
 
   const resendText = cooldown > 0 ? `重新发送（${cooldown}s）` : '重新发送'
 
@@ -209,22 +159,62 @@ export default function LoginPage() {
             />
 
             {step === 'code' ? (
-              <View className="field">
+              <View id="verification-section" className="field">
                 <Text className="label">验证码</Text>
                 <FCCodeInput
-                  ref={codeInputRef}
                   value={code}
                   length={6}
                   disabled={loading}
                   autoFocus
                   onChange={(next) => setCode(next)}
-                  onComplete={(next) => {
-                    setCode(next)
-                    void onVerify(next)
-                  }}
                 />
+                <Text className="keypadTitle">数字键盘</Text>
+                <View className="keypad">
+                  {CODE_PAD_KEYS.map((digit) => (
+                    <View key={digit} className="keypadCell">
+                      <FCButton
+                        fullWidth
+                        disabled={loading}
+                        onClick={() => appendCodeDigit(digit)}
+                        style={{ minHeight: '48px' }}
+                      >
+                        {digit}
+                      </FCButton>
+                    </View>
+                  ))}
+                  <View className="keypadCell">
+                    <FCButton
+                      fullWidth
+                      disabled={loading || code.length === 0}
+                      onClick={deleteCodeDigit}
+                      style={{ minHeight: '48px' }}
+                    >
+                      删除
+                    </FCButton>
+                  </View>
+                  <View className="keypadCell">
+                    <FCButton
+                      fullWidth
+                      disabled={loading}
+                      onClick={() => appendCodeDigit('0')}
+                      style={{ minHeight: '48px' }}
+                    >
+                      0
+                    </FCButton>
+                  </View>
+                  <View className="keypadCell">
+                    <FCButton
+                      fullWidth
+                      disabled={!codeOk || loading}
+                      onClick={() => void onVerify()}
+                      style={{ minHeight: '48px' }}
+                    >
+                      确认
+                    </FCButton>
+                  </View>
+                </View>
                 <View className="helperRow">
-                  <Text className="helperText">输入 6 位数字，将自动验证</Text>
+                  <Text className="helperText">可使用系统键盘或点击下方数字键盘输入 6 位验证码</Text>
                   <FCTextButton
                     disabled={cooldown > 0 || loading}
                     onClick={() => {

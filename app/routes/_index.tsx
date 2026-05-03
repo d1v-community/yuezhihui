@@ -291,7 +291,7 @@ export default function Index() {
                     </Link>
                     <Link
                       to="/login"
-                      className="hidden inline-flex items-center justify-center rounded-full border border-black/10 bg-white/80 px-6 py-3 text-sm font-medium text-brand-text transition hover:bg-white"
+                      className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/80 px-6 py-3 text-sm font-medium text-brand-text transition hover:bg-white"
                     >
                       使用邮箱登录
                     </Link>

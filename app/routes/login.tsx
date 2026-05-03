@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThemeToggleButton } from "~/components/ThemeToggleButton";
 import { ClientOnly } from "~/components/ClientOnly";
 import type { LoaderFunctionArgs } from "@remix-run/node";
@@ -6,6 +6,7 @@ import { redirect } from "@remix-run/node";
 import { getUserFromRequest } from "~/utils/auth.server";
 
 const APP_H5_PATH = "/app";
+const CODE_PAD_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUserFromRequest(request);
@@ -23,6 +24,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
   const [info, setInfo] = useState("");
+  const codeSectionRef = useRef<HTMLDivElement | null>(null);
 
   // Client-side guard: if token exists and is valid, redirect
   useEffect(() => {
@@ -43,6 +45,11 @@ export default function Login() {
       // noop: 静默处理初始化错误
     }
   }, []);
+
+  useEffect(() => {
+    if (step !== "code") return;
+    codeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [step]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +88,10 @@ export default function Login() {
 
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    await submitVerifyCode();
+  };
+
+  const submitVerifyCode = async () => {
     setError("");
     setLoading(true);
 
@@ -138,9 +149,19 @@ export default function Login() {
     window.history.back();
   };
 
+  const appendCodeDigit = (digit: string) => {
+    if (loading) return;
+    setCode((prev) => `${prev.replace(/\D/g, "").slice(0, 6)}${digit}`.slice(0, 6));
+  };
+
+  const deleteCodeDigit = () => {
+    if (loading) return;
+    setCode((prev) => prev.replace(/\D/g, "").slice(0, -1));
+  };
+
   return (
     <ClientOnly>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4 relative">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-950 dark:to-slate-900 flex items-start sm:items-center justify-center p-4 sm:py-8 relative">
       <ThemeToggleButton className="absolute top-4 right-4" />
       <button
         onClick={handleBack}
@@ -225,7 +246,7 @@ export default function Login() {
                 </div>
               )}
 
-              <div>
+              <div ref={codeSectionRef}>
                 <label htmlFor="code" className="block text-xs font-medium tracking-[0.08em] uppercase text-gray-700 dark:text-slate-200 mb-2">
                   Verification Code
                 </label>
@@ -235,12 +256,55 @@ export default function Login() {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   required
                   placeholder="123456"
                   maxLength={6}
                   className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-center text-2xl font-mono tracking-widest"
                 />
+                <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+                  You can use your system keyboard or tap the keypad below.
+                </p>
+                <p className="mt-4 mb-2 text-xs font-medium tracking-[0.08em] uppercase text-gray-700 dark:text-slate-300">
+                  Number Keypad
+                </p>
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {CODE_PAD_KEYS.map((digit) => (
+                    <button
+                      key={digit}
+                      type="button"
+                      disabled={loading}
+                      onClick={() => appendCodeDigit(digit)}
+                      className="rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 py-3 text-lg font-semibold text-gray-900 dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {digit}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={loading || code.length === 0}
+                    onClick={deleteCodeDigit}
+                    className="rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 py-3 text-sm font-semibold text-gray-900 dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => appendCodeDigit("0")}
+                    className="rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 py-3 text-lg font-semibold text-gray-900 dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    0
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading || code.length !== 6}
+                    onClick={() => void submitVerifyCode()}
+                    className="rounded-lg border border-blue-600 dark:border-sky-500 bg-blue-600 dark:bg-sky-500 py-3 text-sm font-semibold text-white hover:bg-blue-700 dark:hover:bg-sky-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Confirm
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">

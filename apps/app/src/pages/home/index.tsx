@@ -326,11 +326,6 @@ export default function HomePage() {
   })
 
   useDidShow(() => {
-    void Taro.pageScrollTo({ scrollTop: 0, duration: 0 }).catch(() => {
-      // H5 fallback: ensure top position even when pageScrollTo is unavailable.
-      if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-    })
-
     // In case the user toggles the preference in Settings and comes back.
     setInputMode(loadInputMode())
     void (async () => {
@@ -671,9 +666,7 @@ export default function HomePage() {
                   void selectDateWithReanchor(String(e.detail.value))
                 }}
               >
-                <View className="dateChip">
-                  <Text className="dateChipText">{selectedDate}</Text>
-                </View>
+                <FCChip className="dateChip">{selectedDate}</FCChip>
               </Picker>
 
               <FCPressable className="headerGear" onClick={() => Taro.navigateTo({ url: '/pages/setting/index' })}>
