@@ -8,6 +8,8 @@ import { onboardingV2State } from '../../services/onboardingV2'
 import { FCButton, FCCodeInput, FCTextButton, FCTextField } from '../../ui'
 import './index.less'
 
+const CODE_PAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+
 function isEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
@@ -97,6 +99,16 @@ export default function LoginPage() {
     }
   }
 
+  const appendCodeDigit = (digit: string) => {
+    if (loading) return
+    setCode((prev) => `${prev.replace(/\D/g, '').slice(0, 6)}${digit}`.slice(0, 6))
+  }
+
+  const deleteCodeDigit = () => {
+    if (loading) return
+    setCode((prev) => prev.replace(/\D/g, '').slice(0, -1))
+  }
+
   const resendText = cooldown > 0 ? `重新发送（${cooldown}s）` : '重新发送'
 
   return (
@@ -147,13 +159,53 @@ export default function LoginPage() {
                   disabled={loading}
                   autoFocus
                   onChange={(next) => setCode(next)}
-                  onComplete={(next) => {
-                    setCode(next)
-                    void onVerify(next)
-                  }}
                 />
+                <View className="keypad">
+                  {CODE_PAD_KEYS.map((digit) => (
+                    <View key={digit} className="keypadCell">
+                      <FCButton
+                        fullWidth
+                        disabled={loading}
+                        onClick={() => appendCodeDigit(digit)}
+                        style={{ minHeight: '48px' }}
+                      >
+                        {digit}
+                      </FCButton>
+                    </View>
+                  ))}
+                  <View className="keypadCell">
+                    <FCButton
+                      fullWidth
+                      disabled={loading || code.length === 0}
+                      onClick={deleteCodeDigit}
+                      style={{ minHeight: '48px' }}
+                    >
+                      删除
+                    </FCButton>
+                  </View>
+                  <View className="keypadCell">
+                    <FCButton
+                      fullWidth
+                      disabled={loading}
+                      onClick={() => appendCodeDigit('0')}
+                      style={{ minHeight: '48px' }}
+                    >
+                      0
+                    </FCButton>
+                  </View>
+                  <View className="keypadCell">
+                    <FCButton
+                      fullWidth
+                      disabled={!codeOk || loading}
+                      onClick={() => void onVerify()}
+                      style={{ minHeight: '48px' }}
+                    >
+                      确认
+                    </FCButton>
+                  </View>
+                </View>
                 <View className="helperRow">
-                  <Text className="helperText">输入 6 位数字，将自动验证</Text>
+                  <Text className="helperText">可使用系统键盘或点击下方数字键盘输入 6 位验证码</Text>
                   <FCTextButton
                     disabled={cooldown > 0 || loading}
                     onClick={() => {
