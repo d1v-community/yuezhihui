@@ -6,6 +6,7 @@ import '../core/session/session_controller.dart';
 import '../features/analysis/presentation/analysis_page.dart';
 import '../features/analysis/presentation/cycle_detail_page.dart';
 import '../features/auth/presentation/login_page.dart';
+import '../features/encyclopedia/presentation/encyclopedia_page.dart';
 import '../features/feedback/presentation/feedback_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/onboarding/presentation/onboarding_page.dart';
@@ -35,20 +36,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (session.status == SessionStatus.onboardingRequired) {
         return path == '/onboarding' ? null : '/onboarding';
       }
-      if (path == '/boot' || path == '/login' || path == '/onboarding') {
+      final editMode = state.uri.queryParameters['mode'] == 'edit';
+      if (path == '/boot' ||
+          path == '/login' ||
+          (path == '/onboarding' && !editMode)) {
         return '/home';
       }
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/boot',
-        builder: (context, state) => const BootPage(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginPage(),
-      ),
+      GoRoute(path: '/boot', builder: (context, state) => const BootPage()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingPage(),
@@ -56,10 +54,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
         routes: [
-          GoRoute(
-            path: '/home',
-            builder: (context, state) => const HomePage(),
-          ),
+          GoRoute(path: '/home', builder: (context, state) => const HomePage()),
           GoRoute(
             path: '/analysis',
             builder: (context, state) => const AnalysisPage(),
@@ -67,13 +62,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/analysis/cycle/:cycleId',
             builder: (context, state) {
-              final cycleId = int.tryParse(state.pathParameters['cycleId'] ?? '') ?? 0;
+              final cycleId =
+                  int.tryParse(state.pathParameters['cycleId'] ?? '') ?? 0;
               return CycleDetailPage(cycleId: cycleId);
             },
           ),
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/encyclopedia',
+            builder: (context, state) => const EncyclopediaPage(),
           ),
           GoRoute(
             path: '/feedback',
@@ -87,7 +87,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 class RouterRefreshNotifier extends ChangeNotifier {
   RouterRefreshNotifier(this.ref) {
-    ref.listen(sessionControllerProvider, (previous, next) => notifyListeners());
+    ref.listen(
+      sessionControllerProvider,
+      (previous, next) => notifyListeners(),
+    );
   }
 
   final Ref ref;
@@ -104,7 +107,9 @@ class _BootPageState extends ConsumerState<BootPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(sessionControllerProvider.notifier).bootstrap());
+    Future.microtask(
+      () => ref.read(sessionControllerProvider.notifier).bootstrap(),
+    );
   }
 
   @override

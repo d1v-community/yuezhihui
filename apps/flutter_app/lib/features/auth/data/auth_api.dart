@@ -5,20 +5,33 @@ class AuthApi {
 
   final ApiClient _client;
 
-  Future<void> sendCode(String email) async {
-    final json = await _client.post('/api/auth/send-code', body: {'email': email});
+  Future<SendCodeResult> sendCode(String email) async {
+    final json = await _client.post(
+      '/api/auth/send-code',
+      body: {'email': email},
+    );
     if (json['success'] != true) {
-      throw ApiException(statusCode: 400, message: (json['error'] ?? 'Failed to send code').toString());
+      throw ApiException(
+        statusCode: 400,
+        message: (json['error'] ?? 'Failed to send code').toString(),
+      );
     }
+    return SendCodeResult(
+      devMode: json['dev'] == true,
+      code: json['code']?.toString(),
+    );
   }
 
   Future<LoginResult> verifyLogin(String email, String code) async {
-    final json = await _client.post('/api/auth/verify-login', body: {
-      'email': email,
-      'code': code,
-    });
+    final json = await _client.post(
+      '/api/auth/verify-login',
+      body: {'email': email, 'code': code},
+    );
     if (json['success'] != true || json['token'] is! String) {
-      throw ApiException(statusCode: 400, message: (json['error'] ?? 'Login failed').toString());
+      throw ApiException(
+        statusCode: 400,
+        message: (json['error'] ?? 'Login failed').toString(),
+      );
     }
     return LoginResult(token: json['token'] as String);
   }
@@ -42,6 +55,13 @@ class AuthApi {
   }
 }
 
+class SendCodeResult {
+  const SendCodeResult({required this.devMode, required this.code});
+
+  final bool devMode;
+  final String? code;
+}
+
 class LoginResult {
   const LoginResult({required this.token});
 
@@ -49,10 +69,7 @@ class LoginResult {
 }
 
 class AuthMeResult {
-  const AuthMeResult({
-    required this.authenticated,
-    required this.user,
-  });
+  const AuthMeResult({required this.authenticated, required this.user});
 
   final bool authenticated;
   final AuthUser? user;

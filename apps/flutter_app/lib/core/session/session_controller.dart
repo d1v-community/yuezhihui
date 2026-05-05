@@ -12,12 +12,7 @@ import '../config/app_config.dart';
 import '../network/api_client.dart';
 import '../storage/app_storage.dart';
 
-enum SessionStatus {
-  loading,
-  loggedOut,
-  onboardingRequired,
-  ready,
-}
+enum SessionStatus { loading, loggedOut, onboardingRequired, ready }
 
 class SessionUser {
   const SessionUser({
@@ -121,7 +116,8 @@ final shareApiProvider = Provider<ShareApi>((ref) {
   return ShareApi(ref.watch(apiClientProvider));
 });
 
-final sessionControllerProvider = NotifierProvider<SessionController, SessionState>(SessionController.new);
+final sessionControllerProvider =
+    NotifierProvider<SessionController, SessionState>(SessionController.new);
 
 class SessionController extends Notifier<SessionState> {
   @override
@@ -131,21 +127,31 @@ class SessionController extends Notifier<SessionState> {
   }
 
   Future<void> bootstrap() async {
-    state = state.copyWith(status: SessionStatus.loading, isBusy: false, clearError: true);
+    state = state.copyWith(
+      status: SessionStatus.loading,
+      isBusy: false,
+      clearError: true,
+    );
     final storage = await ref.read(appStorageProvider.future);
     final token = storage.getAuthToken();
     if (token == null || token.isEmpty) {
-      state = state.copyWith(status: SessionStatus.loggedOut, token: null, user: null, clearError: true);
+      state = state.copyWith(
+        status: SessionStatus.loggedOut,
+        token: null,
+        user: null,
+        clearError: true,
+      );
       return;
     }
     await _loadSessionFromServer(token);
   }
 
-  Future<void> sendCode(String email) async {
+  Future<SendCodeResult> sendCode(String email) async {
     state = state.copyWith(isBusy: true, clearError: true);
     try {
-      await ref.read(authApiProvider).sendCode(email);
+      final result = await ref.read(authApiProvider).sendCode(email);
       state = state.copyWith(isBusy: false, clearError: true);
+      return result;
     } catch (e) {
       state = state.copyWith(isBusy: false, errorMessage: _readError(e));
       rethrow;
@@ -206,7 +212,9 @@ class SessionController extends Notifier<SessionState> {
       final onboardingState = await ref.read(onboardingApiProvider).state();
       final user = me.user!;
       state = state.copyWith(
-        status: onboardingState.completed ? SessionStatus.ready : SessionStatus.onboardingRequired,
+        status: onboardingState.completed
+            ? SessionStatus.ready
+            : SessionStatus.onboardingRequired,
         isBusy: false,
         token: token,
         user: SessionUser(

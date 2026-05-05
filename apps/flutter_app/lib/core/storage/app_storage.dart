@@ -38,6 +38,12 @@ class AppStorage {
     await _prefs.setString(key, value);
   }
 
+  bool? getBool(String key) => _prefs.getBool(key);
+
+  Future<void> setBool(String key, bool value) async {
+    await _prefs.setBool(key, value);
+  }
+
   Future<void> remove(String key) async {
     await _prefs.remove(key);
   }

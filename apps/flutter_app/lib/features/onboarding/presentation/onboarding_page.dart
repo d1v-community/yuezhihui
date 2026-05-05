@@ -52,34 +52,49 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       case 'single':
         return {'kind': 'single', 'value': answer?['value']};
       case 'multi':
-        return {'kind': 'multi', 'values': List<String>.from(answer?['values'] as List<dynamic>? ?? const [])};
+        return {
+          'kind': 'multi',
+          'values': List<String>.from(
+            answer?['values'] as List<dynamic>? ?? const [],
+          ),
+        };
       case 'number':
         return {
           'kind': 'number',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(answer?['meta'] as Map<String, dynamic>? ?? const {}),
+          'meta': Map<String, dynamic>.from(
+            answer?['meta'] as Map<String, dynamic>? ?? const {},
+          ),
         };
       case 'date':
         return {
           'kind': 'date',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(answer?['meta'] as Map<String, dynamic>? ?? const {}),
+          'meta': Map<String, dynamic>.from(
+            answer?['meta'] as Map<String, dynamic>? ?? const {},
+          ),
         };
       case 'text':
         return {
           'kind': 'text',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(answer?['meta'] as Map<String, dynamic>? ?? const {}),
+          'meta': Map<String, dynamic>.from(
+            answer?['meta'] as Map<String, dynamic>? ?? const {},
+          ),
         };
       case 'birth_date_object':
-        final value = Map<String, dynamic>.from(answer?['value'] as Map<String, dynamic>? ?? const {});
+        final value = Map<String, dynamic>.from(
+          answer?['value'] as Map<String, dynamic>? ?? const {},
+        );
         final yearMonth = value['yearMonth']?.toString() ?? '';
         final parts = yearMonth.split('-');
         return {
           'kind': 'birth_date_object',
           'mode': value['mode']?.toString() ?? 'exact_date',
           'exactDate': value['exactDate']?.toString() ?? todayYmd(),
-          'year': parts.isNotEmpty && parts.first.isNotEmpty ? parts.first : '${DateTime.now().year}',
+          'year': parts.isNotEmpty && parts.first.isNotEmpty
+              ? parts.first
+              : '${DateTime.now().year}',
           'month': parts.length > 1 ? parts[1] : '01',
         };
       default:
@@ -95,10 +110,14 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         if (value == null || value.isEmpty) return null;
         return {'type': 'single', 'value': value};
       case 'multi':
-        final values = List<String>.from(draft['values'] as List<dynamic>? ?? const []);
+        final values = List<String>.from(
+          draft['values'] as List<dynamic>? ?? const [],
+        );
         return {'type': 'multi', 'values': values};
       case 'number':
-        final meta = Map<String, dynamic>.from(draft['meta'] as Map<String, dynamic>? ?? const {});
+        final meta = Map<String, dynamic>.from(
+          draft['meta'] as Map<String, dynamic>? ?? const {},
+        );
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'number', 'value': null, 'meta': meta};
         }
@@ -106,7 +125,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         if (value == null) return null;
         return {'type': 'number', 'value': value, 'meta': {}};
       case 'date':
-        final meta = Map<String, dynamic>.from(draft['meta'] as Map<String, dynamic>? ?? const {});
+        final meta = Map<String, dynamic>.from(
+          draft['meta'] as Map<String, dynamic>? ?? const {},
+        );
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'date', 'value': null, 'meta': meta};
         }
@@ -114,24 +135,49 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         if (value == null || value.isEmpty) return null;
         return {'type': 'date', 'value': value, 'meta': {}};
       case 'text':
-        final meta = Map<String, dynamic>.from(draft['meta'] as Map<String, dynamic>? ?? const {});
+        final meta = Map<String, dynamic>.from(
+          draft['meta'] as Map<String, dynamic>? ?? const {},
+        );
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'text', 'value': null, 'meta': meta};
         }
         final value = draft['value']?.toString();
-        if ((def['required'] == true) && (value == null || value.trim().isEmpty)) return null;
-        return {'type': 'text', 'value': value?.trim().isEmpty == true ? null : value?.trim(), 'meta': {}};
+        if ((def['required'] == true) &&
+            (value == null || value.trim().isEmpty)) {
+          return null;
+        }
+        return {
+          'type': 'text',
+          'value': value?.trim().isEmpty == true ? null : value?.trim(),
+          'meta': {},
+        };
       case 'birth_date_object':
         final mode = draft['mode']?.toString() ?? 'exact_date';
-        if (mode == 'unknown') return {'type': 'object', 'value': {'mode': 'unknown'}};
-        if (mode == 'no_answer') return {'type': 'object', 'value': {'mode': 'no_answer'}};
+        if (mode == 'unknown') {
+          return {
+            'type': 'object',
+            'value': {'mode': 'unknown'},
+          };
+        }
+        if (mode == 'no_answer') {
+          return {
+            'type': 'object',
+            'value': {'mode': 'no_answer'},
+          };
+        }
         if (mode == 'year_month') {
           return {
             'type': 'object',
-            'value': {'mode': 'year_month', 'yearMonth': '${draft['year']}-${draft['month']}'},
+            'value': {
+              'mode': 'year_month',
+              'yearMonth': '${draft['year']}-${draft['month']}',
+            },
           };
         }
-        return {'type': 'object', 'value': {'mode': 'exact_date', 'exactDate': draft['exactDate']}};
+        return {
+          'type': 'object',
+          'value': {'mode': 'exact_date', 'exactDate': draft['exactDate']},
+        };
       default:
         return null;
     }
@@ -145,12 +191,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     if (payload == null) return;
     setState(() => _submitting = true);
     try {
-      final result = await ref.read(onboardingApiProvider).answer(questionId: currentId, answer: payload);
+      final result = await ref
+          .read(onboardingApiProvider)
+          .answer(questionId: currentId, answer: payload);
       final nextAnswers = {..._answers, currentId: payload};
       setState(() {
         _answers = nextAnswers;
         _currentId = result.nextQuestionId;
-        _draft = result.nextQuestionId == null ? null : _initDraft(result.nextQuestionId!, nextAnswers);
+        _draft = result.nextQuestionId == null
+            ? null
+            : _initDraft(result.nextQuestionId!, nextAnswers);
       });
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -200,8 +250,13 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       final ok = await ref.read(onboardingApiProvider).submit();
       if (!ok) return;
       final storage = await ref.read(appStorageProvider.future);
-      await storage.setString(AppKeys.onboardingAnchorDate, _computeAnchorDate(_answers));
-      await ref.read(sessionControllerProvider.notifier).markOnboardingCompleted();
+      await storage.setString(
+        AppKeys.onboardingAnchorDate,
+        _computeAnchorDate(_answers),
+      );
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .markOnboardingCompleted();
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -209,10 +264,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
   String _computeAnchorDate(Map<String, dynamic> answers) {
     final answer = answers['D5_last_period_start'] as Map<String, dynamic>?;
-    final value = answer != null && answer['type'] == 'date' ? answer['value']?.toString() : null;
+    final value = answer != null && answer['type'] == 'date'
+        ? answer['value']?.toString()
+        : null;
     final today = todayYmd();
     final min = addDaysYmd(today, -180);
-    return clampYmd((value != null && value.isNotEmpty) ? value : today, min, today);
+    return clampYmd(
+      (value != null && value.isNotEmpty) ? value : today,
+      min,
+      today,
+    );
   }
 
   String _formatAnswer(String id) {
@@ -228,14 +289,23 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       return option['label']?.toString() ?? value ?? '未填写';
     }
     if (type == 'multi') {
-      final values = List<String>.from(answer['values'] as List<dynamic>? ?? const []);
+      final values = List<String>.from(
+        answer['values'] as List<dynamic>? ?? const [],
+      );
       final labels = values
-          .map((value) => questionOptions(id).firstWhere((item) => item['value'] == value, orElse: () => {'label': value})['label'])
+          .map(
+            (value) => questionOptions(id).firstWhere(
+              (item) => item['value'] == value,
+              orElse: () => {'label': value},
+            )['label'],
+          )
           .join('、');
       return labels.isEmpty ? '未填写' : labels;
     }
     if (type == 'object') {
-      final value = Map<String, dynamic>.from(answer['value'] as Map<String, dynamic>? ?? const {});
+      final value = Map<String, dynamic>.from(
+        answer['value'] as Map<String, dynamic>? ?? const {},
+      );
       switch (value['mode']) {
         case 'unknown':
           return '不确定/记不清';
@@ -247,8 +317,14 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           return value['exactDate']?.toString() ?? '未填写';
       }
     }
-    if ((answer['meta'] as Map<String, dynamic>? ?? const {})['unknown'] == true) return '不确定/记不清';
-    if ((answer['meta'] as Map<String, dynamic>? ?? const {})['no_answer'] == true) return '不愿透露';
+    if ((answer['meta'] as Map<String, dynamic>? ?? const {})['unknown'] ==
+        true) {
+      return '不确定/记不清';
+    }
+    if ((answer['meta'] as Map<String, dynamic>? ?? const {})['no_answer'] ==
+        true) {
+      return '不愿透露';
+    }
     return answer['value']?.toString() ?? '未填写';
   }
 
@@ -259,13 +335,20 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (_currentId == null) {
-      final visibleIds = getVisibleQuestionIds(_answers).where((id) => questionDef(id)['required'] == true || _answers[id] != null).toList();
+      final visibleIds = getVisibleQuestionIds(_answers)
+          .where(
+            (id) => questionDef(id)['required'] == true || _answers[id] != null,
+          )
+          .toList();
       return Scaffold(
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              Text(l10n.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                l10n.onboardingTitle,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
               const SizedBox(height: 8),
               Text('提交前确认', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
@@ -277,10 +360,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       for (final id in visibleIds) ...[
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: Text(questionDef(id)['title']?.toString() ?? id, style: Theme.of(context).textTheme.titleMedium),
+                          child: Text(
+                            questionDef(id)['title']?.toString() ?? id,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ),
                         const SizedBox(height: 6),
-                        Align(alignment: Alignment.centerLeft, child: Text(_formatAnswer(id))),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(_formatAnswer(id)),
+                        ),
                         const Divider(height: 24),
                       ],
                       FilledButton(
@@ -300,14 +389,19 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     final def = questionDef(_currentId!);
     final visible = getVisibleQuestionIds(_answers);
     final idx = visible.indexOf(_currentId!);
-    final ratio = visible.isEmpty ? 0.0 : (idx < 0 ? 0.0 : idx / visible.length);
+    final ratio = visible.isEmpty
+        ? 0.0
+        : (idx < 0 ? 0.0 : idx / visible.length);
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Text(l10n.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              l10n.onboardingTitle,
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 12),
             LinearProgressIndicator(value: ratio),
             const SizedBox(height: 8),
@@ -319,7 +413,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(def['title']?.toString() ?? '', style: Theme.of(context).textTheme.titleLarge),
+                    Text(
+                      def['title']?.toString() ?? '',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                     if (def['note'] != null) ...[
                       const SizedBox(height: 8),
                       Text(def['note'].toString()),
@@ -330,7 +427,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       def: def,
                       draft: _draft!,
                       search: _search,
-                      onSearchChanged: (value) => setState(() => _search = value),
+                      onSearchChanged: (value) =>
+                          setState(() => _search = value),
                       onChanged: (next) => setState(() => _draft = next),
                     ),
                     const SizedBox(height: 20),
@@ -380,10 +478,16 @@ class _QuestionEditor extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<Map<String, dynamic>> onChanged;
 
-  bool get _isTaggy => questionId == 'F1_health_conditions' || questionId == 'G1_bleeding_history_multi';
+  bool get _isTaggy =>
+      questionId == 'F1_health_conditions' ||
+      questionId == 'G1_bleeding_history_multi';
 
   bool _isExclusive(String value) {
-    return value == 'none' || value == '都没有' || value == 'unknown' || value == '不确定' || value == 'no_answer';
+    return value == 'none' ||
+        value == '都没有' ||
+        value == 'unknown' ||
+        value == '不确定' ||
+        value == 'no_answer';
   }
 
   @override
@@ -398,15 +502,22 @@ class _QuestionEditor extends StatelessWidget {
               ChoiceChip(
                 label: Text(option['label'].toString()),
                 selected: draft['value'] == option['value'],
-                onSelected: (_) => onChanged({...draft, 'value': option['value']}),
+                onSelected: (_) =>
+                    onChanged({...draft, 'value': option['value']}),
               ),
           ],
         );
       case 'multi':
         final options = questionOptions(questionId)
-            .where((option) => search.trim().isEmpty || option['label'].toString().contains(search.trim()))
+            .where(
+              (option) =>
+                  search.trim().isEmpty ||
+                  option['label'].toString().contains(search.trim()),
+            )
             .toList();
-        final values = List<String>.from(draft['values'] as List<dynamic>? ?? const []);
+        final values = List<String>.from(
+          draft['values'] as List<dynamic>? ?? const [],
+        );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -428,7 +539,10 @@ class _QuestionEditor extends StatelessWidget {
                       final next = [...values];
                       final value = option['value'].toString();
                       if (_isExclusive(value)) {
-                        onChanged({...draft, 'values': [value]});
+                        onChanged({
+                          ...draft,
+                          'values': [value],
+                        });
                         return;
                       }
                       next.removeWhere(_isExclusive);
@@ -447,16 +561,22 @@ class _QuestionEditor extends StatelessWidget {
           ],
         );
       case 'number':
-        final meta = Map<String, dynamic>.from(draft['meta'] as Map<String, dynamic>? ?? const {});
+        final meta = Map<String, dynamic>.from(
+          draft['meta'] as Map<String, dynamic>? ?? const {},
+        );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               keyboardType: TextInputType.number,
               enabled: !(meta['unknown'] == true || meta['no_answer'] == true),
-              controller: TextEditingController(text: draft['value']?.toString() ?? '')
-                ..selection = TextSelection.collapsed(offset: (draft['value']?.toString() ?? '').length),
-              onChanged: (value) => onChanged({...draft, 'value': value, 'meta': {}}),
+              controller:
+                  TextEditingController(text: draft['value']?.toString() ?? '')
+                    ..selection = TextSelection.collapsed(
+                      offset: (draft['value']?.toString() ?? '').length,
+                    ),
+              onChanged: (value) =>
+                  onChanged({...draft, 'value': value, 'meta': {}}),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -466,20 +586,28 @@ class _QuestionEditor extends StatelessWidget {
                   ChoiceChip(
                     label: const Text('不确定'),
                     selected: meta['unknown'] == true,
-                    onSelected: (_) => onChanged({...draft, 'meta': {'unknown': true}}),
+                    onSelected: (_) => onChanged({
+                      ...draft,
+                      'meta': {'unknown': true},
+                    }),
                   ),
                 if (def['allowNoAnswer'] == true)
                   ChoiceChip(
                     label: const Text('不愿透露'),
                     selected: meta['no_answer'] == true,
-                    onSelected: (_) => onChanged({...draft, 'meta': {'no_answer': true}}),
+                    onSelected: (_) => onChanged({
+                      ...draft,
+                      'meta': {'no_answer': true},
+                    }),
                   ),
               ],
             ),
           ],
         );
       case 'date':
-        final meta = Map<String, dynamic>.from(draft['meta'] as Map<String, dynamic>? ?? const {});
+        final meta = Map<String, dynamic>.from(
+          draft['meta'] as Map<String, dynamic>? ?? const {},
+        );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -487,14 +615,26 @@ class _QuestionEditor extends StatelessWidget {
               onPressed: () async {
                 final selected = await showDatePicker(
                   context: context,
-                  initialDate: parseYmd((draft['value']?.toString().isNotEmpty == true) ? draft['value'].toString() : todayYmd()),
+                  initialDate: parseYmd(
+                    (draft['value']?.toString().isNotEmpty == true)
+                        ? draft['value'].toString()
+                        : todayYmd(),
+                  ),
                   firstDate: DateTime(1900),
                   lastDate: DateTime.now(),
                 );
                 if (selected == null) return;
-                onChanged({...draft, 'value': ymdFromDate(selected), 'meta': {}});
+                onChanged({
+                  ...draft,
+                  'value': ymdFromDate(selected),
+                  'meta': {},
+                });
               },
-              child: Text(draft['value']?.toString().isNotEmpty == true ? draft['value'].toString() : '选择日期'),
+              child: Text(
+                draft['value']?.toString().isNotEmpty == true
+                    ? draft['value'].toString()
+                    : '选择日期',
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -504,29 +644,43 @@ class _QuestionEditor extends StatelessWidget {
                   ChoiceChip(
                     label: const Text('不确定'),
                     selected: meta['unknown'] == true,
-                    onSelected: (_) => onChanged({...draft, 'meta': {'unknown': true}}),
+                    onSelected: (_) => onChanged({
+                      ...draft,
+                      'meta': {'unknown': true},
+                    }),
                   ),
                 if (def['allowNoAnswer'] == true)
                   ChoiceChip(
                     label: const Text('不愿透露'),
                     selected: meta['no_answer'] == true,
-                    onSelected: (_) => onChanged({...draft, 'meta': {'no_answer': true}}),
+                    onSelected: (_) => onChanged({
+                      ...draft,
+                      'meta': {'no_answer': true},
+                    }),
                   ),
               ],
             ),
           ],
         );
       case 'text':
-        final meta = Map<String, dynamic>.from(draft['meta'] as Map<String, dynamic>? ?? const {});
+        final meta = Map<String, dynamic>.from(
+          draft['meta'] as Map<String, dynamic>? ?? const {},
+        );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               enabled: !(meta['unknown'] == true || meta['no_answer'] == true),
-              controller: TextEditingController(text: draft['value']?.toString() ?? '')
-                ..selection = TextSelection.collapsed(offset: (draft['value']?.toString() ?? '').length),
-              onChanged: (value) => onChanged({...draft, 'value': value, 'meta': {}}),
-              decoration: InputDecoration(hintText: def['placeholder']?.toString()),
+              controller:
+                  TextEditingController(text: draft['value']?.toString() ?? '')
+                    ..selection = TextSelection.collapsed(
+                      offset: (draft['value']?.toString() ?? '').length,
+                    ),
+              onChanged: (value) =>
+                  onChanged({...draft, 'value': value, 'meta': {}}),
+              decoration: InputDecoration(
+                hintText: def['placeholder']?.toString(),
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -536,13 +690,19 @@ class _QuestionEditor extends StatelessWidget {
                   ChoiceChip(
                     label: const Text('不确定'),
                     selected: meta['unknown'] == true,
-                    onSelected: (_) => onChanged({...draft, 'meta': {'unknown': true}}),
+                    onSelected: (_) => onChanged({
+                      ...draft,
+                      'meta': {'unknown': true},
+                    }),
                   ),
                 if (def['allowNoAnswer'] == true)
                   ChoiceChip(
                     label: const Text('不愿透露'),
                     selected: meta['no_answer'] == true,
-                    onSelected: (_) => onChanged({...draft, 'meta': {'no_answer': true}}),
+                    onSelected: (_) => onChanged({
+                      ...draft,
+                      'meta': {'no_answer': true},
+                    }),
                   ),
               ],
             ),
@@ -556,10 +716,28 @@ class _QuestionEditor extends StatelessWidget {
             Wrap(
               spacing: 8,
               children: [
-                ChoiceChip(label: const Text('具体日期'), selected: mode == 'exact_date', onSelected: (_) => onChanged({...draft, 'mode': 'exact_date'})),
-                ChoiceChip(label: const Text('只记得年月'), selected: mode == 'year_month', onSelected: (_) => onChanged({...draft, 'mode': 'year_month'})),
-                ChoiceChip(label: const Text('不确定'), selected: mode == 'unknown', onSelected: (_) => onChanged({...draft, 'mode': 'unknown'})),
-                ChoiceChip(label: const Text('不愿透露'), selected: mode == 'no_answer', onSelected: (_) => onChanged({...draft, 'mode': 'no_answer'})),
+                ChoiceChip(
+                  label: const Text('具体日期'),
+                  selected: mode == 'exact_date',
+                  onSelected: (_) =>
+                      onChanged({...draft, 'mode': 'exact_date'}),
+                ),
+                ChoiceChip(
+                  label: const Text('只记得年月'),
+                  selected: mode == 'year_month',
+                  onSelected: (_) =>
+                      onChanged({...draft, 'mode': 'year_month'}),
+                ),
+                ChoiceChip(
+                  label: const Text('不确定'),
+                  selected: mode == 'unknown',
+                  onSelected: (_) => onChanged({...draft, 'mode': 'unknown'}),
+                ),
+                ChoiceChip(
+                  label: const Text('不愿透露'),
+                  selected: mode == 'no_answer',
+                  onSelected: (_) => onChanged({...draft, 'mode': 'no_answer'}),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -568,7 +746,9 @@ class _QuestionEditor extends StatelessWidget {
                 onPressed: () async {
                   final selected = await showDatePicker(
                     context: context,
-                    initialDate: parseYmd(draft['exactDate']?.toString() ?? todayYmd()),
+                    initialDate: parseYmd(
+                      draft['exactDate']?.toString() ?? todayYmd(),
+                    ),
                     firstDate: DateTime(1900),
                     lastDate: DateTime.now(),
                   );
@@ -584,9 +764,15 @@ class _QuestionEditor extends StatelessWidget {
                     child: TextField(
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(labelText: '年'),
-                      controller: TextEditingController(text: draft['year']?.toString() ?? '')
-                        ..selection = TextSelection.collapsed(offset: (draft['year']?.toString() ?? '').length),
-                      onChanged: (value) => onChanged({...draft, 'year': value}),
+                      controller:
+                          TextEditingController(
+                              text: draft['year']?.toString() ?? '',
+                            )
+                            ..selection = TextSelection.collapsed(
+                              offset: (draft['year']?.toString() ?? '').length,
+                            ),
+                      onChanged: (value) =>
+                          onChanged({...draft, 'year': value}),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -594,9 +780,15 @@ class _QuestionEditor extends StatelessWidget {
                     child: TextField(
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(labelText: '月'),
-                      controller: TextEditingController(text: draft['month']?.toString() ?? '')
-                        ..selection = TextSelection.collapsed(offset: (draft['month']?.toString() ?? '').length),
-                      onChanged: (value) => onChanged({...draft, 'month': value.padLeft(2, '0')}),
+                      controller:
+                          TextEditingController(
+                              text: draft['month']?.toString() ?? '',
+                            )
+                            ..selection = TextSelection.collapsed(
+                              offset: (draft['month']?.toString() ?? '').length,
+                            ),
+                      onChanged: (value) =>
+                          onChanged({...draft, 'month': value.padLeft(2, '0')}),
                     ),
                   ),
                 ],

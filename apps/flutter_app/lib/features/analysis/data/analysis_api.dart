@@ -6,23 +6,37 @@ class AnalysisApi {
   final ApiClient _client;
 
   Future<AnalysisOverview> getOverview({int limit = 6}) async {
-    final json = await _client.get('/api/analysis/overview', query: {
-      'limit': '$limit',
-    });
+    final json = await _client.get(
+      '/api/analysis/overview',
+      query: {'limit': '$limit'},
+    );
     final data = json['data'] as Map<String, dynamic>? ?? const {};
     final trend = data['trend'] as Map<String, dynamic>? ?? const {};
+    final regularity = data['regularity'] as Map<String, dynamic>? ?? const {};
+    final timeline = (data['cycleTimeline'] as List<dynamic>? ?? const [])
+        .map(
+          (item) => AnalysisTimelineItem.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+    final risks = (data['risks'] as List<dynamic>? ?? const [])
+        .map((item) => AnalysisRisk.fromJson(item as Map<String, dynamic>))
+        .toList();
     return AnalysisOverview(
       cycleCount: (data['cycleCount'] as num?)?.toInt() ?? 0,
       healthScore: (data['healthScore'] as num?)?.toInt() ?? 0,
       trendStatus: trend['status']?.toString() ?? '',
+      regularityStatus: regularity['status']?.toString() ?? '',
+      regularityLink: regularity['link']?.toString() ?? '',
+      timeline: timeline,
+      risks: risks,
     );
   }
 
   Future<AnalysisCycleList> getCycles({int page = 1, int pageSize = 10}) async {
-    final json = await _client.get('/api/analysis/cycles', query: {
-      'page': '$page',
-      'pageSize': '$pageSize',
-    });
+    final json = await _client.get(
+      '/api/analysis/cycles',
+      query: {'page': '$page', 'pageSize': '$pageSize'},
+    );
     final data = json['data'] as Map<String, dynamic>? ?? const {};
     final list = (data['list'] as List<dynamic>? ?? const [])
         .map((item) => AnalysisCycleItem.fromJson(item as Map<String, dynamic>))
@@ -43,7 +57,8 @@ class AnalysisApi {
         .map((item) => AnalysisCycleDay.fromJson(item as Map<String, dynamic>))
         .toList();
     final products = data['products'] as Map<String, dynamic>? ?? const {};
-    final settlement = products['settlement'] as Map<String, dynamic>? ?? const {};
+    final settlement =
+        products['settlement'] as Map<String, dynamic>? ?? const {};
     final stats = (settlement['stats'] as List<dynamic>? ?? const [])
         .map((item) => (item as Map<String, dynamic>)['text']?.toString() ?? '')
         .where((text) => text.isNotEmpty)
@@ -61,11 +76,68 @@ class AnalysisOverview {
     required this.cycleCount,
     required this.healthScore,
     required this.trendStatus,
+    required this.regularityStatus,
+    required this.regularityLink,
+    required this.timeline,
+    required this.risks,
   });
 
   final int cycleCount;
   final int healthScore;
   final String trendStatus;
+  final String regularityStatus;
+  final String regularityLink;
+  final List<AnalysisTimelineItem> timeline;
+  final List<AnalysisRisk> risks;
+}
+
+class AnalysisTimelineItem {
+  const AnalysisTimelineItem({
+    required this.cycleStart,
+    required this.startLabel,
+    required this.menstrualDays,
+    required this.intervalDays,
+    required this.totalVolumeMl,
+  });
+
+  final String cycleStart;
+  final String startLabel;
+  final int menstrualDays;
+  final int? intervalDays;
+  final double totalVolumeMl;
+
+  factory AnalysisTimelineItem.fromJson(Map<String, dynamic> json) {
+    return AnalysisTimelineItem(
+      cycleStart: json['cycleStart']?.toString() ?? '',
+      startLabel: json['startLabel']?.toString() ?? '',
+      menstrualDays: (json['menstrualDays'] as num?)?.toInt() ?? 0,
+      intervalDays: (json['intervalDays'] as num?)?.toInt(),
+      totalVolumeMl: (json['totalVolumeMl'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+class AnalysisRisk {
+  const AnalysisRisk({
+    required this.title,
+    required this.level,
+    required this.url,
+    required this.triggerText,
+  });
+
+  final String title;
+  final String level;
+  final String url;
+  final String triggerText;
+
+  factory AnalysisRisk.fromJson(Map<String, dynamic> json) {
+    return AnalysisRisk(
+      title: json['title']?.toString() ?? '',
+      level: json['level']?.toString() ?? '',
+      url: json['url']?.toString() ?? '',
+      triggerText: json['triggerText']?.toString() ?? '',
+    );
+  }
 }
 
 class AnalysisCycleList {
@@ -115,7 +187,8 @@ class AnalysisCycleItem {
 
   factory AnalysisCycleItem.fromJson(Map<String, dynamic> json) {
     final level = json['level'] as Map<String, dynamic>? ?? const {};
-    final distribution = json['distribution'] as Map<String, dynamic>? ?? const {};
+    final distribution =
+        json['distribution'] as Map<String, dynamic>? ?? const {};
     final color = json['color'] as Map<String, dynamic>? ?? const {};
     final clot = json['clot'] as Map<String, dynamic>? ?? const {};
     return AnalysisCycleItem(
@@ -169,7 +242,9 @@ class AnalysisCycleDay {
 
   factory AnalysisCycleDay.fromJson(Map<String, dynamic> json) {
     final products = (json['products'] as List<dynamic>? ?? const []);
-    final symptoms = (json['symptoms'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList();
+    final symptoms = (json['symptoms'] as List<dynamic>? ?? const [])
+        .map((e) => e.toString())
+        .toList();
     return AnalysisCycleDay(
       dayIndex: (json['dayIndex'] as num?)?.toInt() ?? 0,
       date: json['date']?.toString() ?? '',

@@ -10,7 +10,8 @@ class AppShell extends StatelessWidget {
 
   int _indexFor(String location) {
     if (location.startsWith('/analysis')) return 1;
-    if (location.startsWith('/settings')) return 2;
+    if (location.startsWith('/encyclopedia')) return 2;
+    if (location.startsWith('/settings')) return 3;
     return 0;
   }
 
@@ -29,9 +30,7 @@ class AppShell extends StatelessWidget {
             colors: [Color(0xFFF9EEE8), Color(0xFFF4E4E3), Color(0xFFF0E6EA)],
           ),
         ),
-        child: SafeArea(
-          child: child,
-        ),
+        child: SafeArea(child: child),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
@@ -39,16 +38,35 @@ class AppShell extends StatelessWidget {
           switch (index) {
             case 0:
               context.go('/home');
+              break;
             case 1:
               context.go('/analysis');
+              break;
             case 2:
+              context.go('/encyclopedia');
+              break;
+            case 3:
               context.go('/settings');
+              break;
           }
         },
         destinations: [
-          NavigationDestination(icon: const Icon(Icons.water_drop_outlined), label: l10n.homeTab),
-          NavigationDestination(icon: const Icon(Icons.insights_outlined), label: l10n.analysisTab),
-          NavigationDestination(icon: const Icon(Icons.tune_outlined), label: l10n.settingsTab),
+          NavigationDestination(
+            icon: const Icon(Icons.water_drop_outlined),
+            label: l10n.homeTab,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.insights_outlined),
+            label: l10n.analysisTab,
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            label: '百科',
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.tune_outlined),
+            label: l10n.settingsTab,
+          ),
         ],
       ),
     );
