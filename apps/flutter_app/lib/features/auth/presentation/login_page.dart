@@ -142,9 +142,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
-                                      _codeStep
-                                          ? '输入 6 位验证码，继续你的记录与分析。'
-                                          : '邮箱验证码登录，继续引导，开始按日记录。',
+                                      _codeStep ? '输入 6 位验证码后登录。' : '用邮箱验证码登录。',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyLarge
@@ -195,7 +193,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   hintText: l10n.emailPlaceholder,
                                   errorText: emailError,
                                   helperText: _codeStep
-                                      ? '验证码已发送到该邮箱'
+                                      ? '验证码已发到这个邮箱'
                                       : l10n.marketingHint,
                                   suffixIcon: _codeStep
                                       ? TextButton(
@@ -292,8 +290,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                         children: [
                                           Text(
                                             _cooldown > 0
-                                                ? '重新发送（${_cooldown}s）'
-                                                : '可重新发送验证码',
+                                                ? '${_cooldown}s 后可重发'
+                                                : '可重新发送',
                                           ),
                                           const Spacer(),
                                           TextButton(
