@@ -143,7 +143,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return FlowPage(
       title: l10n.settingsTitle,
-      subtitle: '账号、隐私、记录展示与输入方式。',
+      subtitle: '账号、隐私和记录偏好。',
       children: [
         Container(
           padding: const EdgeInsets.all(24),
@@ -187,7 +187,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        Chip(label: Text(useTampon ? '棉条模块已启用' : '棉条模块已关闭')),
+                        Chip(label: Text(useTampon ? '显示棉条记录' : '隐藏棉条记录')),
                         Chip(label: Text('研究同意：$_consentText')),
                       ],
                     ),
@@ -253,7 +253,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('我习惯用卫生棉条'),
-                  subtitle: const Text('同步到账号，用于控制首页是否展示棉条模块'),
+                  subtitle: const Text('同步账号，并控制首页是否显示棉条'),
                   value: useTampon,
                   onChanged: (value) async {
                     await ref
@@ -292,7 +292,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     color: const Color(0xFFF8F1EC),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Text('研究同意：$_consentText'),
+                  child: Text('研究同意状态：$_consentText'),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton(
@@ -402,7 +402,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text('显示卫生巾模块'),
-                        subtitle: const Text('仅影响首页展示，不影响已记录数据'),
+                        subtitle: const Text('只影响首页显示，不影响已记录数据'),
                         value: _showPad,
                         onChanged: _savingPrefs
                             ? null
@@ -412,14 +412,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 _runPrefsSave(
                                   persist: _saveVisibility,
                                   rollback: () => _showPad = previous,
-                                  successText: '展示偏好已保存',
+                                  successText: '显示设置已保存',
                                 );
                               },
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text('显示实时血量'),
-                        subtitle: const Text('关闭后仅隐藏汇总展示，不影响记录与分析'),
+                        subtitle: const Text('关闭后只隐藏汇总，不影响记录和分析'),
                         value: _showBleeding,
                         onChanged: _savingPrefs
                             ? null
@@ -429,7 +429,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 _runPrefsSave(
                                   persist: _saveVisibility,
                                   rollback: () => _showBleeding = previous,
-                                  successText: '展示偏好已保存',
+                                  successText: '显示设置已保存',
                                 );
                               },
                       ),
@@ -443,7 +443,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         contentPadding: EdgeInsets.zero,
                         title: const Text('卫生巾精确模式'),
                         subtitle: Text(
-                          _padInputMode == 'drag' ? '拖拽滑杆精确录入' : '快捷按钮快速添加',
+                          _padInputMode == 'drag' ? '拖动滑杆录入' : '点按钮快速添加',
                         ),
                         value: _padInputMode == 'drag',
                         onChanged: _savingPrefs
@@ -457,7 +457,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 _runPrefsSave(
                                   persist: _saveInputMode,
                                   rollback: () => _padInputMode = previous,
-                                  successText: '输入方式已保存',
+                                  successText: '录入方式已保存',
                                 );
                               },
                       ),
@@ -465,7 +465,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         contentPadding: EdgeInsets.zero,
                         title: const Text('棉条精确模式'),
                         subtitle: Text(
-                          _tamponInputMode == 'drag' ? '拖拽滑杆精确录入' : '快捷按钮快速添加',
+                          _tamponInputMode == 'drag' ? '拖动滑杆录入' : '点按钮快速添加',
                         ),
                         value: _tamponInputMode == 'drag',
                         onChanged: _savingPrefs
@@ -480,7 +480,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 _runPrefsSave(
                                   persist: _saveInputMode,
                                   rollback: () => _tamponInputMode = previous,
-                                  successText: '输入方式已保存',
+                                  successText: '录入方式已保存',
                                 );
                               },
                       ),
