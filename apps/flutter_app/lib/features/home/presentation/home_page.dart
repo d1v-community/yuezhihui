@@ -170,6 +170,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   List<String> get _stripDates =>
       List.generate(_stripDays, (index) => addDaysYmd(_stripStart, index));
+  String get _minDate => addDaysYmd(todayYmd(), -180);
+  bool get _canGoPrev => _selectedDate.compareTo(_minDate) > 0;
+  bool get _canGoNext => _selectedDate.compareTo(todayYmd()) < 0;
 
   double get _padMl => _events
       .where((event) => event.eventType == 'pad')
@@ -231,6 +234,23 @@ class _HomePageState extends ConsumerState<HomePage> {
       await _loadRange();
     }
     await _loadDate(date);
+  }
+
+  Future<void> _stepDate(int offset) async {
+    if (offset == 0) return;
+    final target = clampYmd(
+      addDaysYmd(_selectedDate, offset),
+      _minDate,
+      todayYmd(),
+    );
+    if (target == _selectedDate) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(offset < 0 ? '已经是最早可记录日期' : '已经是今天')),
+      );
+      return;
+    }
+    await _changeDate(target);
   }
 
   void _addEvent({
@@ -378,17 +398,59 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                Row(
+                  children: [
+                    IconButton.filledTonal(
+                      onPressed: _loadingDetail || !_canGoPrev
+                          ? null
+                          : () => _stepDate(-1),
+                      icon: const Icon(Icons.chevron_left),
+                      tooltip: '前一天',
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            for (final date in _stripDates) ...[
+                              _DayChip(
+                                date: date,
+                                selected: date == _selectedDate,
+                                summary: _rangeMap[date],
+                                onTap: () => _changeDate(date),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      onPressed: _loadingDetail || !_canGoNext
+                          ? null
+                          : () => _stepDate(1),
+                      icon: const Icon(Icons.chevron_right),
+                      tooltip: '后一天',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final date in _stripDates)
-                      _DayChip(
-                        date: date,
-                        selected: date == _selectedDate,
-                        summary: _rangeMap[date],
-                        onTap: () => _changeDate(date),
-                      ),
+                    FilledButton.tonalIcon(
+                      onPressed: _loadingDetail
+                          ? null
+                          : () => _changeDate(todayYmd()),
+                      icon: const Icon(Icons.today_outlined),
+                      label: const Text('回到今天'),
+                    ),
+                    if (_loadingDetail) const Chip(label: Text('正在切换日期')),
+                    if (!_canGoPrev) const Chip(label: Text('已到最早日期')),
+                    if (!_canGoNext) const Chip(label: Text('已到今天')),
                   ],
                 ),
               ],
