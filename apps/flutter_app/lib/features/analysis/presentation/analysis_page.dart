@@ -85,7 +85,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('已复制分享路径')));
+      ).showSnackBar(const SnackBar(content: Text('链接已复制')));
     } finally {
       if (mounted) setState(() => _sharing = false);
     }
@@ -97,7 +97,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
     return FlowPage(
       title: l10n.analysisTitle,
-      subtitle: '风险提示、周期列表与分享能力。',
+      subtitle: '看风险和周期变化。',
       actions: [
         IconButton(
           onPressed: () => _load(reset: true),
@@ -123,7 +123,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: Text('分析加载失败：$_error'),
+              child: Text('加载失败：$_error'),
             ),
           ),
         ],
@@ -136,13 +136,13 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '优先关注',
+                    '先看这些',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text('风险提示', style: Theme.of(context).textTheme.titleLarge),
+                  Text('风险', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   for (final risk in _overview!.risks.take(5)) ...[
                     InkWell(
@@ -151,7 +151,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                         await Clipboard.setData(ClipboardData(text: risk.url));
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('已复制解释链接')),
+                          const SnackBar(content: Text('说明链接已复制')),
                         );
                       },
                       child: Container(
@@ -213,7 +213,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '全部周期',
+                  '所有周期',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -221,13 +221,13 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text('周期列表', style: Theme.of(context).textTheme.titleLarge),
+                    Text('周期', style: Theme.of(context).textTheme.titleLarge),
                     const Spacer(),
                     Text('${_cycles.length}/$_total'),
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (_cycles.isEmpty && !_loading) const Text('暂无可分析的周期。'),
+                if (_cycles.isEmpty && !_loading) const Text('还没有可分析的周期。'),
                 for (final item in _cycles)
                   InkWell(
                     borderRadius: BorderRadius.circular(24),
@@ -277,11 +277,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                       emphasis: item.levelStatus.contains('偏'),
                                     ),
                                     _CycleTag(
-                                      text: '分布${item.distributionStatus}',
+                                      text: '分布·${item.distributionStatus}',
                                       emphasis: item.distributionStatus == '异常',
                                     ),
                                     _CycleTag(
-                                      text: '颜色${item.colorStatus}',
+                                      text: '颜色·${item.colorStatus}',
                                       emphasis: item.colorStatus == '异常',
                                     ),
                                   ],
@@ -299,7 +299,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   const SizedBox(height: 12),
                   FilledButton.tonal(
                     onPressed: _loadingMore ? null : () => _load(reset: false),
-                    child: Text(_loadingMore ? '加载中...' : '加载更多'),
+                    child: Text(_loadingMore ? '加载中' : '更多周期'),
                   ),
                 ],
               ],
