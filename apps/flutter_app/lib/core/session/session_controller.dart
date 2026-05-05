@@ -79,10 +79,15 @@ final appStorageProvider = FutureProvider<AppStorage>((ref) async {
 });
 
 final apiClientProvider = Provider<ApiClient>((ref) {
+  final storageFuture = ref.read(appStorageProvider.future);
   return ApiClient(
     baseUrl: AppConfig.apiBaseUrl,
     tokenProvider: () async {
-      final storage = await ref.read(appStorageProvider.future);
+      final sessionToken = ref.read(sessionControllerProvider).token;
+      if (sessionToken != null && sessionToken.isNotEmpty) {
+        return sessionToken;
+      }
+      final storage = await storageFuture;
       return storage.getAuthToken();
     },
   );
