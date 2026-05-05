@@ -20,11 +20,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   final _displayNameController = TextEditingController();
   bool _updatingProfile = false;
   bool _loadingPrefs = true;
+  bool _savingPrefs = false;
   bool _showPad = true;
   bool _showBleeding = true;
   String _padInputMode = 'click';
   String _tamponInputMode = 'click';
   String _consentText = '未读取';
+  String? _prefsStatusText;
+  bool _prefsSaveFailed = false;
 
   @override
   void initState() {
@@ -86,6 +89,34 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       'sanitaryPad': _padInputMode,
       'tampon': _tamponInputMode,
     });
+  }
+
+  Future<void> _runPrefsSave({
+    required Future<void> Function() persist,
+    required VoidCallback rollback,
+    required String successText,
+  }) async {
+    setState(() {
+      _savingPrefs = true;
+      _prefsSaveFailed = false;
+      _prefsStatusText = '正在保存偏好...';
+    });
+    try {
+      await persist();
+      if (!mounted) return;
+      setState(() {
+        _savingPrefs = false;
+        _prefsStatusText = successText;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        rollback();
+        _savingPrefs = false;
+        _prefsSaveFailed = true;
+        _prefsStatusText = '保存失败，已恢复上一次设置';
+      });
+    }
   }
 
   @override
@@ -320,26 +351,87 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         '记录展示',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
+                      if (_prefsStatusText != null) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _prefsSaveFailed
+                                ? Theme.of(context).colorScheme.errorContainer
+                                : const Color(0xFFF6EFEA),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _savingPrefs
+                                    ? Icons.sync
+                                    : _prefsSaveFailed
+                                    ? Icons.error_outline
+                                    : Icons.check_circle_outline,
+                                size: 18,
+                                color: _prefsSaveFailed
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer
+                                    : Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _prefsStatusText!,
+                                  style: TextStyle(
+                                    color: _prefsSaveFailed
+                                        ? Theme.of(
+                                            context,
+                                          ).colorScheme.onErrorContainer
+                                        : null,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text('显示卫生巾模块'),
                         subtitle: const Text('仅影响首页展示，不影响已记录数据'),
                         value: _showPad,
-                        onChanged: (value) {
-                          setState(() => _showPad = value);
-                          _saveVisibility();
-                        },
+                        onChanged: _savingPrefs
+                            ? null
+                            : (value) {
+                                final previous = _showPad;
+                                setState(() => _showPad = value);
+                                _runPrefsSave(
+                                  persist: _saveVisibility,
+                                  rollback: () => _showPad = previous,
+                                  successText: '展示偏好已保存',
+                                );
+                              },
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text('显示实时血量'),
                         subtitle: const Text('关闭后仅隐藏汇总展示，不影响记录与分析'),
                         value: _showBleeding,
-                        onChanged: (value) {
-                          setState(() => _showBleeding = value);
-                          _saveVisibility();
-                        },
+                        onChanged: _savingPrefs
+                            ? null
+                            : (value) {
+                                final previous = _showBleeding;
+                                setState(() => _showBleeding = value);
+                                _runPrefsSave(
+                                  persist: _saveVisibility,
+                                  rollback: () => _showBleeding = previous,
+                                  successText: '展示偏好已保存',
+                                );
+                              },
                       ),
                       const Divider(height: 28),
                       Text(
@@ -354,12 +446,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           _padInputMode == 'drag' ? '拖拽滑杆精确录入' : '快捷按钮快速添加',
                         ),
                         value: _padInputMode == 'drag',
-                        onChanged: (value) {
-                          setState(
-                            () => _padInputMode = value ? 'drag' : 'click',
-                          );
-                          _saveInputMode();
-                        },
+                        onChanged: _savingPrefs
+                            ? null
+                            : (value) {
+                                final previous = _padInputMode;
+                                setState(
+                                  () =>
+                                      _padInputMode = value ? 'drag' : 'click',
+                                );
+                                _runPrefsSave(
+                                  persist: _saveInputMode,
+                                  rollback: () => _padInputMode = previous,
+                                  successText: '输入方式已保存',
+                                );
+                              },
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
@@ -368,12 +468,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           _tamponInputMode == 'drag' ? '拖拽滑杆精确录入' : '快捷按钮快速添加',
                         ),
                         value: _tamponInputMode == 'drag',
-                        onChanged: (value) {
-                          setState(
-                            () => _tamponInputMode = value ? 'drag' : 'click',
-                          );
-                          _saveInputMode();
-                        },
+                        onChanged: _savingPrefs
+                            ? null
+                            : (value) {
+                                final previous = _tamponInputMode;
+                                setState(
+                                  () => _tamponInputMode = value
+                                      ? 'drag'
+                                      : 'click',
+                                );
+                                _runPrefsSave(
+                                  persist: _saveInputMode,
+                                  rollback: () => _tamponInputMode = previous,
+                                  successText: '输入方式已保存',
+                                );
+                              },
                       ),
                     ],
                   ),
