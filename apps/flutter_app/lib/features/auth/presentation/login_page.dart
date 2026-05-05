@@ -17,17 +17,23 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _codeController = TextEditingController();
+  final _emailFocusNode = FocusNode();
+  final _codeFocusNode = FocusNode();
   bool _codeStep = false;
   int _cooldown = 0;
   Timer? _timer;
   String? _devCode;
   bool _autoSubmitting = false;
+  bool _showEmailValidation = false;
+  bool _showCodeValidation = false;
 
   @override
   void dispose() {
     _timer?.cancel();
     _emailController.dispose();
     _codeController.dispose();
+    _emailFocusNode.dispose();
+    _codeFocusNode.dispose();
     super.dispose();
   }
 
@@ -40,6 +46,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final errorMessage = ref.watch(
       sessionControllerProvider.select((state) => state.errorMessage),
     );
+    final email = _emailController.text.trim();
+    final code = _codeController.text.trim();
+    final emailError = _showEmailValidation && !_isEmail(email)
+        ? l10n.invalidEmail
+        : null;
+    final codeError = _showCodeValidation && code.isNotEmpty && code.length != 6
+        ? l10n.invalidCode
+        : null;
+    final canSubmit = _codeStep
+        ? _isEmail(email) && code.length == 6
+        : _isEmail(email);
 
     return Scaffold(
       body: DecoratedBox(
@@ -85,148 +102,215 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(22),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF8E4151),
-                                Color(0xFF733340),
-                                Color(0xFF55262F),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(28),
-                          ),
+                        AutofillGroup(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'FLOWCYCLE',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.3,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                l10n.brandName,
-                                style: Theme.of(context).textTheme.displaySmall
-                                    ?.copyWith(color: Colors.white),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                _codeStep
-                                    ? '输入 6 位验证码，继续你的记录与分析。'
-                                    : '邮箱验证码登录，继续引导，开始按日记录。',
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.82,
-                                      ),
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          _codeStep ? '验证邮箱' : '输入邮箱',
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          readOnly: _codeStep,
-                          decoration: InputDecoration(
-                            labelText: l10n.email,
-                            hintText: l10n.emailPlaceholder,
-                            helperText: _codeStep
-                                ? '验证码已发送到该邮箱'
-                                : l10n.marketingHint,
-                            suffix: _codeStep
-                                ? TextButton(
-                                    onPressed: busy
-                                        ? null
-                                        : () {
-                                            setState(() {
-                                              _codeStep = false;
-                                              _codeController.clear();
-                                              _devCode = null;
-                                              _cooldown = 0;
-                                            });
-                                            _timer?.cancel();
-                                          },
-                                    child: const Text('修改'),
-                                  )
-                                : null,
-                          ),
-                        ),
-                        if (_codeStep) ...[
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8F1EC),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '输入验证码',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 10),
-                                TextField(
-                                  controller: _codeController,
-                                  keyboardType: TextInputType.number,
-                                  maxLength: 6,
-                                  autofocus: true,
-                                  onChanged: (value) =>
-                                      _onCodeChanged(value, busy),
-                                  decoration: InputDecoration(
-                                    labelText: '验证码',
-                                    suffixIcon: IconButton(
-                                      onPressed: busy
-                                          ? null
-                                          : _pasteCodeFromClipboard,
-                                      icon: const Icon(
-                                        Icons.content_paste_go_outlined,
-                                      ),
-                                      tooltip: '粘贴验证码',
-                                    ),
+                              Container(
+                                padding: const EdgeInsets.all(22),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFF8E4151),
+                                      Color(0xFF733340),
+                                      Color(0xFF55262F),
+                                    ],
                                   ),
+                                  borderRadius: BorderRadius.circular(28),
                                 ),
-                                Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      _cooldown > 0
-                                          ? '重新发送（${_cooldown}s）'
-                                          : '可重新发送验证码',
+                                    const Text(
+                                      'FLOWCYCLE',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 1.3,
+                                      ),
                                     ),
-                                    const Spacer(),
-                                    TextButton(
-                                      onPressed: busy || _cooldown > 0
-                                          ? null
-                                          : _resendCode,
-                                      child: const Text('重新发送'),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      l10n.brandName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .displaySmall
+                                          ?.copyWith(color: Colors.white),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      _codeStep
+                                          ? '输入 6 位验证码，继续你的记录与分析。'
+                                          : '邮箱验证码登录，继续引导，开始按日记录。',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.copyWith(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.82,
+                                            ),
+                                          ),
                                     ),
                                   ],
                                 ),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                _codeStep ? '验证邮箱' : '输入邮箱',
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: _emailController,
+                                focusNode: _emailFocusNode,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: _codeStep
+                                    ? TextInputAction.done
+                                    : TextInputAction.next,
+                                autofillHints: const [AutofillHints.email],
+                                readOnly: _codeStep,
+                                onChanged: (_) {
+                                  if (_showEmailValidation) {
+                                    setState(() {});
+                                  }
+                                },
+                                onSubmitted: (_) {
+                                  if (_codeStep) return;
+                                  if (_isEmail(_emailController.text.trim())) {
+                                    _handlePrimaryAction();
+                                  } else {
+                                    setState(() => _showEmailValidation = true);
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  labelText: l10n.email,
+                                  hintText: l10n.emailPlaceholder,
+                                  errorText: emailError,
+                                  helperText: _codeStep
+                                      ? '验证码已发送到该邮箱'
+                                      : l10n.marketingHint,
+                                  suffixIcon: _codeStep
+                                      ? TextButton(
+                                          onPressed: busy
+                                              ? null
+                                              : () {
+                                                  setState(() {
+                                                    _codeStep = false;
+                                                    _codeController.clear();
+                                                    _devCode = null;
+                                                    _cooldown = 0;
+                                                    _showCodeValidation = false;
+                                                  });
+                                                  _timer?.cancel();
+                                                  _emailFocusNode
+                                                      .requestFocus();
+                                                },
+                                          child: const Text('修改'),
+                                        )
+                                      : (_emailController.text.isEmpty
+                                            ? null
+                                            : IconButton(
+                                                onPressed: busy
+                                                    ? null
+                                                    : () {
+                                                        _emailController
+                                                            .clear();
+                                                        setState(() {});
+                                                        _emailFocusNode
+                                                            .requestFocus();
+                                                      },
+                                                icon: const Icon(Icons.close),
+                                                tooltip: '清空邮箱',
+                                              )),
+                                ),
+                              ),
+                              if (_codeStep) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(18),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8F1EC),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '输入验证码',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      TextField(
+                                        controller: _codeController,
+                                        focusNode: _codeFocusNode,
+                                        keyboardType: TextInputType.number,
+                                        textInputAction: TextInputAction.done,
+                                        autofillHints: [
+                                          AutofillHints.oneTimeCode,
+                                        ],
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                          LengthLimitingTextInputFormatter(6),
+                                        ],
+                                        autofocus: true,
+                                        onChanged: (value) {
+                                          if (_showCodeValidation) {
+                                            setState(() {});
+                                          }
+                                          _onCodeChanged(value, busy);
+                                        },
+                                        onSubmitted: (_) =>
+                                            _handlePrimaryAction(),
+                                        decoration: InputDecoration(
+                                          labelText: '验证码',
+                                          hintText: '输入 6 位数字',
+                                          errorText: codeError,
+                                          suffixIcon: IconButton(
+                                            onPressed: busy
+                                                ? null
+                                                : _pasteCodeFromClipboard,
+                                            icon: const Icon(
+                                              Icons.content_paste_go_outlined,
+                                            ),
+                                            tooltip: '粘贴验证码',
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            _cooldown > 0
+                                                ? '重新发送（${_cooldown}s）'
+                                                : '可重新发送验证码',
+                                          ),
+                                          const Spacer(),
+                                          TextButton(
+                                            onPressed: busy || _cooldown > 0
+                                                ? null
+                                                : _resendCode,
+                                            child: const Text('重新发送'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                         if (errorMessage != null) ...[
                           const SizedBox(height: 12),
                           Container(
@@ -303,12 +387,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ],
                         const SizedBox(height: 24),
                         FilledButton(
-                          onPressed: busy ? null : _handlePrimaryAction,
+                          onPressed: busy || !canSubmit
+                              ? null
+                              : _handlePrimaryAction,
                           style: FilledButton.styleFrom(
                             minimumSize: const Size.fromHeight(56),
                           ),
-                          child: Text(
-                            _codeStep ? l10n.verifyAndLogin : l10n.sendCode,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (busy) ...[
+                                const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
+                              Text(
+                                _codeStep ? l10n.verifyAndLogin : l10n.sendCode,
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -327,7 +429,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     if (!_isEmail(email)) {
-      _showSnack(l10n.invalidEmail);
+      setState(() => _showEmailValidation = true);
+      _emailFocusNode.requestFocus();
       return;
     }
     if (!_codeStep) {
@@ -339,8 +442,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         setState(() {
           _codeStep = true;
           _devCode = result.devMode ? result.code : null;
+          _showEmailValidation = false;
+          _showCodeValidation = false;
         });
         _startCooldown();
+        _codeFocusNode.requestFocus();
         _showSnack(l10n.codeSentHint);
       } catch (_) {}
       return;
@@ -386,14 +492,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     String code, {
     bool showValidationError = false,
   }) async {
-    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     if (!_isEmail(email)) {
-      if (showValidationError) _showSnack(l10n.invalidEmail);
+      if (showValidationError) {
+        setState(() => _showEmailValidation = true);
+        _emailFocusNode.requestFocus();
+      }
       return;
     }
     if (code.length != 6) {
-      if (showValidationError) _showSnack(l10n.invalidCode);
+      if (showValidationError) {
+        setState(() => _showCodeValidation = true);
+        _codeFocusNode.requestFocus();
+      }
       return;
     }
     try {
