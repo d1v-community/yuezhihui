@@ -87,7 +87,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
 
   String get _draftStatusText {
     if (_draftSavedAt == null) {
-      return _restoredDraft ? '已恢复上次未提交内容' : '输入内容会自动保存为草稿';
+      return _restoredDraft ? '已恢复上次内容' : '输入时会自动存草稿';
     }
     return '草稿已保存 ${_formatTime(_draftSavedAt!)}';
   }
@@ -169,10 +169,8 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                     },
                     decoration: InputDecoration(
                       labelText: '问题描述',
-                      hintText: '请描述你做了什么、期望是什么、实际发生了什么',
-                      helperText: contentLength >= 5
-                          ? '信息越完整，越方便定位问题'
-                          : '至少输入 5 个字，便于我们判断问题',
+                      hintText: '写清你做了什么、想要什么、实际发生了什么',
+                      helperText: contentLength >= 5 ? '越具体，越容易定位' : '至少写 5 个字',
                       counterText: '$contentLength / 5+',
                     ),
                   ),
@@ -184,7 +182,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                     onChanged: (_) => _saveDraft(),
                     decoration: const InputDecoration(
                       labelText: '联系方式（可选）',
-                      hintText: '邮箱 / 微信 / 手机号',
+                      hintText: '邮箱 / 微信 / 手机',
                     ),
                   ),
                   const SizedBox(height: 16),
