@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/session/session_controller.dart';
@@ -20,6 +21,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   int _cooldown = 0;
   Timer? _timer;
   String? _devCode;
+  bool _autoSubmitting = false;
 
   @override
   void dispose() {
@@ -101,7 +103,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             keyboardType: TextInputType.number,
                             maxLength: 6,
                             autofocus: true,
-                            decoration: const InputDecoration(labelText: '验证码'),
+                            onChanged: (value) => _onCodeChanged(value, busy),
+                            decoration: InputDecoration(
+                              labelText: '验证码',
+                              suffixIcon: IconButton(
+                                onPressed: busy
+                                    ? null
+                                    : _pasteCodeFromClipboard,
+                                icon: const Icon(
+                                  Icons.content_paste_go_outlined,
+                                ),
+                                tooltip: '粘贴验证码',
+                              ),
+                            ),
                           ),
                           Row(
                             children: [
@@ -151,6 +165,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   style: Theme.of(
                                     context,
                                   ).textTheme.headlineSmall,
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    OutlinedButton(
+                                      onPressed: () async {
+                                        await Clipboard.setData(
+                                          ClipboardData(text: _devCode!),
+                                        );
+                                        _showSnack('验证码已复制');
+                                      },
+                                      child: const Text('复制验证码'),
+                                    ),
+                                    FilledButton.tonal(
+                                      onPressed: () {
+                                        _codeController.text = _devCode!;
+                                        _onCodeChanged(_devCode!, busy);
+                                      },
+                                      child: const Text('填入并登录'),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -202,15 +239,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     final code = _codeController.text.trim();
-    if (code.length != 6) {
-      _showSnack(l10n.invalidCode);
-      return;
-    }
-    try {
-      await ref
-          .read(sessionControllerProvider.notifier)
-          .verifyLogin(email, code);
-    } catch (_) {}
+    await _submitCode(code, showValidationError: true);
   }
 
   Future<void> _resendCode() async {
@@ -243,6 +272,58 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isEmail(String email) {
     final pattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
     return pattern.hasMatch(email);
+  }
+
+  Future<void> _submitCode(
+    String code, {
+    bool showValidationError = false,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final email = _emailController.text.trim();
+    if (!_isEmail(email)) {
+      if (showValidationError) _showSnack(l10n.invalidEmail);
+      return;
+    }
+    if (code.length != 6) {
+      if (showValidationError) _showSnack(l10n.invalidCode);
+      return;
+    }
+    try {
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .verifyLogin(email, code);
+    } catch (_) {}
+  }
+
+  Future<void> _pasteCodeFromClipboard() async {
+    final data = await Clipboard.getData('text/plain');
+    final raw = data?.text ?? '';
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 6) {
+      _showSnack('剪贴板里没有 6 位验证码');
+      return;
+    }
+    final code = digits.substring(0, 6);
+    _codeController.text = code;
+    await _submitCode(code, showValidationError: false);
+  }
+
+  Future<void> _onCodeChanged(String value, bool busy) async {
+    if (busy || _autoSubmitting) return;
+    final digits = value.replaceAll(RegExp(r'\D'), '');
+    if (digits != value) {
+      _codeController.value = TextEditingValue(
+        text: digits,
+        selection: TextSelection.collapsed(offset: digits.length),
+      );
+    }
+    if (digits.length != 6) return;
+    _autoSubmitting = true;
+    try {
+      await _submitCode(digits, showValidationError: false);
+    } finally {
+      _autoSubmitting = false;
+    }
   }
 
   void _showSnack(String text) {
