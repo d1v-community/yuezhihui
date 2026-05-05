@@ -95,7 +95,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('已定位到最近一次月经开始日，建议先补全这一天。')));
+      ).showSnackBar(const SnackBar(content: Text('已定位到最近一次开始日，建议先补这一天。')));
     }
 
     if (mounted) {
@@ -242,9 +242,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
     if (target == _selectedDate) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(offset < 0 ? '已经是最早可记录日期' : '已经是今天')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(offset < 0 ? '已到最早日期' : '已是今天')));
       return;
     }
     await _changeDate(target);
@@ -556,7 +556,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return FlowPage(
       title: l10n.homeTitle,
-      subtitle: '按日记录、草稿自动保存、14 天概览和更清晰的用品输入。',
+      subtitle: '按天记录，草稿会自动保存。',
       actions: [
         IconButton(
           onPressed: () async {
@@ -614,7 +614,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '点击日期快速切换，颜色圆点代表当天出血色调，数字代表估算总量。',
+                  '点日期切换；圆点看颜色，数字看总量。',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(
                       context,
@@ -670,9 +670,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                           ? null
                           : () => _changeDate(todayYmd()),
                       icon: const Icon(Icons.today_outlined),
-                      label: const Text('回到今天'),
+                      label: const Text('今天'),
                     ),
-                    if (_loadingDetail) const Chip(label: Text('正在切换日期')),
+                    if (_loadingDetail) const Chip(label: Text('切换中')),
                     if (!_canGoPrev) const Chip(label: Text('已到最早日期')),
                     if (!_canGoNext) const Chip(label: Text('已到今天')),
                   ],
@@ -823,13 +823,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text('当日事件', style: Theme.of(context).textTheme.titleLarge),
+                    Text('今日记录', style: Theme.of(context).textTheme.titleLarge),
                     const Spacer(),
                     if (_loadingDetail) const Text('加载中...'),
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (_events.isEmpty) const Text('今天还没有记录。'),
+                if (_events.isEmpty) const Text('今天还没记录。'),
                 if (_events.isNotEmpty)
                   Wrap(
                     spacing: 8,
@@ -1017,9 +1017,7 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            showBleeding
-                ? '今日估算总量 ${totalMl.toStringAsFixed(1)}mL'
-                : '已按设置隐藏实时血量展示',
+            showBleeding ? '今日总量 ${totalMl.toStringAsFixed(1)}mL' : '实时血量已隐藏',
             style: theme.textTheme.bodyLarge?.copyWith(
               color: Colors.white.withValues(alpha: 0.82),
             ),
@@ -1104,7 +1102,7 @@ class _SaveStatePill extends StatelessWidget {
     Color fg;
 
     if (saving) {
-      text = '正在同步到服务端';
+      text = '正在同步';
       bg = colorScheme.primaryContainer;
       fg = colorScheme.onPrimaryContainer;
     } else if (saveErrorText != null) {
@@ -1112,15 +1110,15 @@ class _SaveStatePill extends StatelessWidget {
       bg = colorScheme.errorContainer;
       fg = colorScheme.onErrorContainer;
     } else if (dirty && draftSavedAt != null) {
-      text = '本地草稿已保存 ${_formatTime(draftSavedAt!)}，待提交';
+      text = '草稿已保存 ${_formatTime(draftSavedAt!)}';
       bg = const Color(0xFFF6E7D8);
       fg = const Color(0xFF6F4B2A);
     } else if (serverSavedAt != null) {
-      text = '已同步到服务端 ${_formatTime(serverSavedAt!)}';
+      text = '已同步 ${_formatTime(serverSavedAt!)}';
       bg = const Color(0xFFE3F2E7);
       fg = const Color(0xFF245B34);
     } else {
-      text = '当前展示的是服务器记录';
+      text = '当前为云端记录';
       bg = const Color(0xFFECE9E7);
       fg = const Color(0xFF534846);
     }
