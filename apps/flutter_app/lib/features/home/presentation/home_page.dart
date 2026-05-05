@@ -285,6 +285,174 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
+  Future<void> _editEvent(_LocalEvent event) async {
+    String? productType = event.productType;
+    String? model = event.model;
+    String color = event.color ?? _dayColor;
+    double volumeMl = event.volumeMl;
+    String? symptomName = event.symptomName;
+
+    final action = await showModalBottomSheet<_EventSheetAction>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final isSymptom = event.eventType == 'symptom';
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('编辑事件', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  if (!isSymptom) ...[
+                    DropdownButtonFormField<String>(
+                      initialValue: event.eventType == 'pad'
+                          ? productType
+                          : model,
+                      items: [
+                        for (final entry
+                            in (event.eventType == 'pad'
+                                    ? const {
+                                        'liner': '护垫',
+                                        'day': '日用',
+                                        'night': '夜用',
+                                        'pants': '安睡裤',
+                                      }
+                                    : const {
+                                        'mini': '迷你',
+                                        'regular': '常规',
+                                        'large': '大号',
+                                        'super': '超大',
+                                      })
+                                .entries)
+                          DropdownMenuItem(
+                            value: entry.key,
+                            child: Text(entry.value),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        setSheetState(() {
+                          if (event.eventType == 'pad') {
+                            productType = value;
+                          } else {
+                            model = value;
+                          }
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: event.eventType == 'pad' ? '卫生巾类型' : '棉条型号',
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text('血量 ${volumeMl.toStringAsFixed(0)}mL'),
+                    Slider(
+                      value: volumeMl.clamp(1, 20),
+                      min: 1,
+                      max: 20,
+                      divisions: 19,
+                      label: '${volumeMl.toStringAsFixed(0)}mL',
+                      onChanged: (value) =>
+                          setSheetState(() => volumeMl = value),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final option in _colors)
+                          ChoiceChip(
+                            label: Text(_colorLabel(option)),
+                            selected: color == option,
+                            onSelected: (_) =>
+                                setSheetState(() => color = option),
+                          ),
+                      ],
+                    ),
+                  ] else ...[
+                    Text(
+                      '血块类型',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('小血块'),
+                          selected: symptomName == '小血块',
+                          onSelected: (_) => setSheetState(() {
+                            symptomName = '小血块';
+                            volumeMl = 2;
+                          }),
+                        ),
+                        ChoiceChip(
+                          label: const Text('大血块'),
+                          selected: symptomName == '大血块',
+                          onSelected: (_) => setSheetState(() {
+                            symptomName = '大血块';
+                            volumeMl = 4;
+                          }),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(context).pop(_EventSheetAction.delete),
+                        child: const Text('删除'),
+                      ),
+                      const Spacer(),
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('取消'),
+                      ),
+                      const SizedBox(width: 12),
+                      FilledButton(
+                        onPressed: () {
+                          _setStateAndDraft(() {
+                            final index = _events.indexWhere(
+                              (item) => item.id == event.id,
+                            );
+                            if (index < 0) return;
+                            _events[index] = event.copyWith(
+                              productType: productType,
+                              model: model,
+                              color: color,
+                              volumeMl: volumeMl,
+                              symptomName: symptomName,
+                            );
+                          });
+                          Navigator.of(context).pop(_EventSheetAction.save);
+                        },
+                        child: const Text('保存修改'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (action == _EventSheetAction.delete) {
+      _removeEvent(event.id);
+    }
+  }
+
   void _undoLast(String type) {
     final stack = type == 'pad' ? _padUndoStack : _tamponUndoStack;
     if (stack.isEmpty) return;
@@ -590,6 +758,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       for (final event in _events)
                         InputChip(
                           label: Text(_formatEvent(event)),
+                          onPressed: () => _editEvent(event),
                           onDeleted: () => _removeEvent(event.id),
                         ),
                     ],
@@ -999,16 +1168,22 @@ class _LocalEvent {
   final double volumeMl;
   final String? symptomName;
 
-  _LocalEvent copyWith({String? color}) {
+  _LocalEvent copyWith({
+    String? productType,
+    String? model,
+    String? color,
+    double? volumeMl,
+    String? symptomName,
+  }) {
     return _LocalEvent(
       id: id,
       eventType: eventType,
       eventTime: eventTime,
-      productType: productType,
-      model: model,
+      productType: productType ?? this.productType,
+      model: model ?? this.model,
       color: color ?? this.color,
-      volumeMl: volumeMl,
-      symptomName: symptomName,
+      volumeMl: volumeMl ?? this.volumeMl,
+      symptomName: symptomName ?? this.symptomName,
     );
   }
 
@@ -1039,3 +1214,5 @@ class _LocalEvent {
     };
   }
 }
+
+enum _EventSheetAction { save, delete }
