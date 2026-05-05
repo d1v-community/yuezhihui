@@ -39,12 +39,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFF7E7DF), Color(0xFFF3D8D8), Color(0xFFE4D5E6)],
+            colors: [Color(0xFFF6E9E1), Color(0xFFF0DFD7), Color(0xFFE8DEE2)],
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.04),
+              blurRadius: 120,
+              offset: const Offset(0, -20),
+            ),
+          ],
         ),
         child: SafeArea(
           child: Center(
@@ -52,22 +61,82 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               padding: const EdgeInsets.all(20),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 480),
-                child: Card(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.84),
+                    borderRadius: BorderRadius.circular(34),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 32,
+                        offset: const Offset(0, 18),
+                      ),
+                    ],
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(28),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          l10n.brandName,
-                          style: Theme.of(context).textTheme.displaySmall,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '邮箱验证码登录，继续引导，开始按日记录。',
-                          style: Theme.of(context).textTheme.bodyLarge,
+                        Container(
+                          padding: const EdgeInsets.all(22),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF8E4151),
+                                Color(0xFF733340),
+                                Color(0xFF55262F),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'FLOWCYCLE',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.3,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                l10n.brandName,
+                                style: Theme.of(context).textTheme.displaySmall
+                                    ?.copyWith(color: Colors.white),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                _codeStep
+                                    ? '输入 6 位验证码，继续你的记录与分析。'
+                                    : '邮箱验证码登录，继续引导，开始按日记录。',
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.82,
+                                      ),
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 24),
+                        Text(
+                          _codeStep ? '验证邮箱' : '输入邮箱',
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -98,48 +167,81 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                         if (_codeStep) ...[
                           const SizedBox(height: 16),
-                          TextField(
-                            controller: _codeController,
-                            keyboardType: TextInputType.number,
-                            maxLength: 6,
-                            autofocus: true,
-                            onChanged: (value) => _onCodeChanged(value, busy),
-                            decoration: InputDecoration(
-                              labelText: '验证码',
-                              suffixIcon: IconButton(
-                                onPressed: busy
-                                    ? null
-                                    : _pasteCodeFromClipboard,
-                                icon: const Icon(
-                                  Icons.content_paste_go_outlined,
-                                ),
-                                tooltip: '粘贴验证码',
-                              ),
+                          Container(
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8F1EC),
+                              borderRadius: BorderRadius.circular(24),
                             ),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                _cooldown > 0
-                                    ? '重新发送（${_cooldown}s）'
-                                    : '可重新发送验证码',
-                              ),
-                              const Spacer(),
-                              TextButton(
-                                onPressed: busy || _cooldown > 0
-                                    ? null
-                                    : _resendCode,
-                                child: const Text('重新发送'),
-                              ),
-                            ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '输入验证码',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 10),
+                                TextField(
+                                  controller: _codeController,
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 6,
+                                  autofocus: true,
+                                  onChanged: (value) =>
+                                      _onCodeChanged(value, busy),
+                                  decoration: InputDecoration(
+                                    labelText: '验证码',
+                                    suffixIcon: IconButton(
+                                      onPressed: busy
+                                          ? null
+                                          : _pasteCodeFromClipboard,
+                                      icon: const Icon(
+                                        Icons.content_paste_go_outlined,
+                                      ),
+                                      tooltip: '粘贴验证码',
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      _cooldown > 0
+                                          ? '重新发送（${_cooldown}s）'
+                                          : '可重新发送验证码',
+                                    ),
+                                    const Spacer(),
+                                    TextButton(
+                                      onPressed: busy || _cooldown > 0
+                                          ? null
+                                          : _resendCode,
+                                      child: const Text('重新发送'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                         if (session.errorMessage != null) ...[
-                          const SizedBox(height: 10),
-                          Text(
-                            session.errorMessage!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Text(
+                              session.errorMessage!,
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -147,24 +249,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           const SizedBox(height: 12),
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(14),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF6EFEA),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(22),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   '开发环境验证码',
-                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                                 Text(
                                   _devCode!,
                                   style: Theme.of(
                                     context,
-                                  ).textTheme.headlineSmall,
+                                  ).textTheme.headlineMedium,
                                 ),
                                 const SizedBox(height: 10),
                                 Wrap(
@@ -197,7 +301,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         FilledButton(
                           onPressed: busy ? null : _handlePrimaryAction,
                           style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(54),
+                            minimumSize: const Size.fromHeight(56),
                           ),
                           child: Text(
                             _codeStep ? l10n.verifyAndLogin : l10n.sendCode,
