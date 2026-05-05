@@ -20,6 +20,8 @@ concurrency:
 jobs:
   release-android:
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
 
     defaults:
       run:
@@ -45,7 +47,7 @@ jobs:
       - name: Resolve release version
         id: version
         run: |
-          VERSION_NAME="$(date -u +'%Y.%m.%d')"
+          VERSION_NAME="$(date +'%Y.%m.%d')"
           BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
           TAG_NAME="android-v${VERSION_NAME}+${BUILD_NUMBER}"
           APK_NAME="flowcycle-android-${VERSION_NAME}+${BUILD_NUMBER}-release.apk"
