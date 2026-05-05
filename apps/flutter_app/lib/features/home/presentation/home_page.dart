@@ -44,7 +44,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   final List<String> _padUndoStack = [];
   final List<String> _tamponUndoStack = [];
   final Map<String, MenstrualDailySummary> _rangeMap = {};
-  String _snapshot = '';
+  bool _isDirty = false;
+  bool _hasLocalDraft = false;
   DateTime? _draftSavedAt;
   DateTime? _serverSavedAt;
   String? _saveErrorText;
@@ -140,13 +141,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         ..addAll(local.events);
       _padUndoStack.clear();
       _tamponUndoStack.clear();
-      _snapshot = jsonEncode(local.toJson());
       if (!mounted) return;
       setState(() {
         _selectedDate = date;
         _dayColor = local.dayColor;
         _padVolume = 5;
         _tamponVolume = 5;
+        _isDirty = false;
+        _hasLocalDraft = draft != null;
         _draftSavedAt = local.updatedAt;
         _serverSavedAt = draft == null ? DateTime.now() : null;
         _saveErrorText = null;
@@ -190,7 +192,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       .where((event) => event.eventType == 'symptom')
       .fold(0.0, (sum, event) => sum + event.volumeMl);
   double get _totalMl => _padMl + _tamponMl + _clotMl;
-  bool get _dirty => jsonEncode(_currentDraft.toJson()) != _snapshot;
+  bool get _hasPendingDraft => _isDirty || _hasLocalDraft;
 
   _DailyDraft get _currentDraft => _DailyDraft(
     date: _selectedDate,
@@ -214,6 +216,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   void _setStateAndDraft(VoidCallback action) {
     setState(() {
       action();
+      _isDirty = true;
+      _hasLocalDraft = true;
       _draftSavedAt = DateTime.now();
       _saveErrorText = null;
     });
@@ -235,7 +239,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _changeDate(String date) async {
-    if (_dirty && mounted) {
+    if (_hasPendingDraft && mounted) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('当前修改已自动保存为草稿。')));
@@ -505,9 +509,10 @@ class _HomePageState extends ConsumerState<HomePage> {
           DateTime.now().millisecondsSinceEpoch.toString(),
         );
       }
-      _snapshot = jsonEncode(_currentDraft.toJson());
       if (!mounted) return;
       setState(() {
+        _isDirty = false;
+        _hasLocalDraft = false;
         _serverSavedAt = DateTime.now();
         _saveErrorText = null;
       });
@@ -554,7 +559,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           padMl: _padMl,
           tamponMl: _tamponMl,
           clotMl: _clotMl,
-          dirty: _dirty,
+          dirty: _hasPendingDraft,
           showBleeding: _showBleeding,
           saving: _saving,
           draftSavedAt: _draftSavedAt,
