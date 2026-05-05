@@ -532,8 +532,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final session = ref.watch(sessionControllerProvider);
-    final showTampon = session.user?.useTampon ?? _useTampon;
+    final showTampon = ref.watch(
+      sessionControllerProvider.select(
+        (state) => state.user?.useTampon ?? _useTampon,
+      ),
+    );
 
     if (_loadingPage) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));

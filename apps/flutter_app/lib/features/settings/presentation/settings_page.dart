@@ -106,7 +106,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final localeState = ref.watch(localeControllerProvider);
-    final session = ref.watch(sessionControllerProvider);
+    final userEmail = ref.watch(
+      sessionControllerProvider.select((state) => state.user?.email),
+    );
+    final userDisplayName = ref.watch(
+      sessionControllerProvider.select((state) => state.user?.displayName),
+    );
+    final useTampon = ref.watch(
+      sessionControllerProvider.select(
+        (state) => state.user?.useTampon ?? true,
+      ),
+    );
 
     return FlowPage(
       title: l10n.settingsTitle,
@@ -142,25 +152,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      session.user?.displayName?.isNotEmpty == true
-                          ? session.user!.displayName!
+                      userDisplayName?.isNotEmpty == true
+                          ? userDisplayName!
                           : '已登录账户',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 6),
-                    Text(session.user?.email ?? l10n.unknown),
+                    Text(userEmail ?? l10n.unknown),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        Chip(
-                          label: Text(
-                            session.user?.useTampon == true
-                                ? '棉条模块已启用'
-                                : '棉条模块已关闭',
-                          ),
-                        ),
+                        Chip(label: Text(useTampon ? '棉条模块已启用' : '棉条模块已关闭')),
                         Chip(label: Text('研究同意：$_consentText')),
                       ],
                     ),
@@ -187,7 +191,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 const SizedBox(height: 6),
                 Text('账号', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
-                Text(session.user?.email ?? l10n.unknown),
+                Text(userEmail ?? l10n.unknown),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _displayNameController,
@@ -227,7 +231,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   contentPadding: EdgeInsets.zero,
                   title: const Text('我习惯用卫生棉条'),
                   subtitle: const Text('同步到账号，用于控制首页是否展示棉条模块'),
-                  value: session.user?.useTampon ?? true,
+                  value: useTampon,
                   onChanged: (value) async {
                     await ref
                         .read(userApiProvider)

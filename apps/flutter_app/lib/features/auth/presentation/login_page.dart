@@ -34,8 +34,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final session = ref.watch(sessionControllerProvider);
-    final busy = session.isBusy;
+    final busy = ref.watch(
+      sessionControllerProvider.select((state) => state.isBusy),
+    );
+    final errorMessage = ref.watch(
+      sessionControllerProvider.select((state) => state.errorMessage),
+    );
 
     return Scaffold(
       body: DecoratedBox(
@@ -223,7 +227,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                           ),
                         ],
-                        if (session.errorMessage != null) ...[
+                        if (errorMessage != null) ...[
                           const SizedBox(height: 12),
                           Container(
                             width: double.infinity,
@@ -235,7 +239,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               borderRadius: BorderRadius.circular(18),
                             ),
                             child: Text(
-                              session.errorMessage!,
+                              errorMessage,
                               style: TextStyle(
                                 color: Theme.of(
                                   context,
