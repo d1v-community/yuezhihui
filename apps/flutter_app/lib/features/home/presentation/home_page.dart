@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -59,12 +57,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _bootstrap() async {
     final session = ref.read(sessionControllerProvider);
     final storage = await ref.read(appStorageProvider.future);
-    final visibility = _readJsonMap(
-      storage.getString(AppKeys.visibilitySettings),
-    );
-    final inputMode = _readJsonMap(
-      storage.getString(AppKeys.inputModeSettings),
-    );
+    final visibility =
+        storage.getJsonMap(AppKeys.visibilitySettings) ?? const {};
+    final inputMode = storage.getJsonMap(AppKeys.inputModeSettings) ?? const {};
     final today = todayYmd();
     final minDate = addDaysYmd(today, -180);
     final anchor = clampYmd(
@@ -108,12 +103,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
-  Map<String, dynamic> _readJsonMap(String? raw) {
-    if (raw == null || raw.isEmpty) return const {};
-    final decoded = jsonDecode(raw);
-    return decoded is Map<String, dynamic> ? decoded : const {};
-  }
-
   Future<void> _loadRange() async {
     final end = addDaysYmd(_stripStart, _stripDays - 1);
     final items = await ref
@@ -133,7 +122,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       final detail = await ref.read(menstrualApiProvider).getDailyByDate(date);
       final storage = await ref.read(appStorageProvider.future);
       final draft = _readDraft(
-        storage.getString('${AppKeys.dailyDraftPrefix}$date'),
+        storage.getJsonMap('${AppKeys.dailyDraftPrefix}$date'),
       );
       final local = draft ?? _DailyDraft.fromDetail(detail);
       _events
@@ -158,11 +147,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
-  _DailyDraft? _readDraft(String? raw) {
-    if (raw == null || raw.isEmpty) return null;
-    final decoded = jsonDecode(raw);
-    if (decoded is! Map<String, dynamic>) return null;
-    return _DailyDraft.fromJson(decoded);
+  _DailyDraft? _readDraft(Map<String, dynamic>? data) {
+    if (data == null) return null;
+    return _DailyDraft.fromJson(data);
   }
 
   String _reanchorStrip(String centerDate) {
@@ -207,9 +194,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       await storage.remove('${AppKeys.dailyDraftPrefix}$_selectedDate');
       return;
     }
-    await storage.setJson(
+    await storage.setJsonMap(
       '${AppKeys.dailyDraftPrefix}$_selectedDate',
-      jsonEncode(_currentDraft.toJson()),
+      _currentDraft.toJson(),
     );
   }
 

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,10 +37,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _loadPrefs() async {
     try {
       final storage = await ref.read(appStorageProvider.future);
-      final visibility = _readMap(
-        storage.getString(AppKeys.visibilitySettings),
-      );
-      final inputMode = _readMap(storage.getString(AppKeys.inputModeSettings));
+      final visibility =
+          storage.getJsonMap(AppKeys.visibilitySettings) ?? const {};
+      final inputMode =
+          storage.getJsonMap(AppKeys.inputModeSettings) ?? const {};
       final onboardingState = await ref.read(onboardingApiProvider).state();
       final consentAnswer =
           onboardingState.answers['A0_consent_research']
@@ -74,26 +72,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  Map<String, dynamic> _readMap(String? raw) {
-    if (raw == null || raw.isEmpty) return const {};
-    final decoded = jsonDecode(raw);
-    return decoded is Map<String, dynamic> ? decoded : const {};
-  }
-
   Future<void> _saveVisibility() async {
     final storage = await ref.read(appStorageProvider.future);
-    await storage.setJson(
-      AppKeys.visibilitySettings,
-      jsonEncode({'sanitaryPad': _showPad, 'bleeding': _showBleeding}),
-    );
+    await storage.setJsonMap(AppKeys.visibilitySettings, {
+      'sanitaryPad': _showPad,
+      'bleeding': _showBleeding,
+    });
   }
 
   Future<void> _saveInputMode() async {
     final storage = await ref.read(appStorageProvider.future);
-    await storage.setJson(
-      AppKeys.inputModeSettings,
-      jsonEncode({'sanitaryPad': _padInputMode, 'tampon': _tamponInputMode}),
-    );
+    await storage.setJsonMap(AppKeys.inputModeSettings, {
+      'sanitaryPad': _padInputMode,
+      'tampon': _tamponInputMode,
+    });
   }
 
   @override
