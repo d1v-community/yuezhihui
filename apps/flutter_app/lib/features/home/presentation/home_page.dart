@@ -226,11 +226,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _changeDate(String date) async {
-    if (_hasPendingDraft && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('当前修改已自动保存为草稿。')));
-    }
     if (!_stripDates.contains(date)) {
       setState(() => _stripStart = _reanchorStrip(date));
       await _loadRange();
@@ -682,6 +677,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                     if (!_canGoNext) const Chip(label: Text('已到今天')),
                   ],
                 ),
+                if (_hasPendingDraft) ...[
+                  const SizedBox(height: 12),
+                  _SaveStatePill(
+                    saving: _saving,
+                    dirty: _hasPendingDraft,
+                    draftSavedAt: _draftSavedAt,
+                    serverSavedAt: _serverSavedAt,
+                    saveErrorText: _saveErrorText,
+                  ),
+                ],
               ],
             ),
           ),
@@ -843,8 +848,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                   children: [
                     Expanded(
                       child: FilledButton(
-                        onPressed: _saving ? null : _save,
-                        child: Text(_saving ? '保存中...' : '保存记录'),
+                        onPressed:
+                            _saving || _loadingDetail || !_hasPendingDraft
+                            ? null
+                            : _save,
+                        child: Text(
+                          _saving
+                              ? '保存中...'
+                              : _hasPendingDraft
+                              ? '保存记录'
+                              : '已同步',
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
