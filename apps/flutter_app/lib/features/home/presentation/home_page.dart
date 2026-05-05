@@ -287,6 +287,36 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
+  Future<void> _removeEventWithUndo(_LocalEvent event) async {
+    final index = _events.indexWhere((item) => item.id == event.id);
+    if (index < 0) return;
+    _removeEvent(event.id);
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    final controller = messenger.showSnackBar(
+      SnackBar(
+        content: Text('已删除${_formatDeleteTarget(event)}'),
+        action: SnackBarAction(
+          label: '撤销',
+          onPressed: () {
+            _setStateAndDraft(() {
+              final safeIndex = index.clamp(0, _events.length);
+              _events.insert(safeIndex, event);
+              if (event.eventType == 'pad') {
+                _padUndoStack.add(event.id);
+              }
+              if (event.eventType == 'tampon') {
+                _tamponUndoStack.add(event.id);
+              }
+            });
+          },
+        ),
+      ),
+    );
+    await controller.closed;
+  }
+
   Future<void> _editEvent(_LocalEvent event) async {
     String? productType = event.productType;
     String? model = event.model;
@@ -451,7 +481,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
 
     if (action == _EventSheetAction.delete) {
-      _removeEvent(event.id);
+      await _removeEventWithUndo(event);
     }
   }
 
@@ -804,7 +834,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         InputChip(
                           label: Text(_formatEvent(event)),
                           onPressed: () => _editEvent(event),
-                          onDeleted: () => _removeEvent(event.id),
+                          onDeleted: () => _removeEventWithUndo(event),
                         ),
                     ],
                   ),
@@ -842,6 +872,16 @@ class _HomePageState extends ConsumerState<HomePage> {
       return '卫生巾 · ${_padTypeLabel(event.productType)} · ${event.volumeMl.toStringAsFixed(0)}mL';
     }
     return '棉条 · ${_tamponLabel(event.model)} · ${event.volumeMl.toStringAsFixed(0)}mL';
+  }
+
+  String _formatDeleteTarget(_LocalEvent event) {
+    if (event.eventType == 'symptom') {
+      return '「${event.symptomName ?? '症状'}」';
+    }
+    if (event.eventType == 'pad') {
+      return '卫生巾记录';
+    }
+    return '棉条记录';
   }
 
   String _padTypeLabel(String? type) =>
