@@ -108,20 +108,39 @@ class _EncyclopediaPageState extends State<EncyclopediaPage> {
       title: '百科',
       subtitle: '把月经量、风险和变化说清楚。',
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  '把月经量，说清楚',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-                ),
-                SizedBox(height: 8),
-                Text('月经量不是主观感受，而是可以被理解、被估算、被判断的生理指标。'),
-              ],
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFBF4EF), Color(0xFFF4E8E0), Color(0xFFEFE3E6)],
             ),
+            borderRadius: BorderRadius.circular(34),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'EDITORIAL NOTE',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: Color(0xFF8C3B4D),
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                '把月经量，说清楚',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+              ),
+              SizedBox(height: 10),
+              Text('月经量不是主观感受，而是可以被理解、被估算、被判断的生理指标。'),
+            ],
           ),
         ),
         const SizedBox(height: 16),
@@ -164,12 +183,13 @@ class _ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isRisk = card.tag == '风险';
     return Card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(28),
         onTap: onToggle,
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -181,7 +201,9 @@ class _ArticleCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3D8D8),
+                      color: isRisk
+                          ? const Color(0xFFF6E0DB)
+                          : const Color(0xFFF3D8D8),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
@@ -196,7 +218,17 @@ class _ArticleCard extends StatelessWidget {
               const SizedBox(height: 14),
               Text(card.title, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
-              Text(card.lead),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isRisk
+                      ? const Color(0xFFFBF0ED)
+                      : Colors.white.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(card.lead),
+              ),
               if (expanded) ...[
                 const SizedBox(height: 12),
                 for (final paragraph in card.body) ...[
@@ -217,14 +249,23 @@ class _ArticleCard extends StatelessWidget {
                 ],
                 if (card.redFlags.isNotEmpty) ...[
                   const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     '红旗信号',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   for (final item in card.redFlags)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFBF0ED),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       child: Text('• $item'),
                     ),
                 ],
