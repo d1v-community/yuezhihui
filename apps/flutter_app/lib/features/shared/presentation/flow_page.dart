@@ -18,25 +18,38 @@ class FlowPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: theme.textTheme.headlineMedium),
-                  const SizedBox(height: 8),
-                  Text(subtitle, style: theme.textTheme.bodyLarge),
-                ],
+        Container(
+          padding: const EdgeInsets.fromLTRB(4, 10, 4, 2),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
-            if (actions != null) ...actions!,
-          ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.headlineMedium),
+                    const SizedBox(height: 8),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 460),
+                      child: Text(subtitle, style: theme.textTheme.bodyLarge),
+                    ),
+                  ],
+                ),
+              ),
+              if (actions != null) ...actions!,
+            ],
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         ...children,
       ],
     );
