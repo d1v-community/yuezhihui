@@ -112,12 +112,79 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       title: l10n.settingsTitle,
       subtitle: '账号、隐私、记录展示与输入方式。',
       children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFBF4EF), Color(0xFFF3E6DE)],
+            ),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF8C3B4D),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.person_outline, color: Colors.white),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      session.user?.displayName?.isNotEmpty == true
+                          ? session.user!.displayName!
+                          : '已登录账户',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(session.user?.email ?? l10n.unknown),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Chip(
+                          label: Text(
+                            session.user?.useTampon == true
+                                ? '棉条模块已启用'
+                                : '棉条模块已关闭',
+                          ),
+                        ),
+                        Chip(label: Text('研究同意：$_consentText')),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  'PROFILE',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Text('账号', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Text(session.user?.email ?? l10n.unknown),
@@ -181,9 +248,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  'PRIVACY',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Text('隐私与语言', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
-                Text('研究同意：$_consentText'),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F1EC),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text('研究同意：$_consentText'),
+                ),
                 const SizedBox(height: 10),
                 OutlinedButton(
                   onPressed: () async {
@@ -229,6 +312,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        'PREFERENCES',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
                       Text(
                         '记录展示',
                         style: Theme.of(context).textTheme.titleLarge,
@@ -299,6 +390,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  'SUPPORT',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Text('支持与反馈', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 FilledButton(
