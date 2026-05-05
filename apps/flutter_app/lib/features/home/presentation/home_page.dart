@@ -593,6 +593,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                Text(
+                  '点击日期快速切换，颜色圆点代表当天出血色调，数字代表估算总量。',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.62),
+                  ),
+                ),
+                const SizedBox(height: 14),
                 Row(
                   children: [
                     IconButton.filledTonal(
@@ -659,6 +668,13 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  '标记颜色与血块',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Text('颜色与症状', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Wrap(
@@ -768,6 +784,13 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  '已记录项目',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Text('当日事件', style: Theme.of(context).textTheme.titleLarge),
@@ -879,69 +902,129 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF9B4A5C), Color(0xFF7E3646), Color(0xFF5F2632)],
+        ),
+        borderRadius: BorderRadius.circular(34),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.22),
+            blurRadius: 36,
+            offset: const Offset(0, 18),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  'TODAY RECORD',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              if (dirty)
+                const Chip(
+                  label: Text('草稿未提交'),
+                  visualDensity: VisualDensity.compact,
+                  labelStyle: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  backgroundColor: Color(0x33FFFFFF),
+                  side: BorderSide(color: Color(0x22FFFFFF)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            selectedDate,
+            style: theme.textTheme.displaySmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            showBleeding
+                ? '今日估算总量 ${totalMl.toStringAsFixed(1)}mL'
+                : '已按设置隐藏实时血量展示',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: Colors.white.withValues(alpha: 0.82),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _SaveStatePill(
+            saving: saving,
+            dirty: dirty,
+            draftSavedAt: draftSavedAt,
+            serverSavedAt: serverSavedAt,
+            saveErrorText: saveErrorText,
+            darkMode: true,
+          ),
+          if (showBleeding) ...[
+            const SizedBox(height: 18),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: (totalMl / 40).clamp(0, 1),
+                minHeight: 12,
+                backgroundColor: Colors.white.withValues(alpha: 0.12),
+                valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD7C2)),
+              ),
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Text(
-                  selectedDate,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const Spacer(),
-                if (dirty)
-                  const Chip(
-                    label: Text('草稿未提交'),
-                    visualDensity: VisualDensity.compact,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              showBleeding
-                  ? '总量 ${totalMl.toStringAsFixed(1)}mL'
-                  : '已按设置隐藏实时血量展示',
-            ),
-            const SizedBox(height: 10),
-            _SaveStatePill(
-              saving: saving,
-              dirty: dirty,
-              draftSavedAt: draftSavedAt,
-              serverSavedAt: serverSavedAt,
-              saveErrorText: saveErrorText,
-            ),
-            if (showBleeding) ...[
-              const SizedBox(height: 12),
-              LinearProgressIndicator(
-                value: (totalMl / 40).clamp(0, 1),
-                minHeight: 10,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _MiniMetric(
+                Expanded(
+                  child: _MiniMetric(
                     label: '卫生巾',
                     value: '${padMl.toStringAsFixed(1)}mL',
+                    inverse: true,
                   ),
-                  _MiniMetric(
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _MiniMetric(
                     label: '棉条',
                     value: '${tamponMl.toStringAsFixed(1)}mL',
+                    inverse: true,
                   ),
-                  _MiniMetric(
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _MiniMetric(
                     label: '血块估算',
                     value: '${clotMl.toStringAsFixed(1)}mL',
+                    inverse: true,
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -954,6 +1037,7 @@ class _SaveStatePill extends StatelessWidget {
     required this.draftSavedAt,
     required this.serverSavedAt,
     required this.saveErrorText,
+    this.darkMode = false,
   });
 
   final bool saving;
@@ -961,6 +1045,7 @@ class _SaveStatePill extends StatelessWidget {
   final DateTime? draftSavedAt;
   final DateTime? serverSavedAt;
   final String? saveErrorText;
+  final bool darkMode;
 
   @override
   Widget build(BuildContext context) {
@@ -991,6 +1076,11 @@ class _SaveStatePill extends StatelessWidget {
       fg = const Color(0xFF534846);
     }
 
+    if (darkMode) {
+      bg = Colors.white.withValues(alpha: 0.12);
+      fg = Colors.white;
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -1013,17 +1103,24 @@ class _SaveStatePill extends StatelessWidget {
 }
 
 class _MiniMetric extends StatelessWidget {
-  const _MiniMetric({required this.label, required this.value});
+  const _MiniMetric({
+    required this.label,
+    required this.value,
+    this.inverse = false,
+  });
 
   final String label;
   final String value;
+  final bool inverse;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.65),
+        color: inverse
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.65),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -1031,10 +1128,21 @@ class _MiniMetric extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
+            style: TextStyle(
+              fontSize: 12,
+              color: inverse
+                  ? Colors.white.withValues(alpha: 0.72)
+                  : Colors.black54,
+            ),
           ),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: inverse ? Colors.white : null,
+            ),
+          ),
         ],
       ),
     );
@@ -1065,18 +1173,18 @@ class _DayChip extends StatelessWidget {
       _ => const Color(0xFFE9D6D0),
     };
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(22),
       onTap: onTap,
       child: Container(
-        width: 74,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        width: 84,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFF3B2A2A)
+              ? const Color(0xFF543038)
               : Colors.white.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: selected ? const Color(0xFF3B2A2A) : const Color(0xFFE4D7D0),
+            color: selected ? const Color(0xFF543038) : const Color(0xFFE4D7D0),
           ),
         ),
         child: Column(
@@ -1085,7 +1193,7 @@ class _DayChip extends StatelessWidget {
               date.substring(5),
               style: TextStyle(
                 color: selected ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 8),
@@ -1101,6 +1209,7 @@ class _DayChip extends StatelessWidget {
                   : '${summary!.totalVolumeMl.toStringAsFixed(0)}mL',
               style: TextStyle(
                 fontSize: 12,
+                fontWeight: FontWeight.w700,
                 color: selected ? Colors.white70 : Colors.black54,
               ),
             ),
@@ -1146,7 +1255,19 @@ class _ProductInputCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title == '卫生巾' ? '快速录入' : '补充录入',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(title, style: Theme.of(context).textTheme.titleLarge),
+                  ],
+                ),
                 const Spacer(),
                 if (onUndo != null)
                   TextButton.icon(
@@ -1155,6 +1276,15 @@ class _ProductInputCard extends StatelessWidget {
                     label: const Text('撤销'),
                   ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              inputMode == 'drag' ? '拖拽选择更精确的 mL 值。' : '点击预设值即可快速添加。',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
