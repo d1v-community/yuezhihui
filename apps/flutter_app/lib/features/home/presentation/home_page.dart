@@ -45,6 +45,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   final List<String> _tamponUndoStack = [];
   final Map<String, MenstrualDailySummary> _rangeMap = {};
   String _snapshot = '';
+  DateTime? _draftSavedAt;
+  DateTime? _serverSavedAt;
+  String? _saveErrorText;
 
   @override
   void initState() {
@@ -144,6 +147,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         _dayColor = local.dayColor;
         _padVolume = 5;
         _tamponVolume = 5;
+        _draftSavedAt = local.updatedAt;
+        _serverSavedAt = draft == null ? DateTime.now() : null;
+        _saveErrorText = null;
       });
     } finally {
       if (mounted) setState(() => _loadingDetail = false);
@@ -190,6 +196,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     date: _selectedDate,
     dayColor: _dayColor,
     events: List<_LocalEvent>.from(_events),
+    updatedAt: _draftSavedAt,
   );
 
   Future<void> _persistDraft() async {
@@ -205,7 +212,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _setStateAndDraft(VoidCallback action) {
-    setState(action);
+    setState(() {
+      action();
+      _draftSavedAt = DateTime.now();
+      _saveErrorText = null;
+    });
     _syncRangeMap();
     _persistDraft();
   }
@@ -460,7 +471,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _save() async {
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+      _saveErrorText = null;
+    });
     try {
       await ref
           .read(menstrualApiProvider)
@@ -493,9 +507,18 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
       _snapshot = jsonEncode(_currentDraft.toJson());
       if (!mounted) return;
+      setState(() {
+        _serverSavedAt = DateTime.now();
+        _saveErrorText = null;
+      });
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('已保存记录')));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _saveErrorText = '提交失败，当前修改仍保留在本地草稿');
+      }
+      rethrow;
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -533,6 +556,10 @@ class _HomePageState extends ConsumerState<HomePage> {
           clotMl: _clotMl,
           dirty: _dirty,
           showBleeding: _showBleeding,
+          saving: _saving,
+          draftSavedAt: _draftSavedAt,
+          serverSavedAt: _serverSavedAt,
+          saveErrorText: _saveErrorText,
         ),
         const SizedBox(height: 16),
         Card(
@@ -832,6 +859,10 @@ class _SummaryCard extends StatelessWidget {
     required this.clotMl,
     required this.dirty,
     required this.showBleeding,
+    required this.saving,
+    required this.draftSavedAt,
+    required this.serverSavedAt,
+    required this.saveErrorText,
   });
 
   final String selectedDate;
@@ -841,6 +872,10 @@ class _SummaryCard extends StatelessWidget {
   final double clotMl;
   final bool dirty;
   final bool showBleeding;
+  final bool saving;
+  final DateTime? draftSavedAt;
+  final DateTime? serverSavedAt;
+  final String? saveErrorText;
 
   @override
   Widget build(BuildContext context) {
@@ -869,6 +904,14 @@ class _SummaryCard extends StatelessWidget {
               showBleeding
                   ? '总量 ${totalMl.toStringAsFixed(1)}mL'
                   : '已按设置隐藏实时血量展示',
+            ),
+            const SizedBox(height: 10),
+            _SaveStatePill(
+              saving: saving,
+              dirty: dirty,
+              draftSavedAt: draftSavedAt,
+              serverSavedAt: serverSavedAt,
+              saveErrorText: saveErrorText,
             ),
             if (showBleeding) ...[
               const SizedBox(height: 12),
@@ -901,6 +944,71 @@ class _SummaryCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _SaveStatePill extends StatelessWidget {
+  const _SaveStatePill({
+    required this.saving,
+    required this.dirty,
+    required this.draftSavedAt,
+    required this.serverSavedAt,
+    required this.saveErrorText,
+  });
+
+  final bool saving;
+  final bool dirty;
+  final DateTime? draftSavedAt;
+  final DateTime? serverSavedAt;
+  final String? saveErrorText;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    String text;
+    Color bg;
+    Color fg;
+
+    if (saving) {
+      text = '正在同步到服务端';
+      bg = colorScheme.primaryContainer;
+      fg = colorScheme.onPrimaryContainer;
+    } else if (saveErrorText != null) {
+      text = saveErrorText!;
+      bg = colorScheme.errorContainer;
+      fg = colorScheme.onErrorContainer;
+    } else if (dirty && draftSavedAt != null) {
+      text = '本地草稿已保存 ${_formatTime(draftSavedAt!)}，待提交';
+      bg = const Color(0xFFF6E7D8);
+      fg = const Color(0xFF6F4B2A);
+    } else if (serverSavedAt != null) {
+      text = '已同步到服务端 ${_formatTime(serverSavedAt!)}';
+      bg = const Color(0xFFE3F2E7);
+      fg = const Color(0xFF245B34);
+    } else {
+      text = '当前展示的是服务器记录';
+      bg = const Color(0xFFECE9E7);
+      fg = const Color(0xFF534846);
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(color: fg, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime value) {
+    final hh = value.hour.toString().padLeft(2, '0');
+    final mm = value.minute.toString().padLeft(2, '0');
+    return '$hh:$mm';
   }
 }
 
@@ -1099,11 +1207,13 @@ class _DailyDraft {
     required this.date,
     required this.dayColor,
     required this.events,
+    required this.updatedAt,
   });
 
   final String date;
   final String dayColor;
   final List<_LocalEvent> events;
+  final DateTime? updatedAt;
 
   factory _DailyDraft.fromDetail(MenstrualDailyDetail detail) {
     final fallbackColor = detail.dayColor ?? 'red';
@@ -1124,6 +1234,7 @@ class _DailyDraft {
             ),
           )
           .toList(),
+      updatedAt: null,
     );
   }
 
@@ -1135,6 +1246,7 @@ class _DailyDraft {
       date: json['date']?.toString() ?? todayYmd(),
       dayColor: json['dayColor']?.toString() ?? 'red',
       events: list,
+      updatedAt: _readDateTime(json['updatedAt']?.toString()),
     );
   }
 
@@ -1143,7 +1255,13 @@ class _DailyDraft {
       'date': date,
       'dayColor': dayColor,
       'events': events.map((event) => event.toJson()).toList(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
+  }
+
+  static DateTime? _readDateTime(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
   }
 }
 
