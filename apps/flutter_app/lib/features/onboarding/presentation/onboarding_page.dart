@@ -567,14 +567,11 @@ class _QuestionEditor extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
+            _SyncedTextField(
+              syncKey: '$questionId:number',
+              value: draft['value']?.toString() ?? '',
               keyboardType: TextInputType.number,
               enabled: !(meta['unknown'] == true || meta['no_answer'] == true),
-              controller:
-                  TextEditingController(text: draft['value']?.toString() ?? '')
-                    ..selection = TextSelection.collapsed(
-                      offset: (draft['value']?.toString() ?? '').length,
-                    ),
               onChanged: (value) =>
                   onChanged({...draft, 'value': value, 'meta': {}}),
             ),
@@ -669,13 +666,10 @@ class _QuestionEditor extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
+            _SyncedTextField(
+              syncKey: '$questionId:text',
+              value: draft['value']?.toString() ?? '',
               enabled: !(meta['unknown'] == true || meta['no_answer'] == true),
-              controller:
-                  TextEditingController(text: draft['value']?.toString() ?? '')
-                    ..selection = TextSelection.collapsed(
-                      offset: (draft['value']?.toString() ?? '').length,
-                    ),
               onChanged: (value) =>
                   onChanged({...draft, 'value': value, 'meta': {}}),
               decoration: InputDecoration(
@@ -761,32 +755,22 @@ class _QuestionEditor extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: _SyncedTextField(
+                      syncKey: '$questionId:year',
+                      value: draft['year']?.toString() ?? '',
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(labelText: '年'),
-                      controller:
-                          TextEditingController(
-                              text: draft['year']?.toString() ?? '',
-                            )
-                            ..selection = TextSelection.collapsed(
-                              offset: (draft['year']?.toString() ?? '').length,
-                            ),
                       onChanged: (value) =>
                           onChanged({...draft, 'year': value}),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextField(
+                    child: _SyncedTextField(
+                      syncKey: '$questionId:month',
+                      value: draft['month']?.toString() ?? '',
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(labelText: '月'),
-                      controller:
-                          TextEditingController(
-                              text: draft['month']?.toString() ?? '',
-                            )
-                            ..selection = TextSelection.collapsed(
-                              offset: (draft['month']?.toString() ?? '').length,
-                            ),
                       onChanged: (value) =>
                           onChanged({...draft, 'month': value.padLeft(2, '0')}),
                     ),
@@ -798,5 +782,65 @@ class _QuestionEditor extends StatelessWidget {
       default:
         return const SizedBox.shrink();
     }
+  }
+}
+
+class _SyncedTextField extends StatefulWidget {
+  const _SyncedTextField({
+    required this.syncKey,
+    required this.value,
+    required this.onChanged,
+    this.keyboardType,
+    this.enabled = true,
+    this.decoration,
+  });
+
+  final String syncKey;
+  final String value;
+  final ValueChanged<String> onChanged;
+  final TextInputType? keyboardType;
+  final bool enabled;
+  final InputDecoration? decoration;
+
+  @override
+  State<_SyncedTextField> createState() => _SyncedTextFieldState();
+}
+
+class _SyncedTextFieldState extends State<_SyncedTextField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SyncedTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.syncKey != widget.syncKey ||
+        _controller.text != widget.value) {
+      _controller.value = TextEditingValue(
+        text: widget.value,
+        selection: TextSelection.collapsed(offset: widget.value.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      keyboardType: widget.keyboardType,
+      enabled: widget.enabled,
+      decoration: widget.decoration,
+      onChanged: widget.onChanged,
+    );
   }
 }
