@@ -3,10 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
-  ApiClient({
-    required this.baseUrl,
-    required this.tokenProvider,
-  });
+  ApiClient({required this.baseUrl, required this.tokenProvider});
 
   final String baseUrl;
   final Future<String?> Function() tokenProvider;
@@ -55,7 +52,9 @@ class ApiClient {
         throw UnsupportedError('Unsupported method: $method');
     }
 
-    final json = response.body.isEmpty ? <String, dynamic>{} : jsonDecode(response.body) as Map<String, dynamic>;
+    final json = response.body.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode >= 400) {
       throw ApiException(
         statusCode: response.statusCode,

@@ -10,11 +10,14 @@ class FeedbackApi {
     required String content,
     String? contact,
   }) async {
-    await _client.post('/api/feedback', body: {
-      'typeIndex': typeIndex,
-      'content': content,
-      if (contact != null && contact.isNotEmpty) 'contact': contact,
-      'meta': {'platform': 'flutter'},
-    });
+    await _client.post(
+      '/api/feedback',
+      body: {
+        'typeIndex': typeIndex,
+        'content': content,
+        if (contact != null && contact.isNotEmpty) 'contact': contact,
+        'meta': {'platform': 'flutter'},
+      },
+    );
   }
 }

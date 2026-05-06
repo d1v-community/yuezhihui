@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import '../../shared/presentation/flow_page.dart';
 
 class EncyclopediaPage extends StatefulWidget {
-  const EncyclopediaPage({super.key});
+  const EncyclopediaPage({super.key, this.initialCardId});
+
+  final String? initialCardId;
 
   @override
   State<EncyclopediaPage> createState() => _EncyclopediaPageState();
@@ -12,6 +14,12 @@ class EncyclopediaPage extends StatefulWidget {
 
 class _EncyclopediaPageState extends State<EncyclopediaPage> {
   String? _expandedId;
+
+  @override
+  void initState() {
+    super.initState();
+    _expandedId = widget.initialCardId;
+  }
 
   static const _cards = <_KbCard>[
     _KbCard(

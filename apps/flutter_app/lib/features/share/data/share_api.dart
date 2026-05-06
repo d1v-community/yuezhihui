@@ -6,19 +6,23 @@ class ShareApi {
   final ApiClient _client;
 
   Future<ShareResult> createOverview({int limit = 6}) async {
-    final json = await _client.post('/api/share', body: {
-      'type': 'overview',
-      'limit': limit,
-    });
-    return ShareResult.fromJson(json['data'] as Map<String, dynamic>? ?? const {});
+    final json = await _client.post(
+      '/api/share',
+      body: {'type': 'overview', 'limit': limit},
+    );
+    return ShareResult.fromJson(
+      json['data'] as Map<String, dynamic>? ?? const {},
+    );
   }
 
   Future<ShareResult> createPeriod(int cycleId) async {
-    final json = await _client.post('/api/share', body: {
-      'type': 'period',
-      'cycleId': cycleId,
-    });
-    return ShareResult.fromJson(json['data'] as Map<String, dynamic>? ?? const {});
+    final json = await _client.post(
+      '/api/share',
+      body: {'type': 'period', 'cycleId': cycleId},
+    );
+    return ShareResult.fromJson(
+      json['data'] as Map<String, dynamic>? ?? const {},
+    );
   }
 }
 

@@ -21,6 +21,7 @@ final routerRefreshProvider = Provider<RouterRefreshNotifier>((ref) {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(routerRefreshProvider);
+  const publicPaths = {'/login', '/doc'};
   return GoRouter(
     initialLocation: '/boot',
     refreshListenable: refresh,
@@ -31,7 +32,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return path == '/boot' ? null : '/boot';
       }
       if (session.status == SessionStatus.loggedOut) {
-        return path == '/login' ? null : '/login';
+        return publicPaths.contains(path) ? null : '/login';
       }
       if (session.status == SessionStatus.onboardingRequired) {
         return path == '/onboarding' ? null : '/onboarding';
@@ -39,6 +40,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final editMode = state.uri.queryParameters['mode'] == 'edit';
       if (path == '/boot' ||
           path == '/login' ||
+          path == '/doc' ||
           (path == '/onboarding' && !editMode)) {
         return '/home';
       }
@@ -47,6 +49,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/boot', builder: (context, state) => const BootPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(
+        path: '/doc',
+        builder: (context, state) =>
+            PublicDocPage(initialCardId: state.uri.queryParameters['entry']),
+      ),
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingPage(),
@@ -144,6 +151,28 @@ class _BootPageState extends ConsumerState<BootPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class PublicDocPage extends StatelessWidget {
+  const PublicDocPage({super.key, this.initialCardId});
+
+  final String? initialCardId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFF7EEE7), Color(0xFFF2E4DD), Color(0xFFEDE3E6)],
+          ),
+        ),
+        child: SafeArea(child: EncyclopediaPage(initialCardId: initialCardId)),
       ),
     );
   }

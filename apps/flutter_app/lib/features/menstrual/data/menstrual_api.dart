@@ -5,18 +5,28 @@ class MenstrualApi {
 
   final ApiClient _client;
 
-  Future<List<MenstrualDailySummary>> getDailyRange(String start, String end) async {
-    final json = await _client.get('/api/menstrual/daily', query: {
-      'start': start,
-      'end': end,
-    });
+  Future<List<MenstrualDailySummary>> getDailyRange(
+    String start,
+    String end,
+  ) async {
+    final json = await _client.get(
+      '/api/menstrual/daily',
+      query: {'start': start, 'end': end},
+    );
     final data = (json['data'] as List<dynamic>? ?? const []);
-    return data.map((item) => MenstrualDailySummary.fromJson(item as Map<String, dynamic>)).toList();
+    return data
+        .map(
+          (item) =>
+              MenstrualDailySummary.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
   }
 
   Future<MenstrualDailyDetail> getDailyByDate(String date) async {
     final json = await _client.get('/api/menstrual/daily/$date');
-    return MenstrualDailyDetail.fromJson(json['data'] as Map<String, dynamic>? ?? const {});
+    return MenstrualDailyDetail.fromJson(
+      json['data'] as Map<String, dynamic>? ?? const {},
+    );
   }
 
   Future<void> putDailyByDate(String date, MenstrualDailyInput input) async {
@@ -80,10 +90,7 @@ class MenstrualEventInput {
 }
 
 class MenstrualDailyInput {
-  MenstrualDailyInput({
-    required this.hasBleeding,
-    required this.events,
-  });
+  MenstrualDailyInput({required this.hasBleeding, required this.events});
 
   final bool hasBleeding;
   final List<MenstrualEventInput> events;
@@ -118,7 +125,9 @@ class MenstrualDailyDetail {
   factory MenstrualDailyDetail.fromJson(Map<String, dynamic> json) {
     final clotCounts = json['clotCounts'] as Map<String, dynamic>? ?? const {};
     final events = (json['events'] as List<dynamic>? ?? const [])
-        .map((item) => MenstrualEventDetail.fromJson(item as Map<String, dynamic>))
+        .map(
+          (item) => MenstrualEventDetail.fromJson(item as Map<String, dynamic>),
+        )
         .toList();
     return MenstrualDailyDetail(
       date: json['date']?.toString() ?? '',

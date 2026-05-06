@@ -29,10 +29,10 @@ class OnboardingApi {
     required String questionId,
     required Map<String, dynamic> answer,
   }) async {
-    final json = await _client.post('/api/onboarding/v2/answer', body: {
-      'questionId': questionId,
-      'answer': answer,
-    });
+    final json = await _client.post(
+      '/api/onboarding/v2/answer',
+      body: {'questionId': questionId, 'answer': answer},
+    );
     return OnboardingNextResult(
       nextQuestionId: json['nextQuestionId']?.toString(),
       success: json['success'] == true,
@@ -40,9 +40,10 @@ class OnboardingApi {
   }
 
   Future<OnboardingPositionResult> position(String? questionId) async {
-    final json = await _client.post('/api/onboarding/v2/position', body: {
-      'currentQuestionId': questionId,
-    });
+    final json = await _client.post(
+      '/api/onboarding/v2/position',
+      body: {'currentQuestionId': questionId},
+    );
     return OnboardingPositionResult(
       currentQuestionId: json['currentQuestionId']?.toString(),
       success: json['success'] == true,

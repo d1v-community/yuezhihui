@@ -5,13 +5,13 @@ class UserApi {
 
   final ApiClient _client;
 
-  Future<void> updateProfile({
-    String? displayName,
-    bool? useTampon,
-  }) async {
-    await _client.patch('/api/user/profile', body: {
-      ...?displayName == null ? null : {'displayName': displayName},
-      ...?useTampon == null ? null : {'useTampon': useTampon},
-    });
+  Future<void> updateProfile({String? displayName, bool? useTampon}) async {
+    await _client.patch(
+      '/api/user/profile',
+      body: {
+        ...?displayName == null ? null : {'displayName': displayName},
+        ...?useTampon == null ? null : {'useTampon': useTampon},
+      },
+    );
   }
 }

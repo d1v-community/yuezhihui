@@ -10,7 +10,8 @@ class LocaleState {
   final Locale? locale;
 }
 
-final localeControllerProvider = NotifierProvider<LocaleController, LocaleState>(LocaleController.new);
+final localeControllerProvider =
+    NotifierProvider<LocaleController, LocaleState>(LocaleController.new);
 
 class LocaleController extends Notifier<LocaleState> {
   @override
@@ -32,6 +33,8 @@ class LocaleController extends Notifier<LocaleState> {
   Future<void> setLocale(String? languageCode) async {
     final storage = await ref.read(appStorageProvider.future);
     await storage.setLocaleCode(languageCode);
-    state = languageCode == null ? const LocaleState(null) : LocaleState(Locale(languageCode));
+    state = languageCode == null
+        ? const LocaleState(null)
+        : LocaleState(Locale(languageCode));
   }
 }
