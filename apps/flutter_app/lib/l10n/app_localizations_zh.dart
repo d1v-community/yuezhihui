@@ -12,7 +12,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appTitle => '月知会';
 
   @override
-  String get brandName => 'FlowCycle';
+  String get brandName => '月知会';
 
   @override
   String get brandTagline => '邮箱验证码登录，继续引导，开始按日记录。';

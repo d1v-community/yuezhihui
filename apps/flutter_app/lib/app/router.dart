@@ -21,7 +21,7 @@ final routerRefreshProvider = Provider<RouterRefreshNotifier>((ref) {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(routerRefreshProvider);
-  const publicPaths = {'/login', '/doc'};
+  const publicPaths = {'/login', '/doc', '/encyclopedia'};
   return GoRouter(
     initialLocation: '/boot',
     refreshListenable: refresh,
@@ -140,9 +140,17 @@ class _BootPageState extends ConsumerState<BootPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('FC', style: theme.textTheme.headlineMedium),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        'assets/branding/app_logo_master.png',
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                     const SizedBox(height: 12),
-                    Text('FlowCycle', style: theme.textTheme.titleLarge),
+                    Text('月知会', style: theme.textTheme.titleLarge),
                     const SizedBox(height: 12),
                     const CircularProgressIndicator(),
                   ],

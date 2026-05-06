@@ -16,7 +16,7 @@ class FlowCycleApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'FlowCycle',
+      title: '月知会',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       routerConfig: router,

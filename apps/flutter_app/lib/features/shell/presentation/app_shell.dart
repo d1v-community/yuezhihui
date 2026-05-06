@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/session/session_controller.dart';
 import '../../../l10n/app_localizations.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.child});
 
   final Widget child;
@@ -16,10 +18,15 @@ class AppShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final location = GoRouterState.of(context).uri.toString();
     final currentIndex = _indexFor(location);
+    final isGuest = ref.watch(
+      sessionControllerProvider.select(
+        (state) => state.status == SessionStatus.loggedOut,
+      ),
+    );
 
     return Scaffold(
       body: DecoratedBox(
@@ -39,7 +46,40 @@ class AppShell extends StatelessWidget {
             ),
           ],
         ),
-        child: SafeArea(child: child),
+        child: SafeArea(
+          child: Column(
+            children: [
+              if (isGuest)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8EEE8),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lock_open_rounded, size: 18),
+                      const SizedBox(width: 10),
+                      const Expanded(child: Text('当前是游客模式：百科可直接看，记录与分析需要登录。')),
+                      TextButton(
+                        onPressed: () => context.go('/login'),
+                        child: const Text('去登录'),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(child: child),
+            ],
+          ),
+        ),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
@@ -62,6 +102,13 @@ class AppShell extends StatelessWidget {
             child: NavigationBar(
               selectedIndex: currentIndex,
               onDestinationSelected: (index) {
+                if (isGuest && index != 2) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('登录后可用记录、分析和设置')),
+                  );
+                  context.go('/login');
+                  return;
+                }
                 switch (index) {
                   case 0:
                     context.go('/home');
@@ -79,19 +126,23 @@ class AppShell extends StatelessWidget {
               },
               destinations: [
                 NavigationDestination(
-                  icon: const Icon(Icons.water_drop_outlined),
+                  icon: const Icon(Icons.edit_note_outlined),
+                  selectedIcon: const Icon(Icons.edit_note_rounded),
                   label: l10n.homeTab,
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.insights_outlined),
+                  icon: const Icon(Icons.ssid_chart_outlined),
+                  selectedIcon: const Icon(Icons.ssid_chart_rounded),
                   label: l10n.analysisTab,
                 ),
                 const NavigationDestination(
-                  icon: Icon(Icons.menu_book_outlined),
+                  icon: Icon(Icons.auto_stories_outlined),
+                  selectedIcon: Icon(Icons.auto_stories_rounded),
                   label: '百科',
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.tune_outlined),
+                  icon: const Icon(Icons.account_circle_outlined),
+                  selectedIcon: const Icon(Icons.account_circle_rounded),
                   label: l10n.settingsTab,
                 ),
               ],

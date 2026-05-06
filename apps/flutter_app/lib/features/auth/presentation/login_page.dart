@@ -63,89 +63,124 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       body: DecoratedBox(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFF6E9E1), Color(0xFFF0DFD7), Color(0xFFE8DEE2)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFBF4EF), Color(0xFFF3E6DF), Color(0xFFECDDE0)],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.04),
-              blurRadius: 120,
-              offset: const Offset(0, -20),
-            ),
-          ],
         ),
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1080),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final wide = constraints.maxWidth >= 860;
-                    return Container(
+          child: Stack(
+            children: [
+              Positioned(
+                top: -80,
+                right: -40,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.92, end: 1),
+                  duration: const Duration(seconds: 4),
+                  curve: Curves.easeInOut,
+                  builder: (context, value, child) =>
+                      Transform.scale(scale: value, child: child),
+                  child: const _AmbientGlow(
+                    size: 240,
+                    colors: [Color(0x30A04657), Color(0x00A04657)],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -60,
+                bottom: 120,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 1, end: 1.08),
+                  duration: const Duration(seconds: 5),
+                  curve: Curves.easeInOut,
+                  builder: (context, value, child) =>
+                      Transform.scale(scale: value, child: child),
+                  child: const _AmbientGlow(
+                    size: 220,
+                    colors: [Color(0x26A04657), Color(0x00A04657)],
+                  ),
+                ),
+              ),
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 24,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 320),
+                      curve: Curves.easeOutCubic,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.84),
-                        borderRadius: BorderRadius.circular(34),
+                        color: Colors.white.withValues(alpha: 0.82),
+                        borderRadius: BorderRadius.circular(32),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant,
+                          color: Colors.white.withValues(alpha: 0.72),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 32,
-                            offset: const Offset(0, 18),
+                            color: Colors.black.withValues(
+                              alpha: _codeStep ? 0.08 : 0.06,
+                            ),
+                            blurRadius: _codeStep ? 46 : 40,
+                            offset: Offset(0, _codeStep ? 24 : 20),
                           ),
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(28),
-                        child: wide
-                            ? Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: _LoginShowcase(codeStep: _codeStep),
+                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _LoginShowcase(codeStep: _codeStep),
+                            const SizedBox(height: 24),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 240),
+                              switchInCurve: Curves.easeOutCubic,
+                              switchOutCurve: Curves.easeInCubic,
+                              transitionBuilder: (child, animation) {
+                                final offset = Tween<Offset>(
+                                  begin: const Offset(0, 0.05),
+                                  end: Offset.zero,
+                                ).animate(animation);
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: offset,
+                                    child: child,
                                   ),
-                                  const SizedBox(width: 24),
-                                  Expanded(
-                                    child: _buildForm(
-                                      context,
-                                      l10n,
-                                      busy,
-                                      errorMessage,
-                                      emailError,
-                                      codeError,
-                                      canSubmit,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _LoginShowcase(codeStep: _codeStep),
-                                  const SizedBox(height: 24),
-                                  _buildForm(
-                                    context,
-                                    l10n,
-                                    busy,
-                                    errorMessage,
-                                    emailError,
-                                    codeError,
-                                    canSubmit,
-                                  ),
-                                ],
+                                );
+                              },
+                              child: KeyedSubtree(
+                                key: ValueKey(_codeStep),
+                                child: _buildForm(
+                                  context,
+                                  l10n,
+                                  busy,
+                                  errorMessage,
+                                  emailError,
+                                  codeError,
+                                  canSubmit,
+                                ),
                               ),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const Positioned(
+                top: 56,
+                right: 24,
+                child: _AmbientGlow(
+                  size: 180,
+                  colors: [Color(0x30D9A79C), Color(0x00D9A79C)],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -234,67 +269,107 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               )),
                 ),
               ),
-              if (_codeStep) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8F1EC),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '输入验证码',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _codeController,
-                        focusNode: _codeFocusNode,
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: [AutofillHints.oneTimeCode],
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(6),
-                        ],
-                        autofocus: true,
-                        onChanged: (value) {
-                          if (_showCodeValidation) {
-                            setState(() {});
-                          }
-                          _onCodeChanged(value, busy);
-                        },
-                        onSubmitted: (_) => _handlePrimaryAction(),
-                        decoration: InputDecoration(
-                          labelText: '验证码',
-                          hintText: '输入 6 位数字',
-                          errorText: codeError,
-                          suffixIcon: IconButton(
-                            onPressed: busy ? null : _pasteCodeFromClipboard,
-                            icon: const Icon(Icons.content_paste_go_outlined),
-                            tooltip: '粘贴验证码',
+              AnimatedSize(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
+                child: !_codeStep
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 320),
+                          curve: Curves.easeOutCubic,
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F1EC),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.05),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0.96, end: 1),
+                            duration: const Duration(milliseconds: 280),
+                            curve: Curves.easeOutBack,
+                            builder: (context, value, child) => Transform.scale(
+                              scale: value,
+                              alignment: Alignment.topCenter,
+                              child: Opacity(
+                                opacity: value.clamp(0.0, 1.0),
+                                child: child,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '输入验证码',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 10),
+                                TextField(
+                                  controller: _codeController,
+                                  focusNode: _codeFocusNode,
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.done,
+                                  autofillHints: [AutofillHints.oneTimeCode],
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(6),
+                                  ],
+                                  autofocus: true,
+                                  onChanged: (value) {
+                                    if (_showCodeValidation) {
+                                      setState(() {});
+                                    }
+                                    _onCodeChanged(value, busy);
+                                  },
+                                  onSubmitted: (_) => _handlePrimaryAction(),
+                                  decoration: InputDecoration(
+                                    labelText: '验证码',
+                                    hintText: '输入 6 位数字',
+                                    errorText: codeError,
+                                    suffixIcon: IconButton(
+                                      onPressed: busy
+                                          ? null
+                                          : _pasteCodeFromClipboard,
+                                      icon: const Icon(
+                                        Icons.content_paste_go_outlined,
+                                      ),
+                                      tooltip: '粘贴验证码',
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      _cooldown > 0
+                                          ? '${_cooldown}s 后可重发'
+                                          : '可重新发送',
+                                    ),
+                                    const Spacer(),
+                                    TextButton(
+                                      onPressed: busy || _cooldown > 0
+                                          ? null
+                                          : _resendCode,
+                                      child: const Text('重新发送'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                      Row(
-                        children: [
-                          Text(_cooldown > 0 ? '${_cooldown}s 后可重发' : '可重新发送'),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: busy || _cooldown > 0
-                                ? null
-                                : _resendCode,
-                            child: const Text('重新发送'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ],
           ),
         ),
@@ -382,10 +457,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
         const SizedBox(height: 14),
-        OutlinedButton.icon(
-          onPressed: busy ? null : () => context.go('/doc'),
-          icon: const Icon(Icons.menu_book_outlined),
-          label: const Text('先看文档'),
+        TextButton(
+          onPressed: busy ? null : () => context.go('/encyclopedia'),
+          child: const Text('先以游客模式浏览百科'),
         ),
       ],
     );
@@ -524,234 +598,204 @@ class _LoginShowcase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF8E4151), Color(0xFF733340), Color(0xFF55262F)],
-        ),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(22),
-                child: Image.asset(
-                  'assets/branding/app_logo_master.png',
-                  width: 72,
-                  height: 72,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'FLOWCYCLE',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '悦织慧',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.94, end: 1),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOutBack,
+            builder: (context, value, child) => Transform.scale(
+              scale: value,
+              child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
+            ),
+            child: Container(
+              width: 94,
+              height: 94,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFF7E8E2),
+                    Color(0xFFE3C7C4),
+                    Color(0xFFDAB8C0),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Text(
-            codeStep ? '登录后继续记录和分析。' : '记录、分析、阅读内容都更顺手。',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              height: 1.15,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            codeStep ? '验证码发到邮箱后，输入 6 位数字即可继续。' : '未登录也能先看文档；登录后再保存记录、同步数据。',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withValues(alpha: 0.82),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: const [
-              _BenefitChip(icon: Icons.water_drop_outlined, text: '按天记录'),
-              _BenefitChip(icon: Icons.insights_outlined, text: '趋势分析'),
-              _BenefitChip(icon: Icons.menu_book_outlined, text: '先看文档'),
-            ],
-          ),
-          const SizedBox(height: 22),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '未登录可用',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '文档 / 百科内容可直接浏览；记录保存、同步和个性化分析需要登录。',
-                  style: TextStyle(color: Colors.white70, height: 1.4),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Column(
-            children: const [
-              _GuestEntryCard(
-                icon: Icons.menu_book_outlined,
-                title: '先看月经常识',
-                subtitle: '快速了解正常范围和常见变化',
-                route: '/doc?entry=normal-range',
-              ),
-              SizedBox(height: 10),
-              _GuestEntryCard(
-                icon: Icons.warning_amber_rounded,
-                title: '先看经量风险',
-                subtitle: '判断哪些情况值得尽快关注',
-                route: '/doc?entry=hmb',
-              ),
-              SizedBox(height: 10),
-              _GuestEntryCard(
-                icon: Icons.checklist_rtl_outlined,
-                title: '先看怎么记录',
-                subtitle: '登录前也能先知道该记什么',
-                route: '/doc?entry=track',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BenefitChip extends StatelessWidget {
-  const _BenefitChip({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GuestEntryCard extends StatelessWidget {
-  const _GuestEntryCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.route,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: () => context.go(route),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: Colors.white),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.white70, height: 1.3),
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8C3B4D).withValues(alpha: 0.16),
+                    blurRadius: 26,
+                    offset: const Offset(0, 12),
                   ),
                 ],
               ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'assets/branding/app_logo_master.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward, color: Colors.white70, size: 18),
-          ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: Text(
+            '月知会',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -1,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Center(
+          child: Text(
+            'FLOWCYCLE',
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.7),
+              letterSpacing: 1.6,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          codeStep ? '输入验证码，继续使用完整功能。' : '先浏览，再在需要时登录。',
+          style: theme.textTheme.titleLarge?.copyWith(
+            height: 1.2,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          codeStep ? '验证码发到邮箱后，输入 6 位数字即可登录。' : '百科可直接浏览；记录、分析与同步会在用到时再登录。',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.72),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _LoginProgress(codeStep: codeStep),
+      ],
+    );
+  }
+}
+
+class _LoginProgress extends StatelessWidget {
+  const _LoginProgress({required this.codeStep});
+
+  final bool codeStep;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Row(
+      children: [
+        const Expanded(
+          child: _ProgressPill(
+            active: true,
+            title: '邮箱',
+            icon: Icons.alternate_email_rounded,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _ProgressPill(
+            active: codeStep,
+            title: '验证',
+            icon: Icons.verified_user_rounded,
+          ),
+        ),
+        const SizedBox(width: 10),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+          width: codeStep ? 28 : 16,
+          height: 6,
+          decoration: BoxDecoration(
+            color: codeStep ? primary : primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProgressPill extends StatelessWidget {
+  const _ProgressPill({
+    required this.active,
+    required this.title,
+    required this.icon,
+  });
+
+  final bool active;
+  final String title;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: active ? primary.withValues(alpha: 0.1) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: active
+              ? primary.withValues(alpha: 0.18)
+              : Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Row(
+        children: [
+          AnimatedScale(
+            scale: active ? 1 : 0.92,
+            duration: const Duration(milliseconds: 240),
+            child: Icon(
+              icon,
+              size: 18,
+              color: active ? primary : primary.withValues(alpha: 0.45),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: active ? primary : primary.withValues(alpha: 0.56),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AmbientGlow extends StatelessWidget {
+  const _AmbientGlow({required this.size, required this.colors});
+
+  final double size;
+  final List<Color> colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: colors),
         ),
       ),
     );
