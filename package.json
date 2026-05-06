@@ -19,6 +19,7 @@
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc --noEmit --pretty -p tsconfig.json && tsc --noEmit --pretty -p apps/app/tsconfig.json",
     "typecheck:watch": "tsc --noEmit --watch",
+    "e2e:online": "node scripts/e2e_online_api.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:migrate:api": "node scripts/migrate_via_api.mjs",
     "db:seed": "node scripts/seed.mjs",

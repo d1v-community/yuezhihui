@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type RevealProps = {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ export function Reveal({ children, className, threshold = 0.12, rootMargin = "0p
     [threshold, rootMargin],
   );
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
@@ -49,4 +49,3 @@ export function Reveal({ children, className, threshold = 0.12, rootMargin = "0p
     </div>
   );
 }
-

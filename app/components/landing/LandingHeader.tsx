@@ -30,6 +30,12 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
 
           <nav className="hidden md:flex items-center gap-1 text-sm text-brand-muted">
             <Link
+              to="/download"
+              className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70"
+            >
+              下载
+            </Link>
+            <Link
               to="/wiki"
               className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70"
             >
