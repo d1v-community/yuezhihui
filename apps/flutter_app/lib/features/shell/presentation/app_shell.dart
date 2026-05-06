@@ -49,34 +49,75 @@ class AppShell extends ConsumerWidget {
         child: SafeArea(
           child: Column(
             children: [
-              if (isGuest)
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8EEE8),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outlineVariant,
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 260),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  final offset = Tween<Offset>(
+                    begin: const Offset(0, -0.08),
+                    end: Offset.zero,
+                  ).animate(animation);
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(position: offset, child: child),
+                  );
+                },
+                child: isGuest
+                    ? Container(
+                        key: const ValueKey('guest-banner'),
+                        width: double.infinity,
+                        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8EEE8),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.lock_open_rounded, size: 18),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text('当前是游客模式：百科可直接看，记录与分析需要登录。'),
+                            ),
+                            TextButton(
+                              onPressed: () => context.go('/login'),
+                              child: const Text('去登录'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox(key: ValueKey('guest-banner-empty')),
+              ),
+              Expanded(
+                child: ClipRect(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 320),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final offset = Tween<Offset>(
+                        begin: const Offset(0.06, 0),
+                        end: Offset.zero,
+                      ).animate(animation);
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(position: offset, child: child),
+                      );
+                    },
+                    child: KeyedSubtree(
+                      key: ValueKey(currentIndex),
+                      child: child,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.lock_open_rounded, size: 18),
-                      const SizedBox(width: 10),
-                      const Expanded(child: Text('当前是游客模式：百科可直接看，记录与分析需要登录。')),
-                      TextButton(
-                        onPressed: () => context.go('/login'),
-                        child: const Text('去登录'),
-                      ),
-                    ],
-                  ),
                 ),
-              Expanded(child: child),
+              ),
             ],
           ),
         ),
