@@ -86,6 +86,12 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
                   {displayName}
                 </span>
                 <div className="absolute right-0 mt-2 hidden group-hover:block z-50">
+                  <Link
+                    to="/account"
+                    className="mb-2 block rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-brand-text shadow-sm hover:bg-brand-primary/35 transition"
+                  >
+                    账号设置
+                  </Link>
                   <button
                     type="button"
                     onClick={onLogout}
