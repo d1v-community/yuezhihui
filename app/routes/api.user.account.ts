@@ -3,6 +3,10 @@ import { deleteUserAccount } from "~/services/account.server";
 import { requireUser, createLogoutHeaders } from "~/utils/auth.server";
 import { fail, ok } from "~/utils/apiResponse.server";
 
+export const openApi = {
+  actionMethods: ["delete"],
+};
+
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "DELETE") {
     return Response.json(fail("Method Not Allowed", 405), { status: 405 });

@@ -1,7 +1,8 @@
 // Generate a minimal OpenAPI-style document by scanning API route modules.
 // Convention: any file matching `app/routes/api.*.ts` is treated as an API route.
-// - If it exports `loader`, the route supports GET.
-// - If it exports `action`, the route supports POST.
+// - If it exports `loader`, the route supports GET by default.
+// - If it exports `action`, the route supports POST by default.
+// - Routes may override either via `export const openApi = { ... }`.
 // Path mapping: `api.auth.verify-login.ts` -> `/api/auth/verify-login`
 
 export async function loader() {
@@ -11,6 +12,10 @@ export async function loader() {
     {
       loader?: unknown;
       action?: unknown;
+      openApi?: {
+        loaderMethods?: string[];
+        actionMethods?: string[];
+      };
     }
   >;
 
@@ -22,8 +27,21 @@ export async function loader() {
 
     // Derive the HTTP methods from exported handlers
     const methods: Record<string, unknown> = {};
-    if (mod && typeof mod.loader === "function") methods["get"] = { summary: "GET" };
-    if (mod && typeof mod.action === "function") methods["post"] = { summary: "POST" };
+    const loaderMethods = mod.openApi?.loaderMethods?.length ? mod.openApi.loaderMethods : ["get"];
+    const actionMethods = mod.openApi?.actionMethods?.length ? mod.openApi.actionMethods : ["post"];
+
+    if (mod && typeof mod.loader === "function") {
+      for (const method of loaderMethods) {
+        methods[method.toLowerCase()] = { summary: method.toUpperCase() };
+      }
+    }
+
+    if (mod && typeof mod.action === "function") {
+      for (const method of actionMethods) {
+        methods[method.toLowerCase()] = { summary: method.toUpperCase() };
+      }
+    }
+
     if (Object.keys(methods).length === 0) continue;
 
     // Derive the route path from the file name.

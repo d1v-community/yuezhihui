@@ -6,6 +6,10 @@ import { users } from "~/db/schema";
 import { requireUser } from "~/utils/auth.server";
 import { fail, ok } from "~/utils/apiResponse.server";
 
+export const openApi = {
+  actionMethods: ["patch"],
+};
+
 const schema = z.object({
   displayName: z.string().trim().min(1).max(64).optional(),
   avatarUrl: z.string().trim().url().max(2048).optional(),
