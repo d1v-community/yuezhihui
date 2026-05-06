@@ -101,18 +101,18 @@ export default function Index() {
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Link
+                    to="/download"
+                    className="inline-flex items-center justify-center rounded-full bg-brand-text px-6 py-3 text-sm font-medium text-white transition hover:bg-black/90 motion-safe:animate-lp-breathe"
+                  >
+                    下载 App
+                  </Link>
+                  <Link
                     to="/app"
                     reloadDocument
-                    className="inline-flex items-center justify-center rounded-full bg-brand-text px-6 py-3 text-sm font-medium text-white transition hover:bg-black/90 motion-safe:animate-lp-breathe"
+                    className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/75 px-6 py-3 text-sm font-medium text-brand-text transition hover:bg-brand-primary/35"
                   >
                     立即体验
                   </Link>
-                  <a
-                    href="#demo"
-                    className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/75 px-6 py-3 text-sm font-medium text-brand-text transition hover:bg-brand-primary/35"
-                  >
-                    看看 Demo
-                  </a>
                 </div>
 
                 <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -283,17 +283,17 @@ export default function Index() {
                   </p>
                   <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                     <Link
-                      to="/app"
-                      reloadDocument
+                      to="/download"
                       className="inline-flex items-center justify-center rounded-full bg-brand-text px-6 py-3 text-sm font-medium text-white transition hover:bg-black/90"
                     >
-                      打开应用
+                      下载最新版本
                     </Link>
                     <Link
-                      to="/login"
+                      to="/app"
+                      reloadDocument
                       className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/80 px-6 py-3 text-sm font-medium text-brand-text transition hover:bg-white"
                     >
-                      使用邮箱登录
+                      打开 Web 应用
                     </Link>
                   </div>
                 </div>

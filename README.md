@@ -35,6 +35,20 @@ Taro v4 requires Node.js 20+. This repo pins Node to 20 via:
 
 If Vercel still builds with an older Node, set **Project Settings → General → Node.js Version = 20.x**.
 
+## ✅ Web Deploy Preflight
+
+Vercel now runs `pnpm run build:deploy`, which validates deploy-only requirements before the actual build starts.
+
+- `DATABASE_URL` must use PostgreSQL and include `sslmode=require`
+- `JWT_SECRET` must be non-default and at least 32 characters
+- `APP_URL` must be an absolute URL, and must use `https://` in production
+
+Run the same check locally before shipping:
+
+```bash
+pnpm run deploy:check:web
+```
+
 ## ✨ Features
 
 - 🔐 **Email Verification Login** - Secure authentication without passwords
@@ -204,13 +218,15 @@ pnpm run db:migrate
 ## 🛠️ Available Scripts
 
 ```bash
-pnpm run dev          # Start development server
-pnpm run dev:all      # Start Remix + Taro together (default: H5)
-pnpm run build        # Build for production
-pnpm run start        # Start production server
-pnpm run typecheck    # Run TypeScript type checks (no emit)
+pnpm run dev              # Start development server
+pnpm run dev:all          # Start Remix + Taro together (default: H5)
+pnpm run build            # Local production build
+pnpm run build:deploy     # Deploy build with env validation
+pnpm run deploy:check:web # Validate Web/Vercel deploy env only
+pnpm run start            # Start production server
+pnpm run typecheck        # Run TypeScript type checks (no emit)
 pnpm run typecheck:watch  # Watch mode type checks
-pnpm run lint         # Run ESLint
+pnpm run lint             # Run ESLint
 
 pnpm run db:migrate   # Apply database migrations
 pnpm run db:migrate:api  # Apply migrations via Neon API

@@ -39,11 +39,17 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
                   {displayName}
                 </button>
                 <div className="absolute right-0 mt-2 hidden group-hover:block z-50">
+                  <Link
+                    to="/account"
+                    className="mb-2 block px-3 py-1 text-sm text-slate-900 bg-white rounded shadow hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                  >
+                    账号设置
+                  </Link>
                   <button
                     onClick={onLogout}
                     className="px-3 py-1 text-sm text-white bg-gray-800 rounded shadow hover:bg-gray-900 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white"
                   >
-                    Logout
+                    退出登录
                   </button>
                 </div>
               </div>

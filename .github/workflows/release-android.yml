@@ -1,0 +1,133 @@
+name: Release Android
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - "apps/flutter_app/**"
+      - ".github/workflows/release-android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-android:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/flutter_app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepare release config
+        id: prepare
+        env:
+          FLUTTER_BUILD_NUMBER: ${{ github.run_number }}
+          FLUTTER_API_BASE_URL: ${{ vars.FLUTTER_API_BASE_URL || 'https://www.yuezhihui.xyz' }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: node ../../scripts/prepare-flutter-android-release.mjs --write-signing
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter app
+        run: flutter analyze
+
+      - name: Build Android release APK
+        run: |
+          flutter build apk \
+            --release \
+            --dart-define=API_BASE_URL=${{ steps.prepare.outputs.api_base_url }} \
+            --build-name "${{ steps.prepare.outputs.version_name }}" \
+            --build-number "${{ steps.prepare.outputs.build_number }}"
+
+      - name: Rename APK for release
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            "build/app/outputs/flutter-apk/${{ steps.prepare.outputs.apk_name }}"
+
+      - name: Generate release notes
+        run: |
+          CURRENT_TAG="${{ steps.prepare.outputs.tag_name }}"
+          PREV_TAG="$(git tag --list 'android-v*' --sort=-creatordate | head -n 1)"
+
+          {
+            echo "## Version"
+            echo
+            echo "- Version: ${{ steps.prepare.outputs.version_name }}+${{ steps.prepare.outputs.build_number }}"
+            echo "- Tag: ${CURRENT_TAG}"
+            echo "- Branch: ${GITHUB_REF_NAME}"
+            echo "- Commit: ${GITHUB_SHA}"
+            echo "- API Base URL: ${{ steps.prepare.outputs.api_base_url }}"
+            echo "- Signing Mode: ${{ steps.prepare.outputs.signing_mode }}"
+            echo
+            echo "## Commits"
+            echo
+          } > RELEASE_NOTES.md
+
+          if [ -n "${PREV_TAG}" ]; then
+            echo "Changes since \`${PREV_TAG}\`:" >> RELEASE_NOTES.md
+            echo >> RELEASE_NOTES.md
+            git log "${PREV_TAG}..HEAD" --pretty=format:'- %s (%h)' >> RELEASE_NOTES.md
+          else
+            echo "Initial Android release snapshot:" >> RELEASE_NOTES.md
+            echo >> RELEASE_NOTES.md
+            git log -20 --pretty=format:'- %s (%h)' >> RELEASE_NOTES.md
+          fi
+
+          if ! grep -q '^- ' RELEASE_NOTES.md; then
+            echo "- No commit messages found in the release range." >> RELEASE_NOTES.md
+          fi
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepare.outputs.apk_name }}
+          path: apps/flutter_app/build/app/outputs/flutter-apk/${{ steps.prepare.outputs.apk_name }}
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.prepare.outputs.tag_name }}
+          name: Android ${{ steps.prepare.outputs.version_name }}+${{ steps.prepare.outputs.build_number }}
+          body_path: apps/flutter_app/RELEASE_NOTES.md
+          append_body: true
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            apps/flutter_app/build/app/outputs/flutter-apk/${{ steps.prepare.outputs.apk_name }}

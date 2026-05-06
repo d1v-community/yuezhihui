@@ -6,6 +6,10 @@ import { menstrualDaily, menstrualEvent } from "~/db/schema";
 import { requireUser } from "~/utils/auth.server";
 import { fail, ok } from "~/utils/apiResponse.server";
 
+export const openApi = {
+  actionMethods: ["put"],
+};
+
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date 格式应为 YYYY-MM-DD");
 
 const eventSchema = z.object({

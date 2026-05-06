@@ -1,3 +1,6 @@
+import { Link } from "@remix-run/react";
+import { GITHUB_REPO_URL } from "~/constants/app";
+
 export function LandingFooter() {
   return (
     <footer className="border-t border-black/5 bg-white">
@@ -6,12 +9,17 @@ export function LandingFooter() {
           <div className="text-sm text-brand-muted">
             身体不是黑箱。感受不是主观。数据不是冷冰冰的。
           </div>
-          <div className="text-sm text-brand-muted">
-            © {new Date().getFullYear()} · Built with Remix
+          <div className="flex flex-wrap items-center gap-4 text-sm text-brand-muted">
+            <Link to="/download" className="hover:text-brand-text transition-colors">
+              下载 App
+            </Link>
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="hover:text-brand-text transition-colors">
+              GitHub
+            </a>
+            <span>© {new Date().getFullYear()} · Built with Remix</span>
           </div>
         </div>
       </div>
     </footer>
   );
 }
-

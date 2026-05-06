@@ -4,7 +4,9 @@
   "name": "with-remix",
   "scripts": {
     "build": "pnpm run rebuild:ci && node scripts/build-taro-h5.mjs && remix vite:build",
+    "build:deploy": "pnpm run deploy:check:web && pnpm run build",
     "rebuild:ci": "pnpm rebuild esbuild @tarojs/binding less unrs-resolver",
+    "deploy:check:web": "node scripts/check-deploy-env.mjs --target=web",
     "dev:remix": "remix vite:dev --port 5173 --strictPort",
     "dev": "node scripts/dev-all.mjs",
     "dev:all": "node scripts/dev-all.mjs",
@@ -17,6 +19,7 @@
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc --noEmit --pretty -p tsconfig.json && tsc --noEmit --pretty -p apps/app/tsconfig.json",
     "typecheck:watch": "tsc --noEmit --watch",
+    "e2e:online": "node scripts/e2e_online_api.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:migrate:api": "node scripts/migrate_via_api.mjs",
     "db:seed": "node scripts/seed.mjs",

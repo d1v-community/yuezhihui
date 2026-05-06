@@ -1,6 +1,7 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm run build",
+  "buildCommand": "pnpm run build:deploy",
   "outputDirectory": "build/client",
   "headers": [
     {
@@ -20,8 +21,10 @@
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ],
-  "rewrites": [
-    { "source": "/app", "destination": "/app/index.html" },
-    { "source": "/app/(.*)", "destination": "/app/index.html" }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "^/app$", "dest": "/app/index.html" },
+    { "src": "^/app/(.*)$", "dest": "/app/index.html" },
+    { "src": "^/(.*)$", "dest": "/api/remix" }
   ]
 }
