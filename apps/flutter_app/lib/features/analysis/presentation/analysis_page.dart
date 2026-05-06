@@ -99,214 +99,400 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
       title: l10n.analysisTitle,
       subtitle: '看风险和周期变化。',
       actions: [
-        IconButton(
-          onPressed: () => _load(reset: true),
-          icon: const Icon(Icons.refresh),
+        AnimatedRotation(
+          turns: _loading ? 1 : 0,
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeOutCubic,
+          child: IconButton(
+            onPressed: () => _load(reset: true),
+            icon: const Icon(Icons.refresh),
+          ),
         ),
       ],
       children: [
-        if (_overview == null && _loading)
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          ),
+        if (_overview == null && _loading) const _AnalysisLoadingState(),
         if (_overview != null)
-          _OverviewCard(
-            overview: _overview!,
-            sharing: _sharing,
-            onShare: _shareOverview,
+          _AnimatedSection(
+            delay: 0,
+            child: _OverviewCard(
+              overview: _overview!,
+              sharing: _sharing,
+              onShare: _shareOverview,
+            ),
           ),
         if (_error != null) ...[
           const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text('加载失败：$_error'),
+          _AnimatedSection(
+            delay: 40,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text('加载失败：$_error'),
+              ),
             ),
           ),
         ],
         if (_overview?.risks.isNotEmpty == true) ...[
           const SizedBox(height: 16),
-          Card(
+          _AnimatedSection(
+            delay: 90,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '先看这些',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text('风险', style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 12),
+                    for (final risk in _overview!.risks.take(5)) ...[
+                      InkWell(
+                        borderRadius: BorderRadius.circular(22),
+                        onTap: () async {
+                          await Clipboard.setData(
+                            ClipboardData(text: risk.url),
+                          );
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('说明链接已复制')),
+                          );
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 240),
+                          curve: Curves.easeOutCubic,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: risk.level.contains('较高')
+                                ? const Color(0xFFF8E4E0)
+                                : const Color(0xFFF5ECE3),
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                margin: const EdgeInsets.only(top: 6),
+                                decoration: BoxDecoration(
+                                  color: risk.level.contains('较高')
+                                      ? const Color(0xFFC05A4A)
+                                      : const Color(0xFFAA7A4C),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      risk.title,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(risk.triggerText),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Chip(label: Text(risk.level)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Divider(height: 12),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        _AnimatedSection(
+          delay: 140,
+          child: Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '先看这些',
+                    '所有周期',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text('风险', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 12),
-                  for (final risk in _overview!.risks.take(5)) ...[
-                    InkWell(
-                      borderRadius: BorderRadius.circular(22),
-                      onTap: () async {
-                        await Clipboard.setData(ClipboardData(text: risk.url));
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('说明链接已复制')),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: risk.level.contains('较高')
-                              ? const Color(0xFFF8E4E0)
-                              : const Color(0xFFF5ECE3),
-                          borderRadius: BorderRadius.circular(22),
+                  Row(
+                    children: [
+                      Text('周期', style: Theme.of(context).textTheme.titleLarge),
+                      const Spacer(),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 240),
+                        child: Text(
+                          '${_cycles.length}/$_total',
+                          key: ValueKey('${_cycles.length}/$_total'),
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              margin: const EdgeInsets.only(top: 6),
-                              decoration: BoxDecoration(
-                                color: risk.level.contains('较高')
-                                    ? const Color(0xFFC05A4A)
-                                    : const Color(0xFFAA7A4C),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    risk.title,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(risk.triggerText),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Chip(label: Text(risk.level)),
-                          ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (_cycles.isEmpty && !_loading) const Text('还没有可分析的周期。'),
+                  for (var index = 0; index < _cycles.length; index++)
+                    _CycleListItem(item: _cycles[index], delay: index * 35),
+                  if (_cycles.length < _total) ...[
+                    const SizedBox(height: 12),
+                    FilledButton.tonal(
+                      onPressed: _loadingMore
+                          ? null
+                          : () => _load(reset: false),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        child: Text(
+                          _loadingMore ? '加载中' : '更多周期',
+                          key: ValueKey(_loadingMore),
                         ),
                       ),
                     ),
-                    const Divider(height: 12),
                   ],
                 ],
               ),
             ),
           ),
-        ],
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '所有周期',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Text('周期', style: Theme.of(context).textTheme.titleLarge),
-                    const Spacer(),
-                    Text('${_cycles.length}/$_total'),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (_cycles.isEmpty && !_loading) const Text('还没有可分析的周期。'),
-                for (final item in _cycles)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(24),
-                    onTap: () => context.go('/analysis/cycle/${item.cycleId}'),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.72),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 54,
-                            decoration: BoxDecoration(
-                              color: item.levelStatus.contains('偏')
-                                  ? const Color(0xFFC06B57)
-                                  : const Color(0xFF7A4C56),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${item.startDate} ~ ${item.endDate}',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '${item.daysCount}天 · ${item.totalVolumeMl.toStringAsFixed(0)}mL',
-                                ),
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    _CycleTag(
-                                      text: item.levelStatus,
-                                      emphasis: item.levelStatus.contains('偏'),
-                                    ),
-                                    _CycleTag(
-                                      text: '分布·${item.distributionStatus}',
-                                      emphasis: item.distributionStatus == '异常',
-                                    ),
-                                    _CycleTag(
-                                      text: '颜色·${item.colorStatus}',
-                                      emphasis: item.colorStatus == '异常',
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Icon(Icons.chevron_right),
-                        ],
-                      ),
-                    ),
-                  ),
-                if (_cycles.length < _total) ...[
-                  const SizedBox(height: 12),
-                  FilledButton.tonal(
-                    onPressed: _loadingMore ? null : () => _load(reset: false),
-                    child: Text(_loadingMore ? '加载中' : '更多周期'),
-                  ),
-                ],
-              ],
-            ),
-          ),
         ),
       ],
+    );
+  }
+}
+
+class _AnalysisLoadingState extends StatelessWidget {
+  const _AnalysisLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        _LoadingCard(height: 228),
+        SizedBox(height: 16),
+        _LoadingCard(height: 198),
+        SizedBox(height: 16),
+        _LoadingCard(height: 320),
+      ],
+    );
+  }
+}
+
+class _LoadingCard extends StatelessWidget {
+  const _LoadingCard({required this.height});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = Theme.of(context).colorScheme.surface;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.92, end: 1),
+      duration: const Duration(milliseconds: 1100),
+      curve: Curves.easeInOut,
+      builder: (context, value, child) =>
+          Opacity(opacity: 0.72 + (value - 0.92), child: child),
+      onEnd: () {},
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: base.withValues(alpha: 0.82),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SkeletonBar(width: height * 0.32, height: 14),
+            const SizedBox(height: 12),
+            _SkeletonBar(width: height * 0.22, height: 34),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: const [
+                _SkeletonPill(),
+                _SkeletonPill(),
+                _SkeletonPill(),
+              ],
+            ),
+            const Spacer(),
+            const _SkeletonBar(width: double.infinity, height: 16),
+            const SizedBox(height: 10),
+            const _SkeletonBar(width: 220, height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonBar extends StatelessWidget {
+  const _SkeletonBar({required this.width, required this.height});
+
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(999),
+      ),
+    );
+  }
+}
+
+class _SkeletonPill extends StatelessWidget {
+  const _SkeletonPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SkeletonBar(width: 82, height: 34);
+  }
+}
+
+class _AnimatedSection extends StatefulWidget {
+  const _AnimatedSection({required this.child, this.delay = 0});
+
+  final Widget child;
+  final int delay;
+
+  @override
+  State<_AnimatedSection> createState() => _AnimatedSectionState();
+}
+
+class _AnimatedSectionState extends State<_AnimatedSection> {
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration(milliseconds: 80 + widget.delay), () {
+      if (mounted) {
+        setState(() => _visible = true);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnimatedSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_visible) return;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSlide(
+      offset: _visible ? Offset.zero : const Offset(0, 0.04),
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      child: AnimatedOpacity(
+        opacity: _visible ? 1 : 0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+class _CycleListItem extends StatelessWidget {
+  const _CycleListItem({required this.item, required this.delay});
+
+  final AnalysisCycleItem item;
+  final int delay;
+
+  @override
+  Widget build(BuildContext context) {
+    return _AnimatedSection(
+      delay: delay,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => context.go('/analysis/cycle/${item.cycleId}'),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 6,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: item.levelStatus.contains('偏')
+                      ? const Color(0xFFC06B57)
+                      : const Color(0xFF7A4C56),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${item.startDate} ~ ${item.endDate}',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${item.daysCount}天 · ${item.totalVolumeMl.toStringAsFixed(0)}mL',
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _CycleTag(
+                          text: item.levelStatus,
+                          emphasis: item.levelStatus.contains('偏'),
+                        ),
+                        _CycleTag(
+                          text: '分布·${item.distributionStatus}',
+                          emphasis: item.distributionStatus == '异常',
+                        ),
+                        _CycleTag(
+                          text: '颜色·${item.colorStatus}',
+                          emphasis: item.colorStatus == '异常',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Icon(Icons.chevron_right),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
