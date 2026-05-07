@@ -22,7 +22,7 @@ export async function action({ request }: ActionFunctionArgs) {
           deleted: true,
           userId: result.deletedUserId,
         },
-        "账号已删除",
+        "账号已停用，可由后台后续恢复",
       ),
       {
         status: 200,

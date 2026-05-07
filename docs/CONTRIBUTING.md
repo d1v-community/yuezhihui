@@ -84,16 +84,16 @@ cp .env.example .env
 
 ```bash
 # Run migrations
-npm run db:migrate
+pnpm run db:migrate
 
 # (Optional) Seed demo data
-npm run db:seed
+pnpm run db:seed
 ```
 
 ### Start Development Server
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Visit http://localhost:5173

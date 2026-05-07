@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the Remix + Neon Email Authentication Template to various platforms.
+This guide covers deploying the 月知会 / FlowSense project to various platforms.
 
 ## Table of Contents
 
@@ -79,19 +79,17 @@ Create `vercel.json`:
 
 ### Database Migration on Vercel
 
-Option A: Run migrations locally before deploying
+Recommended: run migrations before deploying
 ```bash
-npm run db:migrate
-git add .
-git commit -m "Apply database migrations"
-git push
+pnpm run db:migrate
 ```
 
-Option B: Create a Vercel Build Hook
-1. Go to Settings → Git
-2. Create a Deploy Hook
-3. Name it `database-migrate`
-4. Call the hook URL in your CI/CD pipeline before deployment
+If your workflow prefers going through the backend proxy instead of direct DB
+access, API mode is also available:
+
+```bash
+pnpm run db:migrate:api
+```
 
 ---
 

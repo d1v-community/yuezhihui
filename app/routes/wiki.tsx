@@ -8,8 +8,11 @@ import { WikiLayout } from "~/components/wiki/WikiLayout";
 import { APP_TITLE } from "~/constants/app";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  const title = data?.page?.title ? `${data.page.title} - ${APP_TITLE}` : `Wiki - ${APP_TITLE}`;
-  return [{ title }];
+  const title = data?.page?.title ? `${data.page.title} · 百科 · ${APP_TITLE}` : `百科 · ${APP_TITLE}`;
+  return [
+    { title },
+    { name: "description", content: "月知百科，提供结构化的女性健康与月经知识内容。" },
+  ];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {

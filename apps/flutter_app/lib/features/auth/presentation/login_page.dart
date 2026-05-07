@@ -219,11 +219,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     : TextInputAction.next,
                 autofillHints: const [AutofillHints.email],
                 readOnly: _codeStep,
-                onChanged: (_) {
-                  if (_showEmailValidation) {
-                    setState(() {});
-                  }
-                },
+                onChanged: (_) => setState(() {}),
                 onSubmitted: (_) {
                   if (_codeStep) return;
                   if (_isEmail(_emailController.text.trim())) {
@@ -236,7 +232,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   labelText: l10n.email,
                   hintText: l10n.emailPlaceholder,
                   errorText: emailError,
-                  helperText: _codeStep ? '验证码已发到这个邮箱' : l10n.marketingHint,
+                  helperText: _codeStep ? null : l10n.marketingHint,
                   suffixIcon: _codeStep
                       ? TextButton(
                           onPressed: busy
@@ -456,11 +452,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ],
           ),
         ),
-        const SizedBox(height: 14),
-        TextButton(
-          onPressed: busy ? null : () => context.go('/encyclopedia'),
-          child: const Text('先以游客模式浏览百科'),
-        ),
+        if (!_codeStep) ...[
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: busy ? null : () => context.go('/encyclopedia'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
+            child: const Text('浏览百科'),
+          ),
+        ],
       ],
     );
   }
@@ -656,7 +657,7 @@ class _LoginShowcase extends StatelessWidget {
         const SizedBox(height: 6),
         Center(
           child: Text(
-            'FLOWCYCLE',
+            'FLOWSENSE',
             style: theme.textTheme.labelLarge?.copyWith(
               color: Theme.of(
                 context,
@@ -667,23 +668,27 @@ class _LoginShowcase extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          codeStep ? '输入验证码，继续使用完整功能。' : '先浏览，再在需要时登录。',
+          codeStep ? '输入验证码' : '邮箱验证码登录',
           style: theme.textTheme.titleLarge?.copyWith(
             height: 1.2,
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          codeStep ? '验证码发到邮箱后，输入 6 位数字即可登录。' : '百科可直接浏览；记录、分析与同步会在用到时再登录。',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.72),
+        if (codeStep) ...[
+          const SizedBox(height: 8),
+          Text(
+            '6 位数字验证码已发送到邮箱。',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.72),
+            ),
           ),
-        ),
-        const SizedBox(height: 18),
-        _LoginProgress(codeStep: codeStep),
+        ],
+        if (!codeStep) ...[
+          const SizedBox(height: 18),
+          _LoginProgress(codeStep: codeStep),
+        ],
       ],
     );
   }

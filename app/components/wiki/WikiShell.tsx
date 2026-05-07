@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@remix-run/react";
 import type { AppHeaderUser } from "~/components/AppHeader";
 import { LandingFooter } from "~/components/landing/LandingFooter";
-import { WikiHeader } from "~/components/wiki/WikiHeader";
+import { LandingHeader } from "~/components/landing/LandingHeader";
 
 interface WikiShellProps {
   user: AppHeaderUser;
@@ -50,7 +50,7 @@ export function WikiShell({ user, envWarning, children }: WikiShellProps) {
         </div>
       ) : null}
 
-      <WikiHeader user={effectiveUser} onLogout={handleLogout} />
+      <LandingHeader user={effectiveUser} onLogout={handleLogout} />
 
       <main className="flex-1 min-h-0">{children}</main>
 
@@ -58,4 +58,3 @@ export function WikiShell({ user, envWarning, children }: WikiShellProps) {
     </div>
   );
 }
-

@@ -49,6 +49,14 @@
     @apply mt-4 max-w-xs rounded-2xl border border-black/5 bg-white;
   }
 
+  .wiki-article img[data-broken="true"] {
+    display: none;
+  }
+
+  .wiki-image-fallback {
+    @apply mt-4 rounded-2xl border border-dashed border-black/10 bg-brand-primary/20 px-4 py-3 text-sm text-brand-muted;
+  }
+
   .wiki-article table {
     @apply mt-4 w-full overflow-hidden rounded-2xl border border-black/5;
   }

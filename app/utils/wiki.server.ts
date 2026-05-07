@@ -57,6 +57,10 @@ function resolveWikiRelative(baseDir: string, rawPath: string) {
   return joined.replace(/^(\.\.\/)+/, "");
 }
 
+function isStaticAssetPath(pathPart: string) {
+  return /\.(png|jpe?g|gif|webp|svg|avif|ico)$/i.test(pathPart);
+}
+
 export function rewriteWikiHtml(html: string, routePath: string) {
   // Remove any scripts in the original HTML (defense-in-depth).
   let out = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
@@ -82,7 +86,8 @@ export function rewriteWikiHtml(html: string, routePath: string) {
 
     const { pathPart, suffix } = splitUrl(raw);
     const resolved = resolveWikiRelative(baseDir, pathPart);
-    const url = resolved ? `/wiki/${resolved}${suffix}` : `/wiki/${suffix}`;
+    const baseUrl = isStaticAssetPath(pathPart) ? "/wiki-assets" : "/wiki";
+    const url = resolved ? `${baseUrl}/${resolved}${suffix}` : `${baseUrl}/${suffix}`;
     return `${attr}=${quote}${url}${quote}`;
   });
 

@@ -9,9 +9,10 @@ type Props = {
   autoFocus?: boolean
   onChange: (next: string) => void
   onComplete?: (code: string) => void
+  onConfirm?: (code: string) => void
 }
 
-export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, onComplete }: Props) {
+export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, onComplete, onConfirm }: Props) {
   const inputRef = useRef<any>(null)
   const [focusTick, setFocusTick] = useState(0)
   const [focused, setFocused] = useState(Boolean(autoFocus))
@@ -64,6 +65,10 @@ export function FCCodeInput({ value, length = 6, disabled, autoFocus, onChange, 
           const next = raw.replace(/\D/g, '').slice(0, length)
           onChange(next)
           if (next.length === length) onComplete?.(next)
+        }}
+        onConfirm={() => {
+          const next = v.replace(/\D/g, '').slice(0, length)
+          onConfirm?.(next)
         }}
       />
       <View className="fcCodeBoxes">

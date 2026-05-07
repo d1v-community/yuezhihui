@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/session/session_controller.dart';
 import '../../../core/storage/app_keys.dart';
 import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/json_utils.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/question_bank.dart';
 import '../data/visibility.dart';
@@ -47,7 +50,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
   Map<String, dynamic> _initDraft(String id, Map<String, dynamic> answers) {
     final def = questionDef(id);
-    final answer = answers[id] as Map<String, dynamic>?;
+    final answer = asStringMap(answers[id]);
     switch (def['type']) {
       case 'single':
         return {'kind': 'single', 'value': answer?['value']};
@@ -62,30 +65,22 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         return {
           'kind': 'number',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(
-            answer?['meta'] as Map<String, dynamic>? ?? const {},
-          ),
+          'meta': asStringMapOrEmpty(answer?['meta']),
         };
       case 'date':
         return {
           'kind': 'date',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(
-            answer?['meta'] as Map<String, dynamic>? ?? const {},
-          ),
+          'meta': asStringMapOrEmpty(answer?['meta']),
         };
       case 'text':
         return {
           'kind': 'text',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(
-            answer?['meta'] as Map<String, dynamic>? ?? const {},
-          ),
+          'meta': asStringMapOrEmpty(answer?['meta']),
         };
       case 'birth_date_object':
-        final value = Map<String, dynamic>.from(
-          answer?['value'] as Map<String, dynamic>? ?? const {},
-        );
+        final value = asStringMapOrEmpty(answer?['value']);
         final yearMonth = value['yearMonth']?.toString() ?? '';
         final parts = yearMonth.split('-');
         return {
@@ -115,9 +110,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         );
         return {'type': 'multi', 'values': values};
       case 'number':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'number', 'value': null, 'meta': meta};
         }
@@ -125,9 +118,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         if (value == null) return null;
         return {'type': 'number', 'value': value, 'meta': {}};
       case 'date':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'date', 'value': null, 'meta': meta};
         }
@@ -135,9 +126,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         if (value == null || value.isEmpty) return null;
         return {'type': 'date', 'value': value, 'meta': {}};
       case 'text':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'text', 'value': null, 'meta': meta};
         }
@@ -263,7 +252,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   }
 
   String _computeAnchorDate(Map<String, dynamic> answers) {
-    final answer = answers['D5_last_period_start'] as Map<String, dynamic>?;
+    final answer = asStringMap(answers['D5_last_period_start']);
     final value = answer != null && answer['type'] == 'date'
         ? answer['value']?.toString()
         : null;
@@ -277,7 +266,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   }
 
   String _formatAnswer(String id) {
-    final answer = _answers[id] as Map<String, dynamic>?;
+    final answer = asStringMap(_answers[id]);
     if (answer == null) return '未填写';
     final type = answer['type'];
     if (type == 'single') {
@@ -303,9 +292,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       return labels.isEmpty ? '未填写' : labels;
     }
     if (type == 'object') {
-      final value = Map<String, dynamic>.from(
-        answer['value'] as Map<String, dynamic>? ?? const {},
-      );
+      final value = asStringMapOrEmpty(answer['value']);
       switch (value['mode']) {
         case 'unknown':
           return '不确定/记不清';
@@ -317,12 +304,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           return value['exactDate']?.toString() ?? '未填写';
       }
     }
-    if ((answer['meta'] as Map<String, dynamic>? ?? const {})['unknown'] ==
-        true) {
+    if (asStringMapOrEmpty(answer['meta'])['unknown'] == true) {
       return '不确定/记不清';
     }
-    if ((answer['meta'] as Map<String, dynamic>? ?? const {})['no_answer'] ==
-        true) {
+    if (asStringMapOrEmpty(answer['meta'])['no_answer'] == true) {
       return '不愿透露';
     }
     return answer['value']?.toString() ?? '未填写';
@@ -391,7 +376,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     final idx = visible.indexOf(_currentId!);
     final ratio = visible.isEmpty
         ? 0.0
-        : (idx < 0 ? 0.0 : idx / visible.length);
+        : ((idx < 0 ? 0 : idx + 1) / visible.length);
 
     return Scaffold(
       body: SafeArea(
@@ -405,7 +390,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             const SizedBox(height: 12),
             LinearProgressIndicator(value: ratio),
             const SizedBox(height: 8),
-            Text('已完成 ${idx < 0 ? 0 : idx}/${visible.length}'),
+            Text('已完成 ${idx < 0 ? 0 : idx + 1}/${visible.length}'),
             const SizedBox(height: 18),
             Card(
               child: Padding(
@@ -444,9 +429,15 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           child: const Text('跳过'),
                         ),
                         const Spacer(),
-                        FilledButton(
-                          onPressed: _submitting ? null : _submitCurrent,
-                          child: const Text('下一题'),
+                        AbsorbPointer(
+                          absorbing: _submitting,
+                          child: FilledButton(
+                            onPressed: _submitCurrent,
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(148, 52),
+                            ),
+                            child: _NextButtonContent(submitting: _submitting),
+                          ),
                         ),
                       ],
                     ),
@@ -458,6 +449,172 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         ),
       ),
     );
+  }
+}
+
+class _NextButtonContent extends StatelessWidget {
+  const _NextButtonContent({required this.submitting});
+
+  final bool submitting;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        final offset = Tween<Offset>(
+          begin: const Offset(0, 0.08),
+          end: Offset.zero,
+        ).animate(animation);
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(position: offset, child: child),
+        );
+      },
+      child: submitting
+          ? const _WaveLoadingLabel(key: ValueKey('wave'))
+          : const Row(
+              key: ValueKey('idle'),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('下一题'),
+                SizedBox(width: 6),
+                Icon(Icons.arrow_forward_rounded, size: 18),
+              ],
+            ),
+    );
+  }
+}
+
+class _WaveLoadingLabel extends StatefulWidget {
+  const _WaveLoadingLabel({super.key});
+
+  @override
+  State<_WaveLoadingLabel> createState() => _WaveLoadingLabelState();
+}
+
+class _WaveLoadingLabelState extends State<_WaveLoadingLabel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: const ValueKey('submitting'),
+      width: 128,
+      height: 24,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _WavePainter(progress: _controller.value),
+                  ),
+                ),
+                child!,
+              ],
+            );
+          },
+          child: const Text(
+            '提交中',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WavePainter extends CustomPainter {
+  const _WavePainter({required this.progress});
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final backPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.04),
+          Colors.white.withValues(alpha: 0.18),
+          Colors.white.withValues(alpha: 0.04),
+        ],
+      ).createShader(Offset.zero & size);
+
+    final frontPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.08),
+          Colors.white.withValues(alpha: 0.30),
+          Colors.white.withValues(alpha: 0.08),
+        ],
+      ).createShader(Offset.zero & size);
+
+    _paintWave(
+      canvas: canvas,
+      size: size,
+      baseline: size.height * 0.62,
+      amplitude: 2.6,
+      wavelength: 42,
+      phase: progress * math.pi * 2.4,
+      paint: backPaint,
+    );
+    _paintWave(
+      canvas: canvas,
+      size: size,
+      baseline: size.height * 0.58,
+      amplitude: 3.4,
+      wavelength: 34,
+      phase: progress * math.pi * 3.1 + 0.9,
+      paint: frontPaint,
+    );
+  }
+
+  void _paintWave({
+    required Canvas canvas,
+    required Size size,
+    required double baseline,
+    required double amplitude,
+    required double wavelength,
+    required double phase,
+    required Paint paint,
+  }) {
+    final path = Path()..moveTo(0, size.height);
+    for (double x = 0; x <= size.width + 2; x += 2) {
+      final y = baseline + math.sin((x / wavelength) + phase) * amplitude;
+      path.lineTo(x, y);
+    }
+    path
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _WavePainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
 
@@ -561,9 +718,7 @@ class _QuestionEditor extends StatelessWidget {
           ],
         );
       case 'number':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -602,9 +757,7 @@ class _QuestionEditor extends StatelessWidget {
           ],
         );
       case 'date':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -660,9 +813,7 @@ class _QuestionEditor extends StatelessWidget {
           ],
         );
       case 'text':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

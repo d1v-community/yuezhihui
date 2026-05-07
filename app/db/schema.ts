@@ -9,6 +9,8 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   // User preference: whether they typically use tampons. NULL means "unset".
   useTampon: boolean("use_tampon"),
+  deletedAt: timestamp("deleted_at", { withTimezone: false }),
+  deletionReason: text("deletion_reason"),
   createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
 });

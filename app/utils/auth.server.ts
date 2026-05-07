@@ -1,7 +1,7 @@
 import { db } from "~/db/db.server";
 import { users } from "~/db/schema";
 import { verifyToken, getTokenFromRequest } from "~/services/jwt.server";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type { User } from "~/db/schema";
 
 export async function getUserFromRequest(request: Request): Promise<User | null> {
@@ -20,7 +20,7 @@ export async function getUserFromRequest(request: Request): Promise<User | null>
     const userResults = await db
       .select()
       .from(users)
-      .where(eq(users.id, payload.userId))
+      .where(and(eq(users.id, payload.userId), isNull(users.deletedAt)))
       .limit(1);
 
     if (userResults.length === 0) {

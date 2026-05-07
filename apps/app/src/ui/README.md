@@ -1,4 +1,4 @@
-# FlowCycle UI (Taro)
+# FlowSense UI (Taro)
 
 This folder contains the app's **foundation components** for Taro (H5 + weapp),
 aligned with the root `DESIGN.md`:

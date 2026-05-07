@@ -109,7 +109,7 @@ remix-neon-auth/
   "dev": "remix vite:dev",              // Start dev server
   "build": "remix vite:build",          // Build for production
   "start": "remix-serve ./build/server/index.js",  // Start production
-  "db:migrate": "node scripts/migrate.mjs",        // Run migrations
+  "db:migrate": "node scripts/migrate.mjs",        // Run direct DB migrations
   "db:seed": "node scripts/seed.mjs"               // Seed data
 }
 ```

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "~/db/db.server";
 import { menstrualCycle, shareRecord, users } from "~/db/schema";
 import { fetchCycleDetailForUser, fetchOverviewForUser, rebuildUserCycles } from "~/services/analysis.server";
@@ -128,9 +128,12 @@ export async function getShareByCode(shareCode: string): Promise<ShareGetResp> {
   const ownerRows = await db
     .select({ username: users.username, displayName: users.displayName, avatarUrl: users.avatarUrl })
     .from(users)
-    .where(eq(users.id, String(share.ownerUserId)))
+    .where(and(eq(users.id, String(share.ownerUserId)), isNull(users.deletedAt)))
     .limit(1);
-  const owner = ownerRows[0] ?? { username: null, displayName: null, avatarUrl: null };
+  const owner = ownerRows[0];
+  if (!owner) {
+    throw new Error("分享不存在");
+  }
 
   return {
     shareCode: String(share.shareCode),
@@ -144,4 +147,3 @@ export async function getShareByCode(shareCode: string): Promise<ShareGetResp> {
     data,
   };
 }
-

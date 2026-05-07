@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import '../../../core/utils/json_utils.dart';
 
 class OnboardingApi {
   OnboardingApi(this._client);
@@ -7,21 +8,21 @@ class OnboardingApi {
 
   Future<OnboardingStateResult> state() async {
     final json = await _client.get('/api/onboarding/v2/state');
-    final session = json['session'] as Map<String, dynamic>?;
+    final session = asStringMap(json['session']);
     final completed = session?['status']?.toString() == 'completed';
     return OnboardingStateResult(
       completed: completed,
       currentQuestionId: session?['currentQuestionId']?.toString(),
-      answers: (json['answers'] as Map<String, dynamic>? ?? const {}),
+      answers: asStringMapOrEmpty(json['answers']),
     );
   }
 
   Future<OnboardingStartResult> start() async {
     final json = await _client.post('/api/onboarding/v2/start', body: {});
-    final session = json['session'] as Map<String, dynamic>?;
+    final session = asStringMap(json['session']);
     return OnboardingStartResult(
       currentQuestionId: session?['currentQuestionId']?.toString(),
-      answers: (json['answers'] as Map<String, dynamic>? ?? const {}),
+      answers: asStringMapOrEmpty(json['answers']),
     );
   }
 

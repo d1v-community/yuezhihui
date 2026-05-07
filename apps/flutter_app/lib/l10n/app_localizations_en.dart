@@ -9,10 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Yuezhihui';
+  String get appTitle => 'FlowSense';
 
   @override
-  String get brandName => 'FlowCycle';
+  String get brandName => 'FlowSense';
 
   @override
   String get brandTagline => 'Email sign-in, onboarding, and daily tracking.';

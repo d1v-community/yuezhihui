@@ -1,441 +1,222 @@
+# 月知会 / FlowSense
+
+<p align="center">
+  <img src="./docs/assets/github-poster.svg" alt="月知会 FlowSense GitHub poster" width="100%" />
+</p>
+
+一个围绕女性月经与身体节律理解而设计的开源项目。
+
+它不是只做“下次月经预测”的工具，而是一套把主观体感、出血强度、卫生用品使用、症状和长期趋势组织成可理解数据的记录系统。
+
 <div align="center">
-
-# 🔐 Remix + Neon Email Authentication Template
-
-A production-ready starter template for building web applications with email verification login using Remix, Neon (PostgreSQL), JWT tokens, and Tailwind CSS.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Remix](https://img.shields.io/badge/Remix-000000?logo=remix&logoColor=white)](https://remix.run/)
-[![Neon](https://img.shields.io/badge/Neon-00E5A7?logo=neon&logoColor=white)](https://neon.tech/)
+[![Taro](https://img.shields.io/badge/Taro-FF6A00?logo=wechat&logoColor=white)](https://taro.zone/)
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)](https://flutter.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-**Features** • **Quick Start** • **API** • **Deployment** • **Contributing**
+[![Drizzle ORM](https://img.shields.io/badge/Drizzle-1E1E1E?logo=drizzle&logoColor=C5F74F)](https://orm.drizzle.team/)
+[![License: Apache 2.0](https://img.shields.io/badge/Code-Apache%202.0-D22128)](./LICENSE)
+[![Content: CC BY 4.0](https://img.shields.io/badge/Content-CC%20BY%204.0-8A2BE2)](./CONTENT_LICENSE.md)
 
 </div>
 
-## 🧱 Repo Layout (Current)
+## 项目定位
 
-- Remix (backend + landing): repo root (`app/`, `app/routes/api.*`)
-- Taro app (H5 + WeChat mini-program): `apps/app`
-- Taro H5 build output is configured to emit into Remix static assets: `public/app` (served at `/app`)
+- 面向真实月经记录，而不是只做日期打卡。
+- 强调“记录 -> 计算 -> 理解”的产品路径。
+- 同时覆盖内容科普、记录工具、分析能力和跨端实现。
+- 适合作为 FemTech、健康数据建模、跨端产品工程的开源样本。
 
-This enables a single Vercel deployment to serve:
-- `/` (landing, Remix)
-- `/api/*` (backend, Remix)
-- `/app/*` (product H5 SPA, Taro)
+## 你能在这个仓库里看到什么
 
-See also: `docs/architecture/DEPLOYMENT_VERCEL_SINGLE.md`.
+- 一个对外展示的官网落地页：`/`
+- 一个百科内容站：`/wiki`
+- 一个问答页：`/faq`
+- 一个下载页：`/download`
+- 一个 Taro 产品前端：
+  - H5 Web App
+  - 微信小程序
+- 一个 Remix 后端：
+  - 认证
+  - 用户资料
+  - 记录与分析 API
+  - 分享与百科内容服务
+- 一个 Flutter 客户端原型/实现目录
 
-## 🧩 Vercel Notes (Node Version)
+## 核心特性
 
-Taro v4 requires Node.js 20+. This repo pins Node to 20 via:
-- `engines.node` in `package.json`
-- `.nvmrc` / `.node-version`
+- 精细化经期记录：按天记录出血、用品、症状、情绪等维度。
+- 强度建模：把“感觉”转成更可比较、更可追踪的数据。
+- 周期分析：面向长期节律，而不是单次事件。
+- 女性健康百科：将知识内容与产品体验放在同一项目里。
+- 多端架构：Web、H5、小程序、Flutter 目录共存。
+- 开源友好：仓库里保留了文档、脚本、迁移、部署配置。
 
-If Vercel still builds with an older Node, set **Project Settings → General → Node.js Version = 20.x**.
+## 技术架构
 
-## ✅ Web Deploy Preflight
+### Web / Backend
 
-Vercel now runs `pnpm run build:deploy`, which validates deploy-only requirements before the actual build starts.
+- `Remix` 负责官网、下载页、百科页和 `/api/*`
+- `Tailwind CSS` 负责站点样式
+- `Drizzle ORM` 管理数据库 schema 与迁移
+- `JWT + Email Login` 支持认证链路
 
-- `DATABASE_URL` must use PostgreSQL and include `sslmode=require`
-- `JWT_SECRET` must be non-default and at least 32 characters
-- `APP_URL` must be an absolute URL, and must use `https://` in production
+### Product Frontend
 
-Run the same check locally before shipping:
+- `Taro` 是主产品前端
+- 同一套产品 UI 主要面向：
+  - H5 Web App
+  - 微信小程序
 
-```bash
-pnpm run deploy:check:web
+### Mobile Exploration
+
+- `Flutter` 目录用于移动端实验和实现延展
+
+### Repo Strategy
+
+- 单仓库管理官网、API、跨端产品和内容站
+- 适合在一个项目里同时推进产品、内容和基础设施
+
+## 仓库结构
+
+```text
+.
+├── app/                     # Remix 应用：官网、百科、下载页、API
+├── apps/app/                # Taro 应用：H5 + 微信小程序
+├── apps/flutter_app/        # Flutter 客户端
+├── app/content/wiki/        # 百科内容与导航
+├── docs/                    # 文档与 GitHub 展示资源
+├── drizzle/                 # SQL migrations
+├── scripts/                 # 构建、迁移、种子、检查脚本
+└── README.md
 ```
 
-## ✨ Features
+## 本地开发
 
-- 🔐 **Email Verification Login** - Secure authentication without passwords
-- 🎫 **JWT Tokens** - Stateless token-based authentication
-- 🗄️ **Neon Database** - Serverless PostgreSQL
-- 🎨 **Tailwind CSS** - Beautiful, responsive UI
-- 🏗️ **Remix** - Full-stack React framework
-- 📧 **Resend** - Email delivery service
-- 🛡️ **TypeScript** - Full type safety
-- ⚡ **Drizzle ORM** - Type-safe database queries
-- 🔒 **Security First** - Secure cookie handling and token management
-
-## 🚀 Quick Start
-
-### Prerequisites
+### 前置要求
 
 - Node.js 20+
-- A [Neon](https://neon.tech) account
-- A [Resend](https://resend.com) account (optional, for email sending)
+- `pnpm`
 
-### Installation
+### 安装依赖
 
-1. **Clone the repository**
-```bash
-git clone <your-repo-url>
-cd remix-neon-auth
-```
-
-2. **Install dependencies**
 ```bash
 pnpm install
 ```
 
-3. **Configure environment variables**
-```bash
-cp .env.example .env
-```
+### 启动开发环境
 
-Edit `.env` with your credentials:
-```env
-DATABASE_URL=postgresql://user:password@host/db?sslmode=require
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
-RESEND_API_KEY=your_resend_api_key  # Optional
-APP_URL=http://localhost:5173
-```
-
-4. **Set up the database**
-```bash
-pnpm run db:migrate
-```
-
-5. **Start the development server**
 ```bash
 pnpm run dev
 ```
 
-Visit [http://localhost:5173](http://localhost:5173)
-
-## 📁 Project Structure
-
-```
-remix-neon-auth/
-├── app/
-│   ├── db/
-│   │   ├── db.server.ts          # Database connection
-│   │   └── schema.ts             # Drizzle schema
-│   ├── routes/
-│   │   ├── _index.tsx            # Home page
-│   │   ├── login.tsx             # Login page
-│   │   └── api.auth.*.ts         # API routes
-│   ├── services/
-│   │   ├── verification.server.ts # Email verification logic
-│   │   └── jwt.server.ts         # JWT token handling
-│   ├── utils/
-│   │   ├── auth.server.ts        # Authentication utilities
-│   │   └── env.server.ts         # Environment validation
-│   ├── tailwind.css              # Tailwind styles
-│   ├── entry.client.tsx
-│   ├── entry.server.tsx
-│   └── root.tsx
-├── drizzle/
-│   ├── 0000_init.sql             # Database migration
-│   └── meta/
-│       └── _journal.json         # Migration journal
-├── public/                        # Static assets
-├── .env.example                   # Environment template
-├── package.json
-├── tailwind.config.ts
-├── drizzle.config.ts
-└── README.md
-```
-
-## 🔌 API Endpoints
-
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/send-code` | Send verification code |
-| `POST` | `/api/auth/verify-login` | Verify code & login |
-| `POST` | `/api/auth/logout` | Logout user |
-| `GET` | `/api/auth/me` | Get current user |
-
-### Request/Response Examples
-
-**Send Verification Code**
-```bash
-POST /api/auth/send-code
-Content-Type: application/json
-
-{
-  "email": "user@example.com"
-}
-```
-
-**Verify Login**
-```bash
-POST /api/auth/verify-login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "code": "123456"
-}
-```
-
-## 🎨 Customization
-
-### Styling
-
-The template uses Tailwind CSS. Customize the design in:
-
-- `tailwind.config.ts` - Tailwind configuration
-- `app/tailwind.css` - Custom styles
-- Component className attributes
-
-### Email Template
-
-Customize the verification email in `app/services/verification.server.ts`:
-
-```typescript
-const result = await resend.emails.send({
-  from: "Your App <auth@yourdomain.com>",  // Update this
-  to: [email],
-  subject: "Your verification code",
-  html: `...`  // Customize HTML template
-});
-```
-
-### Database Schema
-
-Add tables in `app/db/schema.ts`:
-
-```typescript
-export const yourTable = pgTable('your_table', {
-  // ... columns
-});
-```
-
-Then create a new migration:
-```bash
-cp drizzle/0000_init.sql drizzle/0001_new_feature.sql
-# Edit the new migration file
-pnpm run db:migrate
-```
-
-## 🛠️ Available Scripts
+常用命令：
 
 ```bash
-pnpm run dev              # Start development server
-pnpm run dev:all          # Start Remix + Taro together (default: H5)
-pnpm run build            # Local production build
-pnpm run build:deploy     # Deploy build with env validation
-pnpm run deploy:check:web # Validate Web/Vercel deploy env only
-pnpm run start            # Start production server
-pnpm run typecheck        # Run TypeScript type checks (no emit)
-pnpm run typecheck:watch  # Watch mode type checks
-pnpm run lint             # Run ESLint
-
-pnpm run db:migrate   # Apply database migrations
-pnpm run db:migrate:api  # Apply migrations via Neon API
-pnpm run db:seed      # Seed database with demo data
-pnpm run db:seed:api  # Seed database via Neon API
+pnpm run dev                # 默认开发入口
+pnpm run dev:all            # Remix + Taro H5
+pnpm run build              # 生产构建
+pnpm run start              # 运行生产构建
+pnpm run lint               # ESLint
+pnpm run typecheck          # TypeScript 检查
 ```
 
-## 📦 Build: Taro H5 / WeChat Mini-Program
+## 数据库工作流
 
-## ▶️ Dev: Start Remix + Taro with One Command
-
-- Remix + Taro H5:
-  - `pnpm run dev:all`
-- Remix + Taro weapp (watch):
-  - `TARO_TARGET=weapp pnpm run dev:all`
-
-### Build H5 (web SPA)
-
-Commands
-- Build H5 only: `pnpm -C apps/app build:h5`
-- Build H5 + Remix (recommended for deploy): `pnpm run build`
-
-Output
-- H5 artifacts: `public/app/`
-  - entry: `public/app/index.html`
-  - assets: `public/app/js/*`, `public/app/css/*`
-
-Access (local/prod)
-- Served at `/app/` (Vercel routes rewrite `/app/*` to `/app/index.html`).
-
-### Build WeChat mini-program (weapp)
-
-Command
-- `pnpm -C apps/app build:weapp`
-
-Output
-- Mini-program artifacts: `apps/app/dist/`
-- WeChat DevTools config: `apps/app/project.config.json` (open this directory in DevTools)
-
-Notes
-- Our `pnpm run build` runs Taro H5 build with `HOME` redirected into `./.taro-home` (repo-local), to avoid writing to the real user home during CI/Vercel builds.
-
-## 🗃️ Database: API Mode (Default)
-
-This template defaults to applying migrations and seed via a backend API to avoid exposing `DATABASE_URL` to Node processes. Prefer the `:api` scripts unless you explicitly need direct DB access.
-
-- Default (recommended): `db:migrate:api`, `db:seed:api`
-- Direct DB (optional): `db:migrate`, `db:seed` (requires `DATABASE_URL`)
-
-Note for AI assistants: Use the `:api` scripts by default.
-
-### Migrate via API (default)
-
-Required env:
-- `PROJECT_ID` — target project id
-- One of: `OPCODE_API_BASE` (e.g. `http://localhost:9191/api`) or `BACKEND_ADMIN_API_BASE`
-- `AUTH_TOKEN` (Bearer token), or pass a token at runtime
-
-Optional env:
-- `MIGRATIONS_FOLDER` — defaults to `drizzle`
-
-Examples:
-```bash
-# Using a token file
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run db:migrate:api -- --token-file ./dev.token
-
-# Or pipe token from env/command
-echo "$AUTH_TOKEN" | PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run -s db:migrate:api
-
-# Custom migrations folder
-MIGRATIONS_FOLDER=drizzle \
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-echo "$AUTH_TOKEN" | pnpm run -s db:migrate:api
-```
-
-### Seed via API (default)
-
-Required env:
-- `PROJECT_ID`
-- `OPCODE_API_BASE` (e.g. `http://localhost:9191/api`)
-- `AUTH_TOKEN` (Bearer token), or pass a token at runtime
-
-Optional env:
-- `SEED_FILE` — defaults to `drizzle/0001_init.sql`
-
-Examples:
-```bash
-# Using a token file
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run db:seed:api -- --token-file ./dev.token
-
-# Or pipe token from env/command
-echo "$AUTH_TOKEN" | PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run -s db:seed:api
-
-# Custom seed file
-SEED_FILE=drizzle/0001_init.sql \
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-echo "$AUTH_TOKEN" | pnpm run -s db:seed:api
-```
-
-### Direct DB mode (optional)
-
-If you prefer direct DB execution (local/dev), set `DATABASE_URL` in `.env` and run:
+当前项目可以直接使用数据库迁移脚本。
 
 ```bash
 pnpm run db:migrate
 pnpm run db:seed
 ```
 
-Direct mode executes SQL against your database from the Node process. Use with care in shared environments.
+如果你们的环境已经安全管理好了 `DATABASE_URL`，这是最直接的方式。
 
-## 🔎 Type Checking
-
-To maintain reliability, always run a type check after making changes and fix any reported issues before committing.
+同时仓库里也保留了 API 方式，供需要时使用：
 
 ```bash
-pnpm run typecheck
+pnpm run db:migrate:api
+pnpm run db:seed:api
 ```
 
-- Use `pnpm run typecheck:watch` during development to continuously catch type errors.
-- Type checks do not emit build output; Vite handles builds separately.
+## 署名与使用规则
 
-## 🚢 Deployment
+如果你使用本仓库代码或内容，请先区分三类资产：
 
-### Vercel
+- `代码`：采用 [Apache-2.0](./LICENSE)
+- `百科内容、文案、图片等内容资产`：采用 [CC BY 4.0](./CONTENT_LICENSE.md)
+- `月知会`、`FlowSense`、Logo、品牌表达：不随开源许可证授权，见 [TRADEMARK_POLICY.md](./TRADEMARK_POLICY.md)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=YOUR_REPO_URL)
+### 我们希望你如何提到月知会
 
-1. Push your code to GitHub
-2. Import to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy!
+标准开源许可证不能强制所有下游在宣传页里给原项目打广告，但本仓库要求你：
 
-### Netlify
+- 保留源码和分发中的版权、许可证与 `NOTICE`
+- 在使用内容资产时进行清晰署名
+- 在提到项目来源时使用推荐表述：
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/YOUR_USERNAME/remix-neon-auth)
-
-### Docker
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN pnpm install
-COPY . .
-RUN pnpm run build
-EXPOSE 3000
-CMD ["pnpm", "start"]
+```text
+Based on the open-source Yuezhihui / FlowSense project by 月知会.
 ```
 
-## 🔒 Security Considerations
+如果你在产品页、文档页、About 页或仓库 README 中保留这句署名，会更符合本项目预期。
 
-- ✅ JWT tokens are stored in HTTP-only cookies
-- ✅ Passwordless authentication (no password storage)
-- ✅ Verification codes expire after 10 minutes
-- ✅ One-time use verification codes
-- ✅ Secure cookie settings (SameSite, Secure in production)
-- ✅ Environment variables for sensitive data
+## 环境变量
 
-## 🤝 Contributing
+按需参考：
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- [docs/ENVIRONMENT.md](./docs/ENVIRONMENT.md)
+- [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
 
-### Development Workflow
+常见变量包括：
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make changes
-4. Run type checks and fix issues: `pnpm run typecheck`
-5. Lint/format if needed: `pnpm run lint && pnpm run format`
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+```env
+APP_URL=http://localhost:5173
+JWT_SECRET=replace-with-a-long-random-secret
 
-## 📝 License
+# direct DB migrations
+DATABASE_URL=postgresql://user:password@host/db?sslmode=require
+```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+如果使用 API 迁移模式，再额外配置：
 
-## 🙏 Acknowledgments
+```env
+PROJECT_ID=your_project_id
+OPCODE_API_BASE=http://localhost:9191/api
+AUTH_TOKEN=your_token
+```
 
-- [Remix](https://remix.run/) - The full-stack web framework
-- [Neon](https://neon.tech/) - Serverless PostgreSQL
-- [Drizzle](https://orm.drizzle.team/) - TypeScript ORM
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
-- [Resend](https://resend.com/) - Email API
+## 适合谁参考
 
-## 📚 Resources
+- 想做女性健康 / 健康记录类产品的人
+- 想看 Remix + Taro 如何共存的人
+- 想看内容站、官网和产品前端如何放在一个仓库里的人
+- 想研究月经记录与健康分析产品表达的人
 
-- [Remix Documentation](https://remix.run/docs)
-- [Neon Documentation](https://neon.tech/docs)
-- [Drizzle Documentation](https://orm.drizzle.team/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [JWT.io](https://jwt.io/) - JWT debugger
+## 文档入口
 
----
+- [API 文档](./docs/API.md)
+- [部署文档](./docs/DEPLOYMENT.md)
+- [环境变量说明](./docs/ENVIRONMENT.md)
+- [项目结构说明](./docs/PROJECT_STRUCTURE.md)
+- [架构 ADR](./docs/architecture/adr/0005-taro-is-primary-frontend-remix-api-and-landing.md)
 
-<div align="center">
+## 当前状态
 
-**Built with ❤️ using Remix + Neon**
+这是一个持续演进中的项目，仓库内同时包含：
 
-[Report Bug](https://github.com/YOUR_USERNAME/remix-neon-auth/issues) • [Request Feature](https://github.com/YOUR_USERNAME/remix-neon-auth/issues)
+- 对外展示站点
+- 产品前端
+- 后端 API
+- 百科内容
+- 多端探索代码
 
-</div>
+因此它既是一个产品项目，也是一个工程样本。
+
+## License
+
+- 代码许可：见 [LICENSE](./LICENSE)
+- 分发归属说明：见 [NOTICE](./NOTICE)
+- 内容许可：见 [CONTENT_LICENSE.md](./CONTENT_LICENSE.md)
+- 商标与品牌使用：见 [TRADEMARK_POLICY.md](./TRADEMARK_POLICY.md)

@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { db } from "~/db/db.server";
 import { verificationCodes, users } from "~/db/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, isNull, isNotNull } from "drizzle-orm";
 import { env } from "~/utils/env.server";
 import { randomUUID } from "crypto";
 
@@ -98,15 +98,28 @@ export async function verifyCode(email: string, code: string) {
 }
 
 export async function findOrCreateUserByEmail(email: string) {
-  // Try to find existing user
+  // Active account can log in normally.
   const existingUsers = await db
     .select()
     .from(users)
-    .where(eq(users.email, email))
+    .where(and(eq(users.email, email), isNull(users.deletedAt)))
     .limit(1);
 
   if (existingUsers.length > 0) {
     return existingUsers[0];
+  }
+
+  // Keep deleted accounts reserved for future recovery rather than silently recreating them.
+  const deletedUsers = await db
+    .select({
+      id: users.id,
+    })
+    .from(users)
+    .where(and(eq(users.email, email), isNotNull(users.deletedAt)))
+    .limit(1);
+
+  if (deletedUsers.length > 0) {
+    throw new Error("该账号已注销，如需恢复请联系月知会支持");
   }
 
   // Create new user
@@ -118,6 +131,8 @@ export async function findOrCreateUserByEmail(email: string) {
     email,
     avatarUrl: null as string | null,
     useTampon: null as boolean | null,
+    deletedAt: null as Date | null,
+    deletionReason: null as string | null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

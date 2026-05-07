@@ -1,4 +1,5 @@
-import { Link } from "@remix-run/react";
+import type { MouseEvent } from "react";
+import { Link, useLocation } from "@remix-run/react";
 import type { AppHeaderUser } from "~/components/AppHeader";
 import { APP_TITLE } from "~/constants/app";
 
@@ -7,18 +8,24 @@ interface LandingHeaderProps {
   onLogout: () => void;
 }
 
-function scrollToSection(e: React.MouseEvent<HTMLAnchorElement>, hash: string) {
+function scrollToSection(e: MouseEvent<HTMLAnchorElement>, hash: string) {
   e.preventDefault();
   const element = document.querySelector(hash);
   if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
     // Update URL without triggering scroll
-    history.pushState(null, '', hash);
+    history.pushState(null, "", hash);
   }
 }
 
 export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
   const displayName = user?.displayName || user?.username || user?.email;
+  const location = useLocation();
+
+  const handleSectionNav = (e: MouseEvent<HTMLAnchorElement>, hash: string) => {
+    if (location.pathname !== "/") return;
+    scrollToSection(e, hash);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-white/70 backdrop-blur">
@@ -41,34 +48,34 @@ export function LandingHeader({ user, onLogout }: LandingHeaderProps) {
             >
               百科
             </Link>
-            <a
-              href="#problem"
-              onClick={(e) => scrollToSection(e, '#problem')}
+            <Link
+              to="/#problem"
+              onClick={(e) => handleSectionNav(e, "#problem")}
               className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
             >
               痛点
-            </a>
-            <a
-              href="#demo"
-              onClick={(e) => scrollToSection(e, '#demo')}
+            </Link>
+            <Link
+              to="/#demo"
+              onClick={(e) => handleSectionNav(e, "#demo")}
               className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
             >
               Demo
-            </a>
-            <a
-              href="#philosophy"
-              onClick={(e) => scrollToSection(e, '#philosophy')}
+            </Link>
+            <Link
+              to="/#philosophy"
+              onClick={(e) => handleSectionNav(e, "#philosophy")}
               className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
             >
               理念
-            </a>
-            <a
-              href="#privacy"
-              onClick={(e) => scrollToSection(e, '#privacy')}
+            </Link>
+            <Link
+              to="/#privacy"
+              onClick={(e) => handleSectionNav(e, "#privacy")}
               className="px-3 py-2 -mx-1 hover:text-brand-text transition-colors active:opacity-70 cursor-pointer"
             >
               隐私
-            </a>
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
