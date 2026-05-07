@@ -36,6 +36,7 @@ postgresql://neondb_owner:password123@ep-example.us-east-1.aws.neon.tech/neondb?
 - Always use `?sslmode=require` for security
 - Never expose this in client-side code
 - Keep this secret and secure
+- Required when running `pnpm run db:migrate` or `pnpm run db:seed`
 
 ---
 
@@ -123,6 +124,41 @@ re_1234567890abcdef1234567890abcdef
 - ✅ Production deployments
 - ✅ Testing email functionality locally
 - ✅ Any environment where users should receive emails
+
+---
+
+### `PROJECT_ID`
+
+**Description**: Target project id for API-based migration and seed scripts.
+
+**Required when**:
+- using `pnpm run db:migrate:api`
+- using `pnpm run db:seed:api`
+
+---
+
+### `OPCODE_API_BASE` / `BACKEND_ADMIN_API_BASE`
+
+**Description**: Backend endpoint used by the API-based migration and seed scripts.
+
+**Example**:
+```
+http://localhost:9191/api
+```
+
+**Required when**:
+- using `pnpm run db:migrate:api`
+- using `pnpm run db:seed:api`
+
+---
+
+### `AUTH_TOKEN`
+
+**Description**: Bearer token used by the API-based migration and seed scripts.
+
+**Required when**:
+- using `pnpm run db:migrate:api`
+- using `pnpm run db:seed:api`
 
 ---
 

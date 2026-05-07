@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "~/db/db.server";
 import { users, verificationCodes } from "~/db/schema";
 
@@ -9,7 +9,7 @@ export async function deleteUserAccount(userId: string) {
       email: users.email,
     })
     .from(users)
-    .where(eq(users.id, userId))
+    .where(and(eq(users.id, userId), isNull(users.deletedAt)))
     .limit(1);
 
   const user = existing[0];
@@ -21,7 +21,14 @@ export async function deleteUserAccount(userId: string) {
     await db.delete(verificationCodes).where(eq(verificationCodes.email, user.email));
   }
 
-  await db.delete(users).where(and(eq(users.id, userId)));
+  await db
+    .update(users)
+    .set({
+      deletedAt: new Date(),
+      deletionReason: "user_requested",
+      updatedAt: new Date(),
+    })
+    .where(and(eq(users.id, userId), isNull(users.deletedAt)));
 
   return {
     deletedUserId: user.id,

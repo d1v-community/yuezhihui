@@ -133,7 +133,7 @@ export default function AccountPage() {
             </div>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-brand-text">删除账号</h2>
             <p className="mt-3 text-sm leading-relaxed text-brand-muted">
-              删除后将清除当前账号及其关联数据，并立即使当前登录状态失效。该操作不可撤销。
+              删除后当前账号会立即停用并退出登录，后台将以软删除方式保留数据，用于未来可能的人工恢复。
             </p>
 
             <div className="mt-6 rounded-[1.6rem] border border-[#d98a92]/25 bg-white/85 p-5">
@@ -141,15 +141,15 @@ export default function AccountPage() {
               <ul className="mt-4 space-y-3 text-sm leading-relaxed text-brand-muted">
                 <li className="flex gap-3">
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b94a62]" aria-hidden />
-                  <span>账号资料与登录凭证</span>
+                  <span>账号资料会被停用，登录凭证会立即失效</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b94a62]" aria-hidden />
-                  <span>经期记录、分析结果、分享数据等用户关联内容</span>
+                  <span>经期记录、分析结果、分享数据等用户关联内容将被一并下线</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b94a62]" aria-hidden />
-                  <span>该邮箱对应的验证码记录</span>
+                  <span>该邮箱对应的活跃验证码记录会被清除</span>
                 </li>
               </ul>
             </div>
@@ -180,7 +180,7 @@ export default function AccountPage() {
               disabled={submitting}
               className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#8f2439] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#761d30] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "正在删除账号..." : "永久删除账号"}
+              {submitting ? "正在删除账号..." : "删除并停用账号"}
             </button>
           </section>
         </div>

@@ -191,12 +191,12 @@ npm run typecheck
 
 **Option 1: Local CLI**
 ```bash
-npm run db:migrate
+pnpm run db:migrate
 ```
 
-**Option 2: Via Neon API (recommended for production)**
+**Option 2: Via Neon API**
 ```bash
-npm run db:migrate:api
+pnpm run db:migrate:api
 ```
 
 **View migrations**: Check `drizzle/` folder

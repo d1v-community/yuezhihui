@@ -2,11 +2,15 @@
 
 These instructions apply to the entire repository. Follow them when making changes or running tasks as an automated agent.
 
-## Default Database Workflow (Use API mode)
-- Always prefer API-based scripts by default:
+## Default Database Workflow
+- Direct DB scripts are acceptable in this repository when environment is already configured:
+  - `pnpm run db:migrate`
+  - `pnpm run db:seed`
+- API-based scripts are also available:
   - `pnpm run db:migrate:api`
   - `pnpm run db:seed:api`
-- Do not rely on direct DB scripts (`db:migrate`, `db:seed`) unless explicitly requested. Those require `DATABASE_URL` and expose credentials to the Node process.
+- Required environment for direct DB mode:
+  - `DATABASE_URL`
 - Required environment for API mode:
   - `PROJECT_ID`
   - `OPCODE_API_BASE` (e.g. `http://localhost:9191/api`) or `BACKEND_ADMIN_API_BASE`
@@ -15,7 +19,7 @@ These instructions apply to the entire repository. Follow them when making chang
   - `MIGRATIONS_FOLDER` (defaults to `drizzle`)
   - `SEED_FILE` (defaults to `drizzle/0001_init.sql`)
 
-Note for AI: API mode is the default. Choose `:api` scripts unless the user explicitly asks for direct DB mode.
+Note for AI: either workflow is acceptable. Match the environment actually available in the task.
 
 ## Type Checking (Mandatory)
 - After every code change, run TypeScript checks and fix all reported issues:
@@ -44,6 +48,6 @@ Note for AI: API mode is the default. Choose `:api` scripts unless the user expl
 ---
 
 中文提示（简要）：
-- 默认使用 `db:migrate:api` / `db:seed:api`（API 模式），不要默认使用直连数据库脚本。
+- 直连数据库脚本和 API 模式都可用；优先使用当前环境最直接可执行的方式。
 - 每次修改后必须运行 `pnpm run typecheck` 并修复类型错误。
 - 保持变更最小化，遵循现有代码风格；非必要不要新增依赖。

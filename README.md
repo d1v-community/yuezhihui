@@ -124,18 +124,21 @@ pnpm run typecheck          # TypeScript 检查
 
 ## 数据库工作流
 
-默认使用 API 模式，而不是直连数据库脚本。
+当前项目可以直接使用数据库迁移脚本。
+
+```bash
+pnpm run db:migrate
+pnpm run db:seed
+```
+
+如果你们的环境已经安全管理好了 `DATABASE_URL`，这是最直接的方式。
+
+同时仓库里也保留了 API 方式，供需要时使用：
 
 ```bash
 pnpm run db:migrate:api
 pnpm run db:seed:api
 ```
-
-这样做的原因：
-
-- 更适合当前仓库约定
-- 避免把 `DATABASE_URL` 直接暴露给 Node 进程
-- 与项目文档和自动化流程保持一致
 
 ## 署名与使用规则
 
@@ -172,7 +175,13 @@ Based on the open-source Yuezhihui / FlowSense project by 月知会.
 APP_URL=http://localhost:5173
 JWT_SECRET=replace-with-a-long-random-secret
 
-# API mode for migrations / seed
+# direct DB migrations
+DATABASE_URL=postgresql://user:password@host/db?sslmode=require
+```
+
+如果使用 API 迁移模式，再额外配置：
+
+```env
 PROJECT_ID=your_project_id
 OPCODE_API_BASE=http://localhost:9191/api
 AUTH_TOKEN=your_token

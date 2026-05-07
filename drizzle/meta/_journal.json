@@ -8,6 +8,13 @@
       "when": 1730719680000,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1770000000000,
+      "tag": "0005_user_soft_delete",
+      "breakpoints": true
     }
   ]
 }
