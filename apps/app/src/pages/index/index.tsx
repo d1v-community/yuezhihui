@@ -62,9 +62,9 @@ export default function Index() {
         <View className="wrap">
           <View className="brand">
             <View className="mark">
-              <Text className="markText">FC</Text>
+              <Text className="markText">FS</Text>
             </View>
-            <Text className="title">FlowCycle</Text>
+            <Text className="title">FlowSense</Text>
           </View>
 
           <View className="card fc-appear">

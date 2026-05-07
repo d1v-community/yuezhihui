@@ -1,7 +1,7 @@
 {
   "miniprogramRoot": "./dist",
   "projectname": "apps/app",
-  "description": "Yuezhihui Taro App",
+  "description": "FlowSense Taro App for 月知会",
   "appid": "touristappid",
   "setting": {
     "urlCheck": true,

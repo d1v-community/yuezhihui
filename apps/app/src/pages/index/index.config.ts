@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: 'FlowCycle'
+  navigationBarTitleText: '月知会'
 })

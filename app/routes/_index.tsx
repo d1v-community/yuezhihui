@@ -1,5 +1,5 @@
 import { json, type LoaderFunctionArgs, type MetaFunction, type SerializeFrom } from "@remix-run/node";
-import { Link, useLoaderData, useNavigate } from "@remix-run/react";
+import { Link, useLoaderData, useLocation, useNavigate } from "@remix-run/react";
 import { useEffect, useMemo, useState } from "react";
 import { getUserFromRequest } from "~/utils/auth.server";
 import { getEnvWarningMessage } from "~/utils/env.server";
@@ -30,6 +30,7 @@ type LoaderData = SerializeFrom<typeof loader>;
 export default function Index() {
   const { user, envWarning } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [clientUser, setClientUser] = useState<LoaderData["user"]>(user);
 
   useEffect(() => {
@@ -44,6 +45,16 @@ export default function Index() {
         // noop: 静默处理网络错误
       });
   }, []);
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const element = document.querySelector(location.hash);
+    if (!element) return;
+
+    requestAnimationFrame(() => {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [location.hash]);
 
   const heroCurveValues = useMemo(
     () => [0.05, 0.08, 0.18, 0.42, 0.86, 0.66, 0.38, 0.2, 0.12, 0.08, 0.06, 0.05],

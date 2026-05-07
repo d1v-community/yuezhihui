@@ -129,7 +129,7 @@ export default function LoginPage() {
             </View>
           </View>
 
-          <Text className="heroTitle">FlowCycle</Text>
+          <Text className="heroTitle">FlowSense</Text>
           <Text className="heroDesc">邮箱验证码登录，继续引导，开始按日记录。</Text>
 
           <View className="card fc-appear">

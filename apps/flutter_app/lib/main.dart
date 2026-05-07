@@ -5,5 +5,5 @@ import 'app/app.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: FlowCycleApp()));
+  runApp(const ProviderScope(child: FlowSenseApp()));
 }

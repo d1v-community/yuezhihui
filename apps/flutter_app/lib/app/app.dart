@@ -7,8 +7,8 @@ import '../l10n/app_localizations.dart';
 import 'router.dart';
 import 'theme.dart';
 
-class FlowCycleApp extends ConsumerWidget {
-  const FlowCycleApp({super.key});
+class FlowSenseApp extends ConsumerWidget {
+  const FlowSenseApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

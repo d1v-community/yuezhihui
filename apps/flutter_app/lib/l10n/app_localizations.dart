@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @brandName.
   ///
   /// In zh, this message translates to:
-  /// **'FlowCycle'**
+  /// **'月知会'**
   String get brandName;
 
   /// No description provided for @brandTagline.
