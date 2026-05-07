@@ -761,6 +761,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (_showPad) ...[
           _ProductInputCard(
             title: '卫生巾',
+            kind: _ProductVisualKind.pad,
             selectedValue: _padType,
             options: const {
               'liner': '护垫',
@@ -789,6 +790,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (showTampon) ...[
           _ProductInputCard(
             title: '卫生棉条',
+            kind: _ProductVisualKind.tampon,
             selectedValue: _tamponModel,
             options: const {
               'mini': '迷你',
@@ -1229,8 +1231,8 @@ class _DayChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(22),
       onTap: onTap,
       child: Container(
-        width: 70,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        width: 62,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 11),
         decoration: BoxDecoration(
           color: selected
               ? const Color(0xFF543038)
@@ -1245,24 +1247,24 @@ class _DayChip extends StatelessWidget {
             Text(
               date.substring(5),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 color: selected ? Colors.white : Colors.black87,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Container(
-              width: 14,
-              height: 14,
+              width: 12,
+              height: 12,
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 4),
             Text(
               summary == null
                   ? '--'
                   : '${summary!.totalVolumeMl.toStringAsFixed(0)}mL',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w700,
                 color: selected ? Colors.white70 : Colors.black54,
               ),
@@ -1274,9 +1276,12 @@ class _DayChip extends StatelessWidget {
   }
 }
 
+enum _ProductVisualKind { pad, tampon }
+
 class _ProductInputCard extends StatelessWidget {
   const _ProductInputCard({
     required this.title,
+    required this.kind,
     required this.selectedValue,
     required this.options,
     required this.inputMode,
@@ -1289,6 +1294,7 @@ class _ProductInputCard extends StatelessWidget {
   });
 
   final String title;
+  final _ProductVisualKind kind;
   final String selectedValue;
   final Map<String, String> options;
   final String inputMode;
@@ -1354,35 +1360,460 @@ class _ProductInputCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (inputMode == 'drag') ...[
+              _InlinePrecisionStage(
+                kind: kind,
+                selectedValue: selectedValue,
+                options: options,
+                volume: volume,
+              ),
+              const SizedBox(height: 14),
               Slider(
                 value: volume,
                 min: 1,
                 max: 20,
-                divisions: 19,
-                label: '${volume.toStringAsFixed(0)}mL',
+                divisions: 190,
+                label: '${volume.toStringAsFixed(1)}mL',
                 onChanged: onVolumeChanged,
               ),
+              Row(
+                children: const [
+                  _MiniScaleHint(label: '少', value: '3mL'),
+                  Spacer(),
+                  _MiniScaleHint(label: '中', value: '6mL'),
+                  Spacer(),
+                  _MiniScaleHint(label: '多', value: '10mL'),
+                ],
+              ),
+              const SizedBox(height: 10),
               FilledButton.tonal(
                 onPressed: onSliderAdd,
-                child: Text('添加 ${volume.toStringAsFixed(0)}mL'),
+                child: Text('添加 ${volume.toStringAsFixed(1)}mL'),
               ),
             ] else ...[
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final quick in _HomePageState._quickVolumes)
-                    OutlinedButton(
-                      onPressed: () => onQuickAdd(quick),
-                      child: Text('${quick.toStringAsFixed(0)}mL'),
-                    ),
-                ],
+              SizedBox(
+                height: 204,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _HomePageState._quickVolumes.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final quick = _HomePageState._quickVolumes[index];
+                    return _QuickVolumeCard(
+                      kind: kind,
+                      selectedValue: selectedValue,
+                      label: options[selectedValue] ?? '',
+                      volume: quick,
+                      onTap: () => onQuickAdd(quick),
+                    );
+                  },
+                ),
               ),
             ],
           ],
         ),
       ),
     );
+  }
+}
+
+class _QuickVolumeCard extends StatelessWidget {
+  const _QuickVolumeCard({
+    required this.kind,
+    required this.selectedValue,
+    required this.label,
+    required this.volume,
+    required this.onTap,
+  });
+
+  final _ProductVisualKind kind;
+  final String selectedValue;
+  final String label;
+  final double volume;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: onTap,
+      child: Container(
+        width: 142,
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9F3EE),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFE7DAD2)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              '${volume.toStringAsFixed(0)}mL',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(
+                  alpha: 0.6,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Center(
+                child: kind == _ProductVisualKind.pad
+                    ? _HomePadPrecisionStage(
+                        padType: selectedValue,
+                        volume: volume,
+                        compact: true,
+                      )
+                    : _HomeTamponPrecisionStage(
+                        model: selectedValue,
+                        volume: volume,
+                        compact: true,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF5C313B),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Text(
+                '点按添加',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniScaleHint extends StatelessWidget {
+  const _MiniScaleHint({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface.withValues(
+      alpha: 0.54,
+    );
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+        ),
+        const SizedBox(height: 2),
+        Text(value, style: TextStyle(fontSize: 11, color: color)),
+      ],
+    );
+  }
+}
+
+class _InlinePrecisionStage extends StatelessWidget {
+  const _InlinePrecisionStage({
+    required this.kind,
+    required this.selectedValue,
+    required this.options,
+    required this.volume,
+  });
+
+  final _ProductVisualKind kind;
+  final String selectedValue;
+  final Map<String, String> options;
+  final double volume;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = options[selectedValue] ?? '';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9F3EE),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE7DAD2)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '$label · ${volume.toStringAsFixed(1)}mL',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: const Color(0xFF7F6056),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (kind == _ProductVisualKind.pad)
+            _HomePadPrecisionStage(padType: selectedValue, volume: volume)
+          else
+            _HomeTamponPrecisionStage(model: selectedValue, volume: volume),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomePadPrecisionStage extends StatelessWidget {
+  const _HomePadPrecisionStage({
+    required this.padType,
+    required this.volume,
+    this.compact = false,
+  });
+
+  final String padType;
+  final double volume;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = _homeBloodPalette();
+    final size = _homePadBodySize(padType);
+    final stain = _homePadStainSize(volume, size);
+    final showPants = padType == 'pants';
+
+    return SizedBox(
+      width: compact ? 112 : 160,
+      height: compact ? 118 : 190,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: compact ? 12 : 22,
+            child: _HomePadWing(left: true, compact: compact),
+          ),
+          Positioned(
+            right: compact ? 12 : 22,
+            child: _HomePadWing(left: false, compact: compact),
+          ),
+          if (showPants)
+            Positioned(
+              top: compact ? 12 : 16,
+              child: Container(
+                width: compact ? 92 : 126,
+                height: compact ? 92 : 146,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(58),
+                  border: Border.all(color: const Color(0xFFD8C8C0), width: 2),
+                ),
+              ),
+            ),
+          Container(
+            width: size.width,
+            height: size.height,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(42),
+              border: Border.all(color: const Color(0xFFE3D5CE)),
+            ),
+          ),
+          Container(
+            width: size.width * 0.34,
+            height: size.height * 0.74,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF6EFEB),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
+            width: stain.width,
+            height: stain.height,
+            decoration: BoxDecoration(
+              color: palette.fill.withValues(alpha: stain.opacity),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: palette.outline.withValues(alpha: stain.opacity.clamp(0.16, 0.42)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomePadWing extends StatelessWidget {
+  const _HomePadWing({required this.left, this.compact = false});
+
+  final bool left;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: left ? -0.24 : 0.24,
+      child: Container(
+        width: compact ? 20 : 30,
+        height: compact ? 38 : 62,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F3EF),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE3D5CE)),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeTamponPrecisionStage extends StatelessWidget {
+  const _HomeTamponPrecisionStage({
+    required this.model,
+    required this.volume,
+    this.compact = false,
+  });
+
+  final String model;
+  final double volume;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = _homeBloodPalette();
+    final wetPercent = _homeTamponWetPercent(volume);
+    final bodyHeight = _homeTamponBodyHeight(model);
+
+    return SizedBox(
+      width: compact ? 112 : 160,
+      height: compact ? 118 : 190,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: compact ? 4 : 12,
+            child: Container(
+              width: compact ? 42 : 54,
+              height: compact ? bodyHeight * 0.72 : bodyHeight,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: const Color(0xFFE3D5CE)),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  width: double.infinity,
+                  height: (compact ? bodyHeight * 0.72 : bodyHeight) * wetPercent,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        palette.fill,
+                        palette.fill.withValues(alpha: 0.58),
+                      ],
+                    ),
+                  ),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      width: double.infinity,
+                      height: 6,
+                      color: palette.outline.withValues(alpha: 0.34),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: compact ? 28 : 48,
+            child: Container(
+              width: compact ? 14 : 18,
+              height: compact ? 20 : 28,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1E7E2),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFD9CCC5)),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: compact ? 2 : 8,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              width: 2,
+              height: compact ? 34 + wetPercent * 10 : 52 + wetPercent * 14,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0C7BF),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+({Color fill, Color outline}) _homeBloodPalette() => (
+  fill: const Color(0xFFC35A63),
+  outline: const Color(0xFF8C3745),
+);
+
+Size _homePadBodySize(String padType) {
+  switch (padType) {
+    case 'liner':
+      return const Size(56, 104);
+    case 'night':
+      return const Size(64, 150);
+    case 'pants':
+      return const Size(66, 142);
+    case 'day':
+    default:
+      return const Size(62, 126);
+  }
+}
+
+({double width, double height, double opacity}) _homePadStainSize(
+  double volume,
+  Size body,
+) {
+  final progress = ((volume.clamp(1, 20) - 1) / 19).clamp(0.0, 1.0);
+  final width = body.width * (0.18 + progress * 0.56);
+  final height = body.height * (0.18 + progress * 0.70);
+  final opacity = 0.28 + progress * 0.52;
+  return (width: width, height: height, opacity: opacity);
+}
+
+double _homeTamponWetPercent(double volume) {
+  final progress = ((volume.clamp(1, 20) - 1) / 19).clamp(0.0, 1.0);
+  return 0.10 + progress * 0.90;
+}
+
+double _homeTamponBodyHeight(String model) {
+  switch (model) {
+    case 'mini':
+      return 92;
+    case 'large':
+      return 122;
+    case 'super':
+      return 136;
+    case 'regular':
+    default:
+      return 108;
   }
 }
 

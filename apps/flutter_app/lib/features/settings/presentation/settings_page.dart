@@ -137,6 +137,92 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
+  Future<void> _showPrecisionPreviewSheet({
+    required String title,
+    required String caption,
+    required Map<String, String> options,
+    required String selectedValue,
+    required double volume,
+    required String valueUnitLabel,
+    required ValueChanged<String> onSelected,
+    required ValueChanged<double> onVolumeChanged,
+    required Widget Function(String selectedValue, double volume) stageBuilder,
+  }) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        String localSelectedValue = selectedValue;
+        double localVolume = volume;
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 12,
+                right: 12,
+                top: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+              ),
+              child: SafeArea(
+                top: false,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _PrecisionPreviewCard(
+                          title: title,
+                          caption: caption,
+                          options: options,
+                          selectedValue: localSelectedValue,
+                          volume: localVolume,
+                          valueUnitLabel: valueUnitLabel,
+                          onSelected: (value) {
+                            setSheetState(() => localSelectedValue = value);
+                            onSelected(value);
+                          },
+                          onVolumeChanged: (value) {
+                            setSheetState(() => localVolume = value);
+                            onVolumeChanged(value);
+                          },
+                          stage: stageBuilder(localSelectedValue, localVolume),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('完成'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _displayNameController.dispose();
@@ -512,41 +598,55 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               },
                       ),
                       const SizedBox(height: 12),
-                      _PrecisionPreviewCard(
-                        title: '卫生巾 · 精确模式预览',
-                        caption: _padInputMode == 'drag'
-                            ? '当前已开启精确录入，首页会显示同样的规格与滑杆逻辑。'
-                            : '当前是快捷模式；开启后首页会切换成拖拽录入。',
-                        options: _padOptions,
-                        selectedValue: _padPreviewType,
-                        volume: _padPreviewVolume,
-                        valueUnitLabel: 'mL / 片',
-                        onSelected: (value) =>
-                            setState(() => _padPreviewType = value),
-                        onVolumeChanged: (value) =>
-                            setState(() => _padPreviewVolume = value),
-                        stage: _PadPrecisionStage(
-                          padType: _padPreviewType,
+                      _PreviewActionTile(
+                        title: '卫生巾精确模式预览',
+                        subtitle: _padInputMode == 'drag'
+                            ? '点击查看规格与血量预览'
+                            : '点击预览开启后的效果',
+                        onTap: () => _showPrecisionPreviewSheet(
+                          title: '卫生巾 · 精确模式预览',
+                          caption: _padInputMode == 'drag'
+                              ? '当前已开启精确录入，首页会显示同样的规格与滑杆逻辑。'
+                              : '当前是快捷模式；开启后首页会切换成拖拽录入。',
+                          options: _padOptions,
+                          selectedValue: _padPreviewType,
                           volume: _padPreviewVolume,
+                          valueUnitLabel: 'mL / 片',
+                          onSelected: (value) =>
+                              setState(() => _padPreviewType = value),
+                          onVolumeChanged: (value) =>
+                              setState(() => _padPreviewVolume = value),
+                          stageBuilder: (selectedValue, volume) =>
+                              _PadPrecisionStage(
+                                padType: selectedValue,
+                                volume: volume,
+                              ),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      _PrecisionPreviewCard(
-                        title: '卫生棉条 · 精确模式预览',
-                        caption: _tamponInputMode == 'drag'
-                            ? '当前已开启精确录入，浸润高度会随着血量变化。'
-                            : '当前是快捷模式；开启后首页会切换成拖拽录入。',
-                        options: _tamponOptions,
-                        selectedValue: _tamponPreviewModel,
-                        volume: _tamponPreviewVolume,
-                        valueUnitLabel: 'mL / 条',
-                        onSelected: (value) =>
-                            setState(() => _tamponPreviewModel = value),
-                        onVolumeChanged: (value) =>
-                            setState(() => _tamponPreviewVolume = value),
-                        stage: _TamponPrecisionStage(
-                          model: _tamponPreviewModel,
+                      _PreviewActionTile(
+                        title: '卫生棉条精确模式预览',
+                        subtitle: _tamponInputMode == 'drag'
+                            ? '点击查看型号与浸润高度预览'
+                            : '点击预览开启后的效果',
+                        onTap: () => _showPrecisionPreviewSheet(
+                          title: '卫生棉条 · 精确模式预览',
+                          caption: _tamponInputMode == 'drag'
+                              ? '当前已开启精确录入，浸润高度会随着血量变化。'
+                              : '当前是快捷模式；开启后首页会切换成拖拽录入。',
+                          options: _tamponOptions,
+                          selectedValue: _tamponPreviewModel,
                           volume: _tamponPreviewVolume,
+                          valueUnitLabel: 'mL / 条',
+                          onSelected: (value) =>
+                              setState(() => _tamponPreviewModel = value),
+                          onVolumeChanged: (value) =>
+                              setState(() => _tamponPreviewVolume = value),
+                          stageBuilder: (selectedValue, volume) =>
+                              _TamponPrecisionStage(
+                                model: selectedValue,
+                                volume: volume,
+                              ),
                         ),
                       ),
                     ],
@@ -590,6 +690,73 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PreviewActionTile extends StatelessWidget {
+  const _PreviewActionTile({
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9F3EE),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE7DAD2)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.62),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '预览',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
