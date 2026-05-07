@@ -6,6 +6,7 @@ import '../../../core/config/app_config.dart';
 import '../../../core/i18n/locale_controller.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/storage/app_keys.dart';
+import '../../../core/utils/json_utils.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../shared/presentation/flow_page.dart';
 
@@ -17,6 +18,19 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
+  static const _padOptions = {
+    'liner': '护垫',
+    'day': '日用',
+    'night': '夜用',
+    'pants': '安睡裤',
+  };
+  static const _tamponOptions = {
+    'mini': '迷你',
+    'regular': '常规',
+    'large': '大号',
+    'super': '超大',
+  };
+
   final _displayNameController = TextEditingController();
   bool _updatingProfile = false;
   bool _loadingPrefs = true;
@@ -28,6 +42,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   String _consentText = '未读取';
   String? _prefsStatusText;
   bool _prefsSaveFailed = false;
+  String _padPreviewType = 'day';
+  String _tamponPreviewModel = 'regular';
+  double _padPreviewVolume = 5;
+  double _tamponPreviewVolume = 5;
 
   @override
   void initState() {
@@ -45,9 +63,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       final inputMode =
           storage.getJsonMap(AppKeys.inputModeSettings) ?? const {};
       final onboardingState = await ref.read(onboardingApiProvider).state();
-      final consentAnswer =
-          onboardingState.answers['A0_consent_research']
-              as Map<String, dynamic>?;
+      final consentAnswer = asStringMap(
+        onboardingState.answers['A0_consent_research'],
+      );
       final consentValue = consentAnswer?['value']?.toString();
       if (!mounted) return;
       setState(() {
@@ -438,6 +456,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         '输入模式',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '打开精确模式后，将采用拖拽滑杆的方式精确控制血量；关闭则使用点击快捷添加。',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.62),
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
@@ -484,6 +511,44 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 );
                               },
                       ),
+                      const SizedBox(height: 12),
+                      _PrecisionPreviewCard(
+                        title: '卫生巾 · 精确模式预览',
+                        caption: _padInputMode == 'drag'
+                            ? '当前已开启精确录入，首页会显示同样的规格与滑杆逻辑。'
+                            : '当前是快捷模式；开启后首页会切换成拖拽录入。',
+                        options: _padOptions,
+                        selectedValue: _padPreviewType,
+                        volume: _padPreviewVolume,
+                        valueUnitLabel: 'mL / 片',
+                        onSelected: (value) =>
+                            setState(() => _padPreviewType = value),
+                        onVolumeChanged: (value) =>
+                            setState(() => _padPreviewVolume = value),
+                        stage: _PadPrecisionStage(
+                          padType: _padPreviewType,
+                          volume: _padPreviewVolume,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _PrecisionPreviewCard(
+                        title: '卫生棉条 · 精确模式预览',
+                        caption: _tamponInputMode == 'drag'
+                            ? '当前已开启精确录入，浸润高度会随着血量变化。'
+                            : '当前是快捷模式；开启后首页会切换成拖拽录入。',
+                        options: _tamponOptions,
+                        selectedValue: _tamponPreviewModel,
+                        volume: _tamponPreviewVolume,
+                        valueUnitLabel: 'mL / 条',
+                        onSelected: (value) =>
+                            setState(() => _tamponPreviewModel = value),
+                        onVolumeChanged: (value) =>
+                            setState(() => _tamponPreviewVolume = value),
+                        stage: _TamponPrecisionStage(
+                          model: _tamponPreviewModel,
+                          volume: _tamponPreviewVolume,
+                        ),
+                      ),
                     ],
                   ),
           ),
@@ -527,4 +592,469 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ],
     );
   }
+}
+
+class _PrecisionPreviewCard extends StatelessWidget {
+  const _PrecisionPreviewCard({
+    required this.title,
+    required this.caption,
+    required this.options,
+    required this.selectedValue,
+    required this.volume,
+    required this.valueUnitLabel,
+    required this.onSelected,
+    required this.onVolumeChanged,
+    required this.stage,
+  });
+
+  final String title;
+  final String caption;
+  final Map<String, String> options;
+  final String selectedValue;
+  final double volume;
+  final String valueUnitLabel;
+  final ValueChanged<String> onSelected;
+  final ValueChanged<double> onVolumeChanged;
+  final Widget stage;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9F3EE),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE7DAD2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            caption,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.66),
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 14),
+          stage,
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final entry in options.entries)
+                ChoiceChip(
+                  label: Text(entry.value),
+                  selected: selectedValue == entry.key,
+                  onSelected: (_) => onSelected(entry.key),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Text(
+                '血量 ${volume.toStringAsFixed(1)}',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                valueUnitLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.56),
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: volume,
+            min: 1,
+            max: 20,
+            divisions: 190,
+            label: '${volume.toStringAsFixed(1)}mL',
+            onChanged: onVolumeChanged,
+          ),
+          Row(
+            children: const [
+              _ScaleHint(label: '少', value: '3mL'),
+              Spacer(),
+              _ScaleHint(label: '中', value: '6mL'),
+              Spacer(),
+              _ScaleHint(label: '多', value: '10mL'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScaleHint extends StatelessWidget {
+  const _ScaleHint({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface.withValues(
+      alpha: 0.54,
+    );
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+        ),
+        const SizedBox(height: 2),
+        Text(value, style: TextStyle(fontSize: 11, color: color)),
+      ],
+    );
+  }
+}
+
+class _PadPrecisionStage extends StatelessWidget {
+  const _PadPrecisionStage({required this.padType, required this.volume});
+
+  final String padType;
+  final double volume;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = _bloodPalette();
+    final size = _padBodySize(padType);
+    final stain = _padStainSize(volume, size);
+    final showPants = padType == 'pants';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFFBF8), Color(0xFFF4E7DE)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 220),
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(
+              color: const Color(0xFF7F6056),
+              fontWeight: FontWeight.w700,
+            ),
+            child: Text('${_padTypeName(padType)} · ${volume.toStringAsFixed(1)}mL'),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: 170,
+            height: 210,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  left: 20,
+                  child: _PadWing(alignment: Alignment.centerRight),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  right: 20,
+                  child: _PadWing(alignment: Alignment.centerLeft),
+                ),
+                if (showPants)
+                  Positioned(
+                    top: 16,
+                    child: Container(
+                      width: 132,
+                      height: 162,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(60),
+                        border: Border.all(
+                          color: const Color(0xFFD8C8C0),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                Container(
+                  width: size.width,
+                  height: size.height,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(42),
+                    border: Border.all(color: const Color(0xFFE3D5CE)),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x14000000),
+                        blurRadius: 24,
+                        offset: Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  width: size.width * 0.34,
+                  height: size.height * 0.74,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF6EFEB),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0, end: stain.opacity),
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, child) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 260),
+                      curve: Curves.easeOutCubic,
+                      width: stain.width,
+                      height: stain.height,
+                      decoration: BoxDecoration(
+                        color: palette.fill.withValues(alpha: value),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: palette.outline.withValues(
+                            alpha: value.clamp(0.16, 0.42),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PadWing extends StatelessWidget {
+  const _PadWing({required this.alignment});
+
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: alignment == Alignment.centerRight ? -0.24 : 0.24,
+      child: Container(
+        width: 34,
+        height: 70,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F3EF),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE3D5CE)),
+        ),
+      ),
+    );
+  }
+}
+
+class _TamponPrecisionStage extends StatelessWidget {
+  const _TamponPrecisionStage({required this.model, required this.volume});
+
+  final String model;
+  final double volume;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = _bloodPalette();
+    final wetPercent = _tamponWetPercent(volume);
+    final bodyHeight = _tamponBodyHeight(model);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFFBF8), Color(0xFFF4E7DE)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '${_tamponModelName(model)} · ${volume.toStringAsFixed(1)}mL',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: const Color(0xFF7F6056),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: 170,
+            height: 210,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                  top: 18,
+                  child: Container(
+                    width: 58,
+                    height: bodyHeight,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(color: const Color(0xFFE3D5CE)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x12000000),
+                          blurRadius: 22,
+                          offset: Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0, end: wetPercent),
+                        duration: const Duration(milliseconds: 260),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, value, child) {
+                          return Container(
+                            width: double.infinity,
+                            height: bodyHeight * value,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  palette.fill,
+                                  palette.fill.withValues(alpha: 0.58),
+                                ],
+                              ),
+                            ),
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: Container(
+                                width: double.infinity,
+                                height: 6,
+                                color: palette.outline.withValues(alpha: 0.34),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 56,
+                  child: Container(
+                    width: 18,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1E7E2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFD9CCC5)),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 10,
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: wetPercent),
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      return Container(
+                        width: 2,
+                        height: 56 + value * 12,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0C7BF),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+({Color fill, Color outline}) _bloodPalette() => (
+  fill: const Color(0xFFC35A63),
+  outline: const Color(0xFF8C3745),
+);
+
+Size _padBodySize(String padType) {
+  switch (padType) {
+    case 'liner':
+      return const Size(58, 116);
+    case 'night':
+      return const Size(66, 162);
+    case 'pants':
+      return const Size(68, 152);
+    case 'day':
+    default:
+      return const Size(64, 138);
+  }
+}
+
+({double width, double height, double opacity}) _padStainSize(
+  double volume,
+  Size body,
+) {
+  final progress = ((volume.clamp(1, 20) - 1) / 19).clamp(0.0, 1.0);
+  final width = body.width * (0.18 + progress * 0.56);
+  final height = body.height * (0.18 + progress * 0.70);
+  final opacity = 0.28 + progress * 0.52;
+  return (width: width, height: height, opacity: opacity);
+}
+
+double _tamponWetPercent(double volume) {
+  final progress = ((volume.clamp(1, 20) - 1) / 19).clamp(0.0, 1.0);
+  return 0.10 + progress * 0.90;
+}
+
+double _tamponBodyHeight(String model) {
+  switch (model) {
+    case 'mini':
+      return 96;
+    case 'large':
+      return 128;
+    case 'super':
+      return 142;
+    case 'regular':
+    default:
+      return 112;
+  }
+}
+
+String _padTypeName(String value) {
+  return _SettingsPageState._padOptions[value] ?? '卫生巾';
+}
+
+String _tamponModelName(String value) {
+  return _SettingsPageState._tamponOptions[value] ?? '卫生棉条';
 }

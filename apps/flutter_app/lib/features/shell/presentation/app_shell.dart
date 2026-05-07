@@ -111,24 +111,22 @@ class AppShell extends ConsumerWidget {
               ),
               Expanded(
                 child: ClipRect(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 320),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      final offset = Tween<Offset>(
-                        begin: const Offset(0.06, 0),
-                        end: Offset.zero,
-                      ).animate(animation);
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(position: offset, child: child),
+                  child: TweenAnimationBuilder<double>(
+                    key: ValueKey(currentIndex),
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      final dx = (1 - value) * 24;
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(dx, 0),
+                          child: child,
+                        ),
                       );
                     },
-                    child: KeyedSubtree(
-                      key: ValueKey(currentIndex),
-                      child: child,
-                    ),
+                    child: child,
                   ),
                 ),
               ),

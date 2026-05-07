@@ -16,7 +16,17 @@ export function LandingFooter() {
             <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="hover:text-brand-text transition-colors">
               GitHub
             </a>
-            <span>© {new Date().getFullYear()} · Built with Remix</span>
+            <div className="flex items-center gap-1">
+              <span>© {new Date().getFullYear()} ·</span>
+              <a
+                href="https://d1v.ai"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-brand-text transition-colors"
+              >
+                Built with d1v.ai
+              </a>
+            </div>
           </div>
         </div>
       </div>

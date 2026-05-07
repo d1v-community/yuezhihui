@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/session/session_controller.dart';
+import '../../../core/storage/app_storage.dart';
 import '../../../core/storage/app_keys.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../l10n/app_localizations.dart';
@@ -47,16 +48,21 @@ class _HomePageState extends ConsumerState<HomePage> {
   DateTime? _draftSavedAt;
   DateTime? _serverSavedAt;
   String? _saveErrorText;
+  late final Future<AppStorage> _storageFuture;
+  late final MenstrualApi _menstrualApi;
 
   @override
   void initState() {
     super.initState();
+    _storageFuture = ref.read(appStorageProvider.future);
+    _menstrualApi = ref.read(menstrualApiProvider);
     Future.microtask(_bootstrap);
   }
 
   Future<void> _bootstrap() async {
     final session = ref.read(sessionControllerProvider);
-    final storage = await ref.read(appStorageProvider.future);
+    final storage = await _storageFuture;
+    if (!mounted) return;
     final visibility =
         storage.getJsonMap(AppKeys.visibilitySettings) ?? const {};
     final inputMode = storage.getJsonMap(AppKeys.inputModeSettings) ?? const {};
@@ -86,8 +92,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       _stripStart = _reanchorStrip(initial);
     });
 
+    if (!mounted) return;
     await _loadRange();
+    if (!mounted) return;
     await _loadDate(initial);
+    if (!mounted) return;
 
     if ((firstCompleted == null || firstCompleted.isEmpty) &&
         storage.getString(AppKeys.dailyFirstGuideShown) != '1') {
@@ -105,9 +114,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> _loadRange() async {
     final end = addDaysYmd(_stripStart, _stripDays - 1);
-    final items = await ref
-        .read(menstrualApiProvider)
-        .getDailyRange(_stripStart, end);
+    final items = await _menstrualApi.getDailyRange(_stripStart, end);
     if (!mounted) return;
     setState(() {
       _rangeMap
@@ -117,10 +124,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _loadDate(String date) async {
+    if (!mounted) return;
     setState(() => _loadingDetail = true);
     try {
-      final detail = await ref.read(menstrualApiProvider).getDailyByDate(date);
-      final storage = await ref.read(appStorageProvider.future);
+      final detail = await _menstrualApi.getDailyByDate(date);
+      final storage = await _storageFuture;
       final draft = _readDraft(
         storage.getJsonMap('${AppKeys.dailyDraftPrefix}$date'),
       );
@@ -189,7 +197,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   );
 
   Future<void> _persistDraft() async {
-    final storage = await ref.read(appStorageProvider.future);
+    final storage = await _storageFuture;
     if (_events.isEmpty) {
       await storage.remove('${AppKeys.dailyDraftPrefix}$_selectedDate');
       return;
@@ -492,9 +500,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       _saveErrorText = null;
     });
     try {
-      await ref
-          .read(menstrualApiProvider)
-          .putDailyByDate(
+      await _menstrualApi.putDailyByDate(
             _selectedDate,
             MenstrualDailyInput(
               hasBleeding: _totalMl > 0,
@@ -513,7 +519,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   .toList(),
             ),
           );
-      final storage = await ref.read(appStorageProvider.future);
+      final storage = await _storageFuture;
       await storage.remove('${AppKeys.dailyDraftPrefix}$_selectedDate');
       if (storage.getString(AppKeys.dailyFirstCompletedAt) == null) {
         await storage.setString(
@@ -644,7 +650,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 summary: _rangeMap[date],
                                 onTap: () => _changeDate(date),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                             ],
                           ],
                         ),
@@ -1223,8 +1229,8 @@ class _DayChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(22),
       onTap: onTap,
       child: Container(
-        width: 84,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+        width: 70,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
           color: selected
               ? const Color(0xFF543038)
@@ -1239,23 +1245,24 @@ class _DayChip extends StatelessWidget {
             Text(
               date.substring(5),
               style: TextStyle(
+                fontSize: 13,
                 color: selected ? Colors.white : Colors.black87,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Container(
-              width: 18,
-              height: 18,
+              width: 14,
+              height: 14,
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               summary == null
                   ? '--'
                   : '${summary!.totalVolumeMl.toStringAsFixed(0)}mL',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: selected ? Colors.white70 : Colors.black54,
               ),

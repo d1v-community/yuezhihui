@@ -1,13 +1,14 @@
+import '../../../core/utils/json_utils.dart';
 import 'question_bank.dart';
 
 String? _single(Map<String, dynamic> answers, String id) {
-  final answer = answers[id] as Map<String, dynamic>?;
+  final answer = asStringMap(answers[id]);
   if (answer == null || answer['type'] != 'single') return null;
   return answer['value']?.toString();
 }
 
 List<String> _multi(Map<String, dynamic> answers, String id) {
-  final answer = answers[id] as Map<String, dynamic>?;
+  final answer = asStringMap(answers[id]);
   if (answer == null || answer['type'] != 'multi') return const [];
   return List<String>.from(answer['values'] as List<dynamic>? ?? const []);
 }

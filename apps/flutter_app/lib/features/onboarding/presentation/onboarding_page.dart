@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/storage/app_keys.dart';
 import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/json_utils.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/question_bank.dart';
 import '../data/visibility.dart';
@@ -49,7 +50,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
   Map<String, dynamic> _initDraft(String id, Map<String, dynamic> answers) {
     final def = questionDef(id);
-    final answer = answers[id] as Map<String, dynamic>?;
+    final answer = asStringMap(answers[id]);
     switch (def['type']) {
       case 'single':
         return {'kind': 'single', 'value': answer?['value']};
@@ -64,30 +65,22 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         return {
           'kind': 'number',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(
-            answer?['meta'] as Map<String, dynamic>? ?? const {},
-          ),
+          'meta': asStringMapOrEmpty(answer?['meta']),
         };
       case 'date':
         return {
           'kind': 'date',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(
-            answer?['meta'] as Map<String, dynamic>? ?? const {},
-          ),
+          'meta': asStringMapOrEmpty(answer?['meta']),
         };
       case 'text':
         return {
           'kind': 'text',
           'value': answer?['value']?.toString() ?? '',
-          'meta': Map<String, dynamic>.from(
-            answer?['meta'] as Map<String, dynamic>? ?? const {},
-          ),
+          'meta': asStringMapOrEmpty(answer?['meta']),
         };
       case 'birth_date_object':
-        final value = Map<String, dynamic>.from(
-          answer?['value'] as Map<String, dynamic>? ?? const {},
-        );
+        final value = asStringMapOrEmpty(answer?['value']);
         final yearMonth = value['yearMonth']?.toString() ?? '';
         final parts = yearMonth.split('-');
         return {
@@ -117,9 +110,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         );
         return {'type': 'multi', 'values': values};
       case 'number':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'number', 'value': null, 'meta': meta};
         }
@@ -127,9 +118,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         if (value == null) return null;
         return {'type': 'number', 'value': value, 'meta': {}};
       case 'date':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'date', 'value': null, 'meta': meta};
         }
@@ -137,9 +126,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         if (value == null || value.isEmpty) return null;
         return {'type': 'date', 'value': value, 'meta': {}};
       case 'text':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         if (meta['unknown'] == true || meta['no_answer'] == true) {
           return {'type': 'text', 'value': null, 'meta': meta};
         }
@@ -265,7 +252,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   }
 
   String _computeAnchorDate(Map<String, dynamic> answers) {
-    final answer = answers['D5_last_period_start'] as Map<String, dynamic>?;
+    final answer = asStringMap(answers['D5_last_period_start']);
     final value = answer != null && answer['type'] == 'date'
         ? answer['value']?.toString()
         : null;
@@ -279,7 +266,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   }
 
   String _formatAnswer(String id) {
-    final answer = _answers[id] as Map<String, dynamic>?;
+    final answer = asStringMap(_answers[id]);
     if (answer == null) return '未填写';
     final type = answer['type'];
     if (type == 'single') {
@@ -305,9 +292,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       return labels.isEmpty ? '未填写' : labels;
     }
     if (type == 'object') {
-      final value = Map<String, dynamic>.from(
-        answer['value'] as Map<String, dynamic>? ?? const {},
-      );
+      final value = asStringMapOrEmpty(answer['value']);
       switch (value['mode']) {
         case 'unknown':
           return '不确定/记不清';
@@ -319,12 +304,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           return value['exactDate']?.toString() ?? '未填写';
       }
     }
-    if ((answer['meta'] as Map<String, dynamic>? ?? const {})['unknown'] ==
-        true) {
+    if (asStringMapOrEmpty(answer['meta'])['unknown'] == true) {
       return '不确定/记不清';
     }
-    if ((answer['meta'] as Map<String, dynamic>? ?? const {})['no_answer'] ==
-        true) {
+    if (asStringMapOrEmpty(answer['meta'])['no_answer'] == true) {
       return '不愿透露';
     }
     return answer['value']?.toString() ?? '未填写';
@@ -735,9 +718,7 @@ class _QuestionEditor extends StatelessWidget {
           ],
         );
       case 'number':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -776,9 +757,7 @@ class _QuestionEditor extends StatelessWidget {
           ],
         );
       case 'date':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -834,9 +813,7 @@ class _QuestionEditor extends StatelessWidget {
           ],
         );
       case 'text':
-        final meta = Map<String, dynamic>.from(
-          draft['meta'] as Map<String, dynamic>? ?? const {},
-        );
+        final meta = asStringMapOrEmpty(draft['meta']);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

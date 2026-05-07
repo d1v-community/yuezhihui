@@ -24,6 +24,11 @@ export default function LoginPage() {
 
   const emailOk = useMemo(() => isEmail(email.trim()), [email])
   const codeOk = useMemo(() => code.trim().length === 6, [code])
+  const useDesktopCodeEntry = useMemo(() => {
+    if (process.env.TARO_ENV !== 'h5') return false
+    if (typeof window === 'undefined') return false
+    return window.matchMedia?.('(pointer: fine)').matches ?? window.innerWidth >= 960
+  }, [])
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -167,54 +172,66 @@ export default function LoginPage() {
                   disabled={loading}
                   autoFocus
                   onChange={(next) => setCode(next)}
+                  onConfirm={(next) => {
+                    if (loading || next.trim().length !== 6) return
+                    void onVerify(next)
+                  }}
                 />
-                <Text className="keypadTitle">数字键盘</Text>
-                <View className="keypad">
-                  {CODE_PAD_KEYS.map((digit) => (
-                    <View key={digit} className="keypadCell">
-                      <FCButton
-                        fullWidth
-                        disabled={loading}
-                        onClick={() => appendCodeDigit(digit)}
-                        style={{ minHeight: '48px' }}
-                      >
-                        {digit}
-                      </FCButton>
+                {!useDesktopCodeEntry ? (
+                  <>
+                    <Text className="keypadTitle">数字键盘</Text>
+                    <View className="keypad">
+                      {CODE_PAD_KEYS.map((digit) => (
+                        <View key={digit} className="keypadCell">
+                          <FCButton
+                            fullWidth
+                            disabled={loading}
+                            onClick={() => appendCodeDigit(digit)}
+                            style={{ minHeight: '48px' }}
+                          >
+                            {digit}
+                          </FCButton>
+                        </View>
+                      ))}
+                      <View className="keypadCell">
+                        <FCButton
+                          fullWidth
+                          disabled={loading || code.length === 0}
+                          onClick={deleteCodeDigit}
+                          style={{ minHeight: '48px' }}
+                        >
+                          <Text className="keypadActionIcon">⌫</Text>
+                        </FCButton>
+                      </View>
+                      <View className="keypadCell">
+                        <FCButton
+                          fullWidth
+                          disabled={loading}
+                          onClick={() => appendCodeDigit('0')}
+                          style={{ minHeight: '48px' }}
+                        >
+                          0
+                        </FCButton>
+                      </View>
+                      <View className="keypadCell">
+                        <FCButton
+                          fullWidth
+                          disabled={!codeOk || loading}
+                          onClick={() => void onVerify()}
+                          style={{ minHeight: '48px' }}
+                        >
+                          <Text className="keypadActionIcon">↵</Text>
+                        </FCButton>
+                      </View>
                     </View>
-                  ))}
-                  <View className="keypadCell">
-                    <FCButton
-                      fullWidth
-                      disabled={loading || code.length === 0}
-                      onClick={deleteCodeDigit}
-                      style={{ minHeight: '48px' }}
-                    >
-                      删除
-                    </FCButton>
-                  </View>
-                  <View className="keypadCell">
-                    <FCButton
-                      fullWidth
-                      disabled={loading}
-                      onClick={() => appendCodeDigit('0')}
-                      style={{ minHeight: '48px' }}
-                    >
-                      0
-                    </FCButton>
-                  </View>
-                  <View className="keypadCell">
-                    <FCButton
-                      fullWidth
-                      disabled={!codeOk || loading}
-                      onClick={() => void onVerify()}
-                      style={{ minHeight: '48px' }}
-                    >
-                      确认
-                    </FCButton>
-                  </View>
-                </View>
+                  </>
+                ) : null}
                 <View className="helperRow">
-                  <Text className="helperText">可使用系统键盘或点击下方数字键盘输入 6 位验证码</Text>
+                  <Text className="helperText">
+                    {useDesktopCodeEntry
+                      ? '可直接使用键盘输入 6 位验证码，按回车确认'
+                      : '可使用系统键盘或点击下方数字键盘输入 6 位验证码'}
+                  </Text>
                   <FCTextButton
                     disabled={cooldown > 0 || loading}
                     onClick={() => {
