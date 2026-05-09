@@ -1,4 +1,4 @@
-package com.yuezhihui.flowcycle_flutter
+package xyz.yuezhihui.app
 
 import io.flutter.embedding.android.FlutterActivity
 
