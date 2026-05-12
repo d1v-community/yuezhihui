@@ -4,7 +4,7 @@ Project path: `female_menstrual_record_819e28/apps/flutter_app`
 
 Current iOS app identity:
 
-- Bundle ID: `xyz.yuezhihui.app`
+- Bundle ID: `xyz.yuezhihui.application`
 - Team ID in project: `J4SP5BPR5Q`
 - Scheme: `Runner`
 - Version from `pubspec.yaml`: `1.0.0+1`
@@ -31,7 +31,7 @@ In App Store Connect, create a new iOS app with:
 - Platform: `iOS`
 - Name: your final App Store product name
 - Primary language: your choice
-- Bundle ID: `xyz.yuezhihui.app`
+- Bundle ID: `xyz.yuezhihui.application`
 - SKU: any unique internal value, for example `yuezhihui-ios-001`
 
 ### 2. Confirm Apple Developer signing
@@ -43,7 +43,7 @@ In Xcode:
 3. Open `Signing & Capabilities`
 4. Confirm `Automatically manage signing` is enabled
 5. Confirm Team is the correct Apple Developer team
-6. Confirm Bundle Identifier is `xyz.yuezhihui.app`
+6. Confirm Bundle Identifier is `xyz.yuezhihui.application`
 
 ### 3. Create the Xcode Cloud workflow
 

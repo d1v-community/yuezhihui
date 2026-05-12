@@ -8,7 +8,7 @@
 PRODUCT_NAME = flowcycle_flutter
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = xyz.yuezhihui.app
+PRODUCT_BUNDLE_IDENTIFIER = xyz.yuezhihui.application
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.yuezhihui. All rights reserved.

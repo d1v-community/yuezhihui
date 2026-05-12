@@ -1,4 +1,4 @@
-package xyz.yuezhihui.app
+package xyz.yuezhihui.application
 
 import io.flutter.embedding.android.FlutterActivity
 
