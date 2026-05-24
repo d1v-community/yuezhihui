@@ -1,4 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: '邮箱登录',
+  navigationBarTitleText: '月知会',
 })
-

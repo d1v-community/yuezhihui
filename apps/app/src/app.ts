@@ -3,12 +3,16 @@ import Taro, { useLaunch } from '@tarojs/taro'
 
 import './app.less'
 
+if (Taro.getEnv() === Taro.ENV_TYPE.WEAPP) {
+  require('./app.weapp.less')
+}
+
 let h5ChunkRecoveryInstalled = false
 function installH5ChunkRecoveryOnce() {
   if (h5ChunkRecoveryInstalled) return
   h5ChunkRecoveryInstalled = true
 
-  if (process.env.TARO_ENV !== 'h5') return
+  if (Taro.getEnv() !== Taro.ENV_TYPE.WEB) return
   if (typeof window === 'undefined') return
 
   const shouldHandle = (err: any) => {

@@ -4,6 +4,7 @@ node_modules
 /build
 .env
 .vercel
+/local_notes
 
 # Taro build outputs (generated during `pnpm -C apps/app build:h5`)
 /public/app

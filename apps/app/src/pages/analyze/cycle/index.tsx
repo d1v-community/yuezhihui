@@ -15,6 +15,7 @@ function asPosInt(v: any): number | null {
 }
 
 export default function AnalyzeCycleDetailPage() {
+  const isH5 = Taro.getEnv() === Taro.ENV_TYPE.WEB
   const router = useRouter()
   const cycleId = useMemo(() => asPosInt((router as any)?.params?.cycleId), [router])
 
@@ -45,12 +46,9 @@ export default function AnalyzeCycleDetailPage() {
     setSharing(true)
     try {
       const resp = await createPeriodShare(cycleId)
-      const text =
-        process.env.TARO_ENV === 'h5'
-          ? `${(window as any)?.location?.origin || ''}${resp.path}`
-          : resp.shareCode
+      const text = isH5 ? `${(window as any)?.location?.origin || ''}${resp.path}` : resp.shareCode
       await Taro.setClipboardData({ data: text })
-      Taro.showToast({ title: process.env.TARO_ENV === 'h5' ? '已复制分享链接' : '已复制分享码', icon: 'none' })
+      Taro.showToast({ title: isH5 ? '已复制分享链接' : '已复制分享码', icon: 'none' })
     } catch (e: any) {
       Taro.showToast({ title: e?.message || '创建分享失败', icon: 'none' })
     } finally {

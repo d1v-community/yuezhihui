@@ -40,7 +40,10 @@ export default defineConfig<'webpack5'>(async (merge) => {
     mini: {
       postcss: {
         pxtransform: {
-          enable: true,
+          // The app styles are authored in real mobile CSS px values rather than
+          // a 750-wide design draft scale. Converting them to rpx makes the whole
+          // weapp UI render at roughly half size, so keep px units as-is in mini.
+          enable: false,
           config: {
 
           }

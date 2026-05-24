@@ -569,7 +569,7 @@
 
 .volumeSheet {
   width: 100%;
-  max-width: 560px;
+  max-width: none;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(0, 0, 0, 0.10);
   border-bottom: 0;
@@ -578,6 +578,10 @@
   box-sizing: border-box;
   max-height: 82vh;
   overflow: auto;
+
+  @media screen and (min-width: 768px) {
+    max-width: 560px;
+  }
 }
 
 .volumeSheetHead {

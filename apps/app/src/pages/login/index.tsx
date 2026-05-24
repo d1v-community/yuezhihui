@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text } from '@tarojs/components'
+import { View, Text, Image } from '@tarojs/components'
 import { STORAGE_KEYS } from '../../storage/keys'
 import { removeStorage, setStorageString } from '../../storage/storage'
 import { authMe, authSendCode, authVerifyLogin } from '../../services/auth'
@@ -9,6 +9,7 @@ import { FCButton, FCCodeInput, FCTextButton, FCTextField } from '../../ui'
 import './index.less'
 
 const CODE_PAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+const BRAND_LOGO_URL = 'https://ik.imagekit.io/pqilkfzt7wb/yuezhihui/Icon-App-1024x1024@1x_zXsW0zLkx.png'
 
 function isEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -25,7 +26,7 @@ export default function LoginPage() {
   const emailOk = useMemo(() => isEmail(email.trim()), [email])
   const codeOk = useMemo(() => code.trim().length === 6, [code])
   const useDesktopCodeEntry = useMemo(() => {
-    if (process.env.TARO_ENV !== 'h5') return false
+    if (Taro.getEnv() !== Taro.ENV_TYPE.WEB) return false
     if (typeof window === 'undefined') return false
     return window.matchMedia?.('(pointer: fine)').matches ?? window.innerWidth >= 960
   }, [])
@@ -128,14 +129,16 @@ export default function LoginPage() {
     <View className="page">
       <View className="bg">
         <View className="wrap">
-          <View className="brandRow">
-            <View className="brandMark">
-              <Text className="brandMarkText">FC</Text>
+          <View className="heroBlock">
+            <View className="brandRow">
+              <View className="brandMark">
+                <Image className="brandLogo" src={BRAND_LOGO_URL} mode="aspectFill" />
+              </View>
             </View>
-          </View>
 
-          <Text className="heroTitle">FlowSense</Text>
-          <Text className="heroDesc">邮箱验证码登录，继续引导，开始按日记录。</Text>
+            <Text className="heroTitle">月知会</Text>
+            <Text className="heroDesc">邮箱验证码登录，继续引导，开始按日记录。</Text>
+          </View>
 
           <View className="card fc-appear">
             <FCTextField

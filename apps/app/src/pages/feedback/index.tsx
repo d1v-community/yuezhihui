@@ -26,6 +26,7 @@ function loadDraft(): Draft {
 }
 
 export default function FeedbackPage() {
+  const runtimeEnv = Taro.getEnv()
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [typeIndex, setTypeIndex] = useState(0)
@@ -68,7 +69,7 @@ export default function FeedbackPage() {
         typeIndex,
         content: v,
         contact: contact.trim() || undefined,
-        meta: { env: process.env.TARO_ENV || 'unknown' },
+        meta: { env: runtimeEnv },
       })
       setStorageJson(STORAGE_KEYS.feedbackDraft, null)
       setContent('')

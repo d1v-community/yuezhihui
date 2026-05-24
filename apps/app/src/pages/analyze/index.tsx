@@ -9,6 +9,8 @@ import { createOverviewShare } from '../../services/share'
 import './index.less'
 
 export default function AnalyzePage() {
+  const isH5 = Taro.getEnv() === Taro.ENV_TYPE.WEB
+
   useLoad(() => {
     void ensureAuthedAndOnboardedOrRedirect()
   })
@@ -64,12 +66,9 @@ export default function AnalyzePage() {
     setSharing(true)
     try {
       const resp = await createOverviewShare(6)
-      const text =
-        process.env.TARO_ENV === 'h5'
-          ? `${(window as any)?.location?.origin || ''}${resp.path}`
-          : resp.shareCode
+      const text = isH5 ? `${(window as any)?.location?.origin || ''}${resp.path}` : resp.shareCode
       await Taro.setClipboardData({ data: text })
-      Taro.showToast({ title: process.env.TARO_ENV === 'h5' ? '已复制分享链接' : '已复制分享码', icon: 'none' })
+      Taro.showToast({ title: isH5 ? '已复制分享链接' : '已复制分享码', icon: 'none' })
     } catch (e: any) {
       Taro.showToast({ title: e?.message || '创建分享失败', icon: 'none' })
     } finally {
