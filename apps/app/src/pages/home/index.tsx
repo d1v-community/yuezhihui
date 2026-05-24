@@ -621,7 +621,7 @@ export default function HomePage() {
         <View className="card fc-appear">
           <View className="row headerRow">
             <View className="headerLeft">
-              <Text className="title">按日记录</Text>
+              {/* <Text className="title">按日记录</Text> */}
               <View className="headerStatusIcons">
                 {totalVolume > 0 ? (
                   <FCPressable
@@ -739,7 +739,6 @@ export default function HomePage() {
                 <View className="sectionHeadRow">
                   <View className="sectionTitleRow">
                     <Text className="title">卫生巾</Text>
-                    <Text className="sectionTotal">累计 {fmtMl(padTotalMl)}mL</Text>
                   </View>
                   <View className="segRow">
                     {PAD_TYPES.map((x, idx) => (
@@ -855,6 +854,9 @@ export default function HomePage() {
                     )}
                   </View>
                 </View>
+                <View className="sectionFooter">
+                  <Text className="sectionTotal">累计 {fmtMl(padTotalMl)}mL</Text>
+                </View>
               </View>
             ) : null}
 
@@ -865,7 +867,6 @@ export default function HomePage() {
                 <View className="sectionHeadRow">
                   <View className="sectionTitleRow">
                     <Text className="title">卫生棉条</Text>
-                    <Text className="sectionTotal">累计 {fmtMl(tamponTotalMl)}mL</Text>
                   </View>
                   <View className="segRow">
                     {TAMPON_MODELS.map((x, idx) => (
@@ -984,6 +985,9 @@ export default function HomePage() {
                       </View>
                     )}
                   </View>
+                </View>
+                <View className="sectionFooter">
+                  <Text className="sectionTotal">累计 {fmtMl(tamponTotalMl)}mL</Text>
                 </View>
               </View>
             ) : null}

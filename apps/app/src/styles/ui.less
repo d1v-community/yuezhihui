@@ -36,6 +36,7 @@
   width: 100%;
   max-width: none;
   margin: 0 auto;
+  box-sizing: border-box;
 
   @media screen and (min-width: 768px) {
     max-width: 560px;
@@ -52,6 +53,7 @@
 
 .app-container() {
   padding: 18px 16px 22px;
+  box-sizing: border-box;
 }
 
 .app-card() {
@@ -59,6 +61,7 @@
   border: 1px solid @border;
   border-radius: 16px;
   padding: 16px;
+  box-sizing: border-box;
   backdrop-filter: blur(10px);
 }
 
@@ -148,6 +151,7 @@
   right: 0;
   bottom: 0;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.92);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   backdrop-filter: blur(10px);
