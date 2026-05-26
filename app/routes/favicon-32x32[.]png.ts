@@ -1,3 +1,6 @@
+import { redirect } from "@remix-run/node";
+import favicon32Href from "~/assets/branding/favicon-32x32.png?url";
+
 export async function loader() {
-  return new Response(null, { status: 204 });
+  return redirect(favicon32Href);
 }

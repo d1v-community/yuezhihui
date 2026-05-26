@@ -1,9 +1,13 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, isRouteErrorResponse, useRouteError, useRevalidator } from "@remix-run/react";
 import { useEffect } from "react";
+import favicon32Href from "~/assets/branding/favicon-32x32.png?url";
+import faviconIcoHref from "~/assets/branding/favicon.ico?url";
 import tailwindStyles from "./tailwind.css?url";
 import { APP_TITLE } from "~/constants/app";
 
 export const links = () => [
+  { rel: "icon", href: faviconIcoHref, sizes: "any" },
+  { rel: "icon", type: "image/png", href: favicon32Href, sizes: "32x32" },
   { rel: "stylesheet", href: tailwindStyles },
 ];
 
