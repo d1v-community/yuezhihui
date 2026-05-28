@@ -13,14 +13,25 @@ Current iOS app identity:
 
 - `ios/ci_scripts/ci_post_clone.sh`
 
-This follows Flutter's recommended Xcode Cloud setup:
+This follows Flutter's recommended Xcode Cloud setup and now mirrors the stronger `d1vai_app` bootstrap pattern:
 
 1. Clone Flutter stable.
 2. Add Flutter to `PATH`.
 3. Run `flutter precache --ios`.
 4. Run `flutter pub get`.
-5. Install CocoaPods.
-6. Run `pod install`.
+5. Recreate CocoaPods workspace inputs to avoid stale Xcode Cloud state.
+6. Merge optional `DART_DEFINES` into generated Flutter build settings.
+7. Run `pod install --repo-update`.
+
+The script supports these optional Xcode Cloud environment variables:
+
+- `API_BASE_URL`
+- `STRIPE_PUBLISHABLE_KEY`
+- `AMPLITUDE_API_KEY`
+- `STRIPE_MERCHANT_IDENTIFIER`
+- `STRIPE_MERCHANT_DISPLAY_NAME`
+- `STRIPE_MERCHANT_COUNTRY_CODE`
+- `STRIPE_RETURN_URL`
 
 ## What you still need to do manually
 

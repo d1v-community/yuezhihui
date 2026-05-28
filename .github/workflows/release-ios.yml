@@ -1,0 +1,89 @@
+name: Release iOS
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - "apps/flutter_app/**"
+      - "scripts/prepare-flutter-ios-release.mjs"
+      - ".github/workflows/release-ios.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-ios:
+    runs-on: macos-latest
+    env:
+      TZ: Asia/Tokyo
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/flutter_app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install CocoaPods
+        run: |
+          gem install cocoapods --no-document
+
+      - name: Prepare release config
+        id: prepare
+        env:
+          FLUTTER_BUILD_NUMBER: ${{ github.run_number }}
+          FLUTTER_API_BASE_URL: ${{ vars.FLUTTER_API_BASE_URL || 'https://www.yuezhihui.xyz' }}
+        run: node ../../scripts/prepare-flutter-ios-release.mjs
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install iOS pods
+        run: |
+          cd ios
+          pod install
+
+      - name: Analyze Flutter app
+        run: flutter analyze
+
+      - name: Build iOS release without codesign
+        run: |
+          flutter build ios \
+            --release \
+            --no-codesign \
+            --dart-define=API_BASE_URL=${{ steps.prepare.outputs.api_base_url }} \
+            --build-name "${{ steps.prepare.outputs.version_name }}" \
+            --build-number "${{ steps.prepare.outputs.build_number }}"
+
+      - name: Package iOS app artifact
+        run: |
+          cd build/ios/iphoneos
+          ditto -c -k --sequesterRsrc --keepParent Runner.app "${{ steps.prepare.outputs.archive_name }}"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepare.outputs.app_name }}
+          path: apps/flutter_app/build/ios/iphoneos/${{ steps.prepare.outputs.archive_name }}
