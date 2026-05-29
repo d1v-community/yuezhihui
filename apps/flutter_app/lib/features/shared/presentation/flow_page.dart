@@ -45,7 +45,7 @@ class FlowPage extends StatelessWidget {
                   ],
                 ),
               ),
-              if (actions != null) ...actions!,
+              ...?actions,
             ],
           ),
         ),
