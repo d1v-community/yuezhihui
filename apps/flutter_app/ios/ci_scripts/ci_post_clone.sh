@@ -2,7 +2,8 @@
 
 set -eu
 
-REPO_ROOT="${CI_PRIMARY_REPOSITORY_PATH:-${CI_WORKSPACE:-$(cd "$(dirname "$0")/../.." && pwd)}}"
+MONOREPO_ROOT="${CI_PRIMARY_REPOSITORY_PATH:-${CI_WORKSPACE:-$(cd "$(dirname "$0")/../../../../" && pwd)}}"
+REPO_ROOT="${MONOREPO_ROOT}/apps/flutter_app"
 FLUTTER_ROOT="${HOME}/flutter"
 GENERATED_XCCONFIG="${REPO_ROOT}/ios/Flutter/Generated.xcconfig"
 FLUTTER_EXPORT_ENV="${REPO_ROOT}/ios/Flutter/flutter_export_environment.sh"
@@ -62,6 +63,11 @@ PY
 }
 
 EXTRA_DART_DEFINES=""
+
+if [ ! -f "${REPO_ROOT}/pubspec.yaml" ]; then
+  echo "Expected Flutter project root at ${REPO_ROOT}, but pubspec.yaml was not found." >&2
+  exit 1
+fi
 
 if ! command -v flutter >/dev/null 2>&1; then
   if [ ! -x "${FLUTTER_ROOT}/bin/flutter" ]; then

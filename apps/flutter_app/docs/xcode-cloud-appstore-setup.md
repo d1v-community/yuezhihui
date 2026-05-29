@@ -2,6 +2,8 @@
 
 Project path: `female_menstrual_record_819e28/apps/flutter_app`
 
+Xcode Cloud repository root path: `female_menstrual_record_819e28`
+
 Current iOS app identity:
 
 - Bundle ID: `xyz.yuezhihui.application`
@@ -22,6 +24,8 @@ This follows Flutter's recommended Xcode Cloud setup and now mirrors the stronge
 5. Recreate CocoaPods workspace inputs to avoid stale Xcode Cloud state.
 6. Merge optional `DART_DEFINES` into generated Flutter build settings.
 7. Run `pod install --repo-update`.
+
+Because this repository is a monorepo, the script resolves the actual Flutter app root as `apps/flutter_app` before running `flutter pub get`.
 
 The script supports these optional Xcode Cloud environment variables:
 
