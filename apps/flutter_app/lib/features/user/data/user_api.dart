@@ -14,4 +14,8 @@ class UserApi {
       },
     );
   }
+
+  Future<void> deleteAccount() async {
+    await _client.delete('/api/user/account');
+  }
 }

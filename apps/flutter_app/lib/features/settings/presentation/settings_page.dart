@@ -35,6 +35,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool _updatingProfile = false;
   bool _loadingPrefs = true;
   bool _savingPrefs = false;
+  bool _deletingAccount = false;
   bool _showPad = true;
   bool _showBleeding = true;
   String _padInputMode = 'click';
@@ -134,6 +135,125 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         _prefsSaveFailed = true;
         _prefsStatusText = '保存失败，已恢复上一次设置';
       });
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(String email) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final emailController = TextEditingController();
+        bool isSubmitting = false;
+        String? errorText;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final normalizedInput = emailController.text.trim();
+            final canSubmit =
+                !isSubmitting &&
+                normalizedInput.isNotEmpty &&
+                normalizedInput == email;
+
+            return AlertDialog(
+              title: const Text('删除账号'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '删除后会立即退出登录。后续若使用同一邮箱再次注册，系统会创建一个全新的账号，不会恢复当前数据。',
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '请输入当前邮箱确认删除：',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  SelectableText(email),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: emailController,
+                    enabled: !isSubmitting,
+                    keyboardType: TextInputType.emailAddress,
+                    autofocus: true,
+                    onChanged: (_) {
+                      setDialogState(() {
+                        errorText = null;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: '确认邮箱',
+                      hintText: email,
+                      errorText: errorText,
+                    ),
+                  ),
+                  if (isSubmitting) ...[
+                    const SizedBox(height: 16),
+                    const Row(
+                      children: [
+                        SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(child: Text('正在删除账号并清理当前登录状态...')),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(context).pop(false),
+                  child: const Text('取消'),
+                ),
+                FilledButton(
+                  onPressed: !canSubmit
+                      ? null
+                      : () {
+                          if (normalizedInput != email) {
+                            setDialogState(() {
+                              errorText = '请输入当前登录邮箱以确认删除';
+                            });
+                            return;
+                          }
+                          setDialogState(() {
+                            isSubmitting = true;
+                            errorText = null;
+                          });
+                          Navigator.of(context).pop(true);
+                        },
+                  child: Text(isSubmitting ? '删除中...' : '确认删除'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+    setState(() => _deletingAccount = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(userApiProvider).deleteAccount();
+      await ref.read(sessionControllerProvider.notifier).logout();
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(content: Text('账号已删除。重新注册将创建新账号。')),
+      );
+      context.go('/encyclopedia');
+    } catch (error) {
+      if (!mounted) return;
+      final message = error.toString().replaceFirst('Exception: ', '');
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() => _deletingAccount = false);
+      }
     }
   }
 
@@ -684,6 +804,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ).showSnackBar(SnackBar(content: Text(l10n.loggedOut)));
                   },
                   child: Text(l10n.logout),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: _deletingAccount || userEmail == null
+                      ? null
+                      : () => _confirmDeleteAccount(userEmail),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  child: Text(_deletingAccount ? '删除中...' : '删除账号'),
                 ),
               ],
             ),

@@ -28,6 +28,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _showEmailValidation = false;
   bool _showCodeValidation = false;
 
+  String get _targetPath {
+    final from = GoRouterState.of(context).uri.queryParameters['from'];
+    if (from == null || from.isEmpty) return '/home';
+    return from;
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -552,6 +558,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await ref
           .read(sessionControllerProvider.notifier)
           .verifyLogin(email, code);
+      if (!mounted) return;
+      context.go(_targetPath);
     } catch (_) {}
   }
 

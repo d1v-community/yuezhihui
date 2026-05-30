@@ -22,17 +22,19 @@ final routerRefreshProvider = Provider<RouterRefreshNotifier>((ref) {
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(routerRefreshProvider);
   const publicPaths = {'/login', '/doc', '/encyclopedia'};
+  const guestAllowedPaths = {'/login', '/doc', '/encyclopedia', '/guest-gate'};
   return GoRouter(
-    initialLocation: '/boot',
+    initialLocation: '/encyclopedia',
     refreshListenable: refresh,
     redirect: (context, state) {
       final session = ref.read(sessionControllerProvider);
       final path = state.uri.path;
       if (session.status == SessionStatus.loading) {
-        return path == '/boot' ? null : '/boot';
+        return path == '/boot' || publicPaths.contains(path) ? null : '/boot';
       }
       if (session.status == SessionStatus.loggedOut) {
-        return publicPaths.contains(path) ? null : '/login';
+        if (guestAllowedPaths.contains(path)) return null;
+        return '/guest-gate?from=${Uri.encodeComponent(state.uri.toString())}';
       }
       if (session.status == SessionStatus.onboardingRequired) {
         return path == '/onboarding' ? null : '/onboarding';
@@ -53,6 +55,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/doc',
         builder: (context, state) =>
             PublicDocPage(initialCardId: state.uri.queryParameters['entry']),
+      ),
+      GoRoute(
+        path: '/guest-gate',
+        builder: (context, state) => GuestGatePage(
+          from: state.uri.queryParameters['from'] ?? '/home',
+        ),
       ),
       GoRoute(
         path: '/onboarding',
@@ -181,6 +189,68 @@ class PublicDocPage extends StatelessWidget {
           ),
         ),
         child: SafeArea(child: EncyclopediaPage(initialCardId: initialCardId)),
+      ),
+    );
+  }
+}
+
+class GuestGatePage extends StatelessWidget {
+  const GuestGatePage({super.key, required this.from});
+
+  final String from;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFF7EEE7), Color(0xFFF2E4DD), Color(0xFFEDE3E6)],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(28),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('该页面需要登录', style: theme.textTheme.headlineSmall),
+                        const SizedBox(height: 12),
+                        const Text('百科内容可以直接浏览，记录、分析和账号设置需要登录后访问。'),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            OutlinedButton(
+                              onPressed: () => context.go('/encyclopedia'),
+                              child: const Text('返回百科'),
+                            ),
+                            const SizedBox(width: 12),
+                            FilledButton(
+                              onPressed: () => context.go(
+                                '/login?from=${Uri.encodeComponent(from)}',
+                              ),
+                              child: const Text('去登录'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

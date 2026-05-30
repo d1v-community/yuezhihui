@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { db } from "~/db/db.server";
 import { verificationCodes, users } from "~/db/schema";
-import { eq, and, gt, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, gt, isNull } from "drizzle-orm";
 import { env } from "~/utils/env.server";
 import { randomUUID } from "crypto";
 
@@ -107,19 +107,6 @@ export async function findOrCreateUserByEmail(email: string) {
 
   if (existingUsers.length > 0) {
     return existingUsers[0];
-  }
-
-  // Keep deleted accounts reserved for future recovery rather than silently recreating them.
-  const deletedUsers = await db
-    .select({
-      id: users.id,
-    })
-    .from(users)
-    .where(and(eq(users.email, email), isNotNull(users.deletedAt)))
-    .limit(1);
-
-  if (deletedUsers.length > 0) {
-    throw new Error("该账号已注销，如需恢复请联系月知会支持");
   }
 
   // Create new user
