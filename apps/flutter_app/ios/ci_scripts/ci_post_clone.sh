@@ -69,16 +69,16 @@ if [ ! -f "${REPO_ROOT}/pubspec.yaml" ]; then
   exit 1
 fi
 
-if ! command -v flutter >/dev/null 2>&1; then
-  if [ ! -x "${FLUTTER_ROOT}/bin/flutter" ]; then
-    git clone https://github.com/flutter/flutter.git --depth 1 -b stable "${FLUTTER_ROOT}"
-  fi
-  export PATH="${FLUTTER_ROOT}/bin:${PATH}"
+if [ ! -x "${FLUTTER_ROOT}/bin/flutter" ]; then
+  git clone https://github.com/flutter/flutter.git --depth 1 -b stable "${FLUTTER_ROOT}"
 fi
+
+export PATH="${FLUTTER_ROOT}/bin:${PATH}"
 
 cd "${REPO_ROOT}"
 
 flutter config --no-analytics
+echo "Using Flutter from: $(command -v flutter)"
 flutter --version
 flutter precache --ios
 rm -rf ios/Pods ios/.symlinks ios/Runner.xcworkspace ios/Podfile.lock
