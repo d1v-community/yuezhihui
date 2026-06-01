@@ -59,6 +59,10 @@ export async function sendVerificationEmail(email: string, code: string) {
       `,
     });
 
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
     return result;
   } catch (error) {
     console.error("Failed to send verification email:", error);

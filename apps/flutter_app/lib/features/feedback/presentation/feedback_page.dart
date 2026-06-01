@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/session/session_controller.dart';
 import '../../../core/storage/app_keys.dart';
+import '../../../l10n/app_localizations.dart';
 
 class FeedbackPage extends ConsumerStatefulWidget {
   const FeedbackPage({super.key});
@@ -12,8 +13,6 @@ class FeedbackPage extends ConsumerStatefulWidget {
 }
 
 class _FeedbackPageState extends ConsumerState<FeedbackPage> {
-  static const types = ['功能异常', '体验问题', '新功能建议', '内容反馈', '其他'];
-
   int _typeIndex = 0;
   final _contentController = TextEditingController();
   final _contactController = TextEditingController();
@@ -77,7 +76,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('提交成功')));
+      ).showSnackBar(SnackBar(content: Text(_l10n.feedbackSubmitted)));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -85,11 +84,23 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
 
   bool get _canSubmit => _contentController.text.trim().length >= 5;
 
+  AppLocalizations get _l10n => AppLocalizations.of(context)!;
+
+  List<String> get _types => [
+    _l10n.feedbackBug,
+    _l10n.feedbackExperience,
+    _l10n.feedbackFeature,
+    _l10n.feedbackContent,
+    _l10n.feedbackOther,
+  ];
+
   String get _draftStatusText {
     if (_draftSavedAt == null) {
-      return _restoredDraft ? '已恢复上次内容' : '输入时会自动存草稿';
+      return _restoredDraft
+          ? _l10n.feedbackDraftRestored
+          : _l10n.feedbackDraftHint;
     }
-    return '草稿已保存 ${_formatTime(_draftSavedAt!)}';
+    return _l10n.feedbackDraftSaved(_formatTime(_draftSavedAt!));
   }
 
   String _formatTime(DateTime value) {
@@ -113,8 +124,9 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
   @override
   Widget build(BuildContext context) {
     final contentLength = _contentController.text.trim().length;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('反馈')),
+      appBar: AppBar(title: Text(l10n.feedbackTitle)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -124,15 +136,18 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('问题类型', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    l10n.feedbackType,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (var i = 0; i < types.length; i++)
+                      for (var i = 0; i < _types.length; i++)
                         ChoiceChip(
-                          label: Text(types[i]),
+                          label: Text(_types[i]),
                           selected: _typeIndex == i,
                           onSelected: (_) {
                             setState(() => _typeIndex = i);
@@ -168,9 +183,11 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                       _saveDraft();
                     },
                     decoration: InputDecoration(
-                      labelText: '问题描述',
-                      hintText: '写清你做了什么、想要什么、实际发生了什么',
-                      helperText: contentLength >= 5 ? '越具体，越容易定位' : '至少写 5 个字',
+                      labelText: l10n.feedbackDescription,
+                      hintText: l10n.feedbackDescriptionHint,
+                      helperText: contentLength >= 5
+                          ? l10n.feedbackSpecificHint
+                          : l10n.feedbackMinimumHint,
                       counterText: '$contentLength / 5+',
                     ),
                   ),
@@ -180,15 +197,17 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,
                     onChanged: (_) => _saveDraft(),
-                    decoration: const InputDecoration(
-                      labelText: '联系方式（可选）',
-                      hintText: '邮箱 / 微信 / 手机',
+                    decoration: InputDecoration(
+                      labelText: l10n.feedbackContact,
+                      hintText: l10n.feedbackContactHint,
                     ),
                   ),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: _submitting || !_canSubmit ? null : _submit,
-                    child: Text(_submitting ? '提交中...' : '提交反馈'),
+                    child: Text(
+                      _submitting ? l10n.submitting : l10n.submitFeedback,
+                    ),
                   ),
                 ],
               ),

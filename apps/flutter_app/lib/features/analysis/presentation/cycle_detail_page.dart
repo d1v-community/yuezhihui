@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/session/session_controller.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/analysis_api.dart';
 
 final cycleDetailProvider = FutureProvider.family<AnalysisCycleDetail, int>((
@@ -20,9 +21,10 @@ class CycleDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(cycleDetailProvider(cycleId));
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('周期详情'),
+        title: Text(l10n.cycleDetail),
         actions: [
           IconButton(
             onPressed: () async {
@@ -33,7 +35,7 @@ class CycleDetailPage extends ConsumerWidget {
               if (!context.mounted) return;
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('已复制周期分享路径')));
+              ).showSnackBar(SnackBar(content: Text(l10n.cycleShareCopied)));
             },
             icon: const Icon(Icons.ios_share_outlined),
           ),
@@ -59,14 +61,17 @@ class CycleDetailPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${data.cycle.daysCount}天 · ${data.cycle.totalVolumeMl.toStringAsFixed(0)}mL',
+                      l10n.daysAndVolume(
+                        data.cycle.daysCount,
+                        data.cycle.totalVolumeMl.toStringAsFixed(0),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        for (final label in _focusHighlights(data))
+                        for (final label in _focusHighlights(l10n, data))
                           Chip(label: Text(label)),
                       ],
                     ),
@@ -74,15 +79,15 @@ class CycleDetailPage extends ConsumerWidget {
                     FilledButton.tonalIcon(
                       onPressed: () async {
                         await Clipboard.setData(
-                          ClipboardData(text: _buildCycleSummary(data)),
+                          ClipboardData(text: _buildCycleSummary(l10n, data)),
                         );
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('已复制周期摘要')),
+                          SnackBar(content: Text(l10n.cycleSummaryCopied)),
                         );
                       },
                       icon: const Icon(Icons.content_copy_outlined),
-                      label: const Text('复制周期摘要'),
+                      label: Text(l10n.copyCycleSummary),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -90,14 +95,35 @@ class CycleDetailPage extends ConsumerWidget {
                       runSpacing: 8,
                       children: [
                         for (final item in [
-                          ('水平', data.cycle.levelStatus, data.cycle.levelLink),
                           (
-                            '分布',
-                            data.cycle.distributionStatus,
+                            l10n.level,
+                            _localizedCycleText(
+                              context,
+                              data.cycle.levelStatus,
+                            ),
+                            data.cycle.levelLink,
+                          ),
+                          (
+                            l10n.distribution,
+                            _localizedCycleText(
+                              context,
+                              data.cycle.distributionStatus,
+                            ),
                             data.cycle.distributionLink,
                           ),
-                          ('颜色', data.cycle.colorStatus, data.cycle.colorLink),
-                          ('血块', data.cycle.clotStatus, data.cycle.clotLink),
+                          (
+                            l10n.color,
+                            _localizedCycleText(
+                              context,
+                              data.cycle.colorStatus,
+                            ),
+                            data.cycle.colorLink,
+                          ),
+                          (
+                            l10n.clot,
+                            _localizedCycleText(context, data.cycle.clotStatus),
+                            data.cycle.clotLink,
+                          ),
                         ])
                           ActionChip(
                             label: Text('${item.$1}${item.$2}'),
@@ -107,7 +133,9 @@ class CycleDetailPage extends ConsumerWidget {
                               );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('已复制解释链接')),
+                                  SnackBar(
+                                    content: Text(l10n.explanationLinkCopied),
+                                  ),
                                 );
                               }
                             },
@@ -125,15 +153,29 @@ class CycleDetailPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('日明细', style: Theme.of(context).textTheme.titleLarge),
+                    Text(
+                      l10n.dailyDetails,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                     const SizedBox(height: 12),
-                    if (data.days.isEmpty) const Text('该周期暂无出血日数据。'),
+                    if (data.days.isEmpty) Text(l10n.noBleedingDays),
                     for (final day in data.days)
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text('D${day.dayIndex} · ${day.date}'),
                         subtitle: Text(
-                          '颜色 ${day.dayColor ?? '未记录'} · 血块 ${day.clotLevel} · 症状 ${day.symptoms.join('、')}',
+                          l10n.dayDetails(
+                            _localizedCycleText(
+                              context,
+                              day.dayColor ?? l10n.notRecorded,
+                            ),
+                            _localizedCycleText(context, day.clotLevel),
+                            day.symptoms
+                                .map(
+                                  (item) => _localizedCycleText(context, item),
+                                )
+                                .join(', '),
+                          ),
                         ),
                         trailing: Text(
                           '${day.totalVolumeMl.toStringAsFixed(0)}mL',
@@ -152,14 +194,14 @@ class CycleDetailPage extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '用品结算',
+                        l10n.productSettlement,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 12),
                       for (final text in data.settlementTexts)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: Text(text),
+                          child: Text(_localizedCycleText(context, text)),
                         ),
                     ],
                   ),
@@ -179,14 +221,14 @@ class CycleDetailPage extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('周期详情加载失败'),
+                    Text(l10n.cycleLoadFailed),
                     const SizedBox(height: 8),
                     Text(error.toString()),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () =>
                           ref.invalidate(cycleDetailProvider(cycleId)),
-                      child: const Text('重试'),
+                      child: Text(l10n.retry),
                     ),
                   ],
                 ),
@@ -198,30 +240,55 @@ class CycleDetailPage extends ConsumerWidget {
     );
   }
 
-  List<String> _focusHighlights(AnalysisCycleDetail detail) {
+  List<String> _focusHighlights(
+    AppLocalizations l10n,
+    AnalysisCycleDetail detail,
+  ) {
     final tags = <String>[];
     if (detail.cycle.levelStatus.isNotEmpty) {
       tags.add(detail.cycle.levelStatus);
     }
     if (detail.cycle.distributionStatus == '异常') {
-      tags.add('分布异常');
+      tags.add(l10n.distributionAbnormal);
     }
     if (detail.cycle.colorStatus == '异常') {
-      tags.add('颜色异常');
+      tags.add(l10n.colorAbnormal);
     }
     if (detail.cycle.clotStatus == '异常') {
-      tags.add('血块异常');
+      tags.add(l10n.clotAbnormal);
     }
     if (tags.isEmpty) {
-      tags.add('整体趋势平稳');
+      tags.add(l10n.trendStable);
     }
     return tags;
   }
 
-  String _buildCycleSummary(AnalysisCycleDetail detail) {
-    final abnormal = _focusHighlights(detail).join('、');
+  String _buildCycleSummary(AppLocalizations l10n, AnalysisCycleDetail detail) {
+    final abnormal = _focusHighlights(l10n, detail).join(', ');
     return '${detail.cycle.startDate} ~ ${detail.cycle.endDate}'
-        '\n${detail.cycle.daysCount}天 · ${detail.cycle.totalVolumeMl.toStringAsFixed(0)}mL'
-        '\n重点：$abnormal';
+        '\n${l10n.daysAndVolume(detail.cycle.daysCount, detail.cycle.totalVolumeMl.toStringAsFixed(0))}'
+        '\n${l10n.summaryHighlights(abnormal)}';
   }
+}
+
+String _localizedCycleText(BuildContext context, String value) {
+  if (Localizations.localeOf(context).languageCode != 'en') return value;
+  return const {
+        '异常': 'Flagged',
+        '正常': 'Normal',
+        '偏高': 'High',
+        '较高': 'Elevated',
+        '偏低': 'Low',
+        '平稳': 'Stable',
+        '未记录': 'Not recorded',
+        '小血块': 'Small clot',
+        '大血块': 'Large clot',
+        '无': 'None',
+        '粉': 'Pink',
+        '红': 'Red',
+        '锈红': 'Rust',
+        '深红': 'Dark red',
+        '棕': 'Brown',
+      }[value] ??
+      value;
 }

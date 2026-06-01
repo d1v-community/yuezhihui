@@ -12,6 +12,7 @@ import '../features/home/presentation/home_page.dart';
 import '../features/onboarding/presentation/onboarding_page.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/shell/presentation/app_shell.dart';
+import '../l10n/app_localizations.dart';
 
 final routerRefreshProvider = Provider<RouterRefreshNotifier>((ref) {
   final notifier = RouterRefreshNotifier(ref);
@@ -58,9 +59,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/guest-gate',
-        builder: (context, state) => GuestGatePage(
-          from: state.uri.queryParameters['from'] ?? '/home',
-        ),
+        builder: (context, state) =>
+            GuestGatePage(from: state.uri.queryParameters['from'] ?? '/home'),
       ),
       GoRoute(
         path: '/onboarding',
@@ -130,6 +130,7 @@ class _BootPageState extends ConsumerState<BootPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: DecoratedBox(
         decoration: const BoxDecoration(
@@ -158,7 +159,7 @@ class _BootPageState extends ConsumerState<BootPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text('月知会', style: theme.textTheme.titleLarge),
+                    Text(l10n.brandName, style: theme.textTheme.titleLarge),
                     const SizedBox(height: 12),
                     const CircularProgressIndicator(),
                   ],
@@ -202,6 +203,7 @@ class GuestGatePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: DecoratedBox(
         decoration: const BoxDecoration(
@@ -224,22 +226,25 @@ class GuestGatePage extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('该页面需要登录', style: theme.textTheme.headlineSmall),
+                        Text(
+                          l10n.guestGateTitle,
+                          style: theme.textTheme.headlineSmall,
+                        ),
                         const SizedBox(height: 12),
-                        const Text('百科内容可以直接浏览，记录、分析和账号设置需要登录后访问。'),
+                        Text(l10n.guestGateDescription),
                         const SizedBox(height: 24),
                         Row(
                           children: [
                             OutlinedButton(
                               onPressed: () => context.go('/encyclopedia'),
-                              child: const Text('返回百科'),
+                              child: Text(l10n.backToEncyclopedia),
                             ),
                             const SizedBox(width: 12),
                             FilledButton(
                               onPressed: () => context.go(
                                 '/login?from=${Uri.encodeComponent(from)}',
                               ),
-                              child: const Text('去登录'),
+                              child: Text(l10n.goToLogin),
                             ),
                           ],
                         ),

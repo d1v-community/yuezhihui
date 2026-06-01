@@ -97,12 +97,10 @@ class AppShell extends ConsumerWidget {
                           children: [
                             const Icon(Icons.lock_open_rounded, size: 18),
                             const SizedBox(width: 10),
-                            const Expanded(
-                              child: Text('当前是游客模式：百科可直接看，记录与分析需要登录。'),
-                            ),
+                            Expanded(child: Text(l10n.guestBanner)),
                             TextButton(
                               onPressed: () => _promptLogin(context),
-                              child: const Text('去登录'),
+                              child: Text(l10n.goToLogin),
                             ),
                           ],
                         ),
@@ -185,10 +183,10 @@ class AppShell extends ConsumerWidget {
                   selectedIcon: const Icon(Icons.ssid_chart_rounded),
                   label: l10n.analysisTab,
                 ),
-                const NavigationDestination(
-                  icon: Icon(Icons.auto_stories_outlined),
-                  selectedIcon: Icon(Icons.auto_stories_rounded),
-                  label: '百科',
+                NavigationDestination(
+                  icon: const Icon(Icons.auto_stories_outlined),
+                  selectedIcon: const Icon(Icons.auto_stories_rounded),
+                  label: l10n.encyclopediaTab,
                 ),
                 NavigationDestination(
                   icon: const Icon(Icons.account_circle_outlined),
@@ -210,6 +208,7 @@ class _LoginPromptSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
       child: TweenAnimationBuilder<double>(
@@ -281,10 +280,13 @@ class _LoginPromptSheet extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('登录后继续', style: theme.textTheme.titleLarge),
+                            Text(
+                              l10n.continueAfterLogin,
+                              style: theme.textTheme.titleLarge,
+                            ),
                             const SizedBox(height: 4),
                             Text(
-                              '月知会',
+                              l10n.brandName,
                               style: theme.textTheme.labelLarge?.copyWith(
                                 color: theme.colorScheme.primary,
                                 letterSpacing: 0.6,
@@ -296,10 +298,10 @@ class _LoginPromptSheet extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 18),
-                  Text('当前功能需要登录后使用。', style: theme.textTheme.titleMedium),
+                  Text(l10n.loginRequired, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   Text(
-                    '登录后可保存每日记录、查看分析结果，并在多端同步你的数据。',
+                    l10n.loginBenefitDescription,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(
                         alpha: 0.74,
@@ -307,19 +309,19 @@ class _LoginPromptSheet extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  const _PromptBenefit(
+                  _PromptBenefit(
                     icon: Icons.edit_note_rounded,
-                    text: '保存记录，不怕丢失',
+                    text: l10n.loginBenefitRecords,
                   ),
                   const SizedBox(height: 10),
-                  const _PromptBenefit(
+                  _PromptBenefit(
                     icon: Icons.ssid_chart_rounded,
-                    text: '自动生成周期分析',
+                    text: l10n.loginBenefitAnalysis,
                   ),
                   const SizedBox(height: 10),
-                  const _PromptBenefit(
+                  _PromptBenefit(
                     icon: Icons.sync_rounded,
-                    text: '支持后续多端同步',
+                    text: l10n.loginBenefitSync,
                   ),
                   const SizedBox(height: 22),
                   Row(
@@ -327,14 +329,14 @@ class _LoginPromptSheet extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('先看看'),
+                          child: Text(l10n.browseFirst),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: FilledButton(
                           onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('去登录'),
+                          child: Text(l10n.goToLogin),
                         ),
                       ),
                     ],

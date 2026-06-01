@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
-import '../../../core/i18n/locale_controller.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/storage/app_keys.dart';
 import '../../../core/utils/json_utils.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../shared/presentation/flow_page.dart';
+import '../../shared/presentation/language_switcher.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -18,19 +18,6 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  static const _padOptions = {
-    'liner': '护垫',
-    'day': '日用',
-    'night': '夜用',
-    'pants': '安睡裤',
-  };
-  static const _tamponOptions = {
-    'mini': '迷你',
-    'regular': '常规',
-    'large': '大号',
-    'super': '超大',
-  };
-
   final _displayNameController = TextEditingController();
   bool _updatingProfile = false;
   bool _loadingPrefs = true;
@@ -40,7 +27,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool _showBleeding = true;
   String _padInputMode = 'click';
   String _tamponInputMode = 'click';
-  String _consentText = '未读取';
+  String? _consentValue;
   String? _prefsStatusText;
   bool _prefsSaveFailed = false;
   String _padPreviewType = 'day';
@@ -78,17 +65,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             : true;
         _padInputMode = inputMode['sanitaryPad'] == 'drag' ? 'drag' : 'click';
         _tamponInputMode = inputMode['tampon'] == 'drag' ? 'drag' : 'click';
-        _consentText = consentValue == 'yes'
-            ? '已同意'
-            : consentValue == 'no'
-            ? '未同意'
-            : '未填写';
+        _consentValue = consentValue;
         _loadingPrefs = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _consentText = '未读取';
+        _consentValue = null;
         _loadingPrefs = false;
       });
     }
@@ -115,10 +98,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     required VoidCallback rollback,
     required String successText,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _savingPrefs = true;
       _prefsSaveFailed = false;
-      _prefsStatusText = '正在保存偏好...';
+      _prefsStatusText = l10n.savingPreferences;
     });
     try {
       await persist();
@@ -133,12 +117,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         rollback();
         _savingPrefs = false;
         _prefsSaveFailed = true;
-        _prefsStatusText = '保存失败，已恢复上一次设置';
+        _prefsStatusText = l10n.preferencesSaveFailed;
       });
     }
   }
 
   Future<void> _confirmDeleteAccount(String email) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -155,17 +140,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 normalizedInput == email;
 
             return AlertDialog(
-              title: const Text('删除账号'),
+              title: Text(l10n.deleteAccount),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '删除后会立即退出登录。后续若使用同一邮箱再次注册，系统会创建一个全新的账号，不会恢复当前数据。',
-                  ),
+                  Text(l10n.deleteAccountDescription),
                   const SizedBox(height: 16),
                   Text(
-                    '请输入当前邮箱确认删除：',
+                    l10n.confirmCurrentEmail,
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                   const SizedBox(height: 8),
@@ -182,14 +165,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       });
                     },
                     decoration: InputDecoration(
-                      labelText: '确认邮箱',
+                      labelText: l10n.confirmEmail,
                       hintText: email,
                       errorText: errorText,
                     ),
                   ),
                   if (isSubmitting) ...[
                     const SizedBox(height: 16),
-                    const Row(
+                    Row(
                       children: [
                         SizedBox(
                           width: 18,
@@ -197,7 +180,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                         SizedBox(width: 12),
-                        Expanded(child: Text('正在删除账号并清理当前登录状态...')),
+                        Expanded(child: Text(l10n.deletingAccountState)),
                       ],
                     ),
                   ],
@@ -208,7 +191,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   onPressed: isSubmitting
                       ? null
                       : () => Navigator.of(context).pop(false),
-                  child: const Text('取消'),
+                  child: Text(l10n.cancel),
                 ),
                 FilledButton(
                   onPressed: !canSubmit
@@ -216,7 +199,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       : () {
                           if (normalizedInput != email) {
                             setDialogState(() {
-                              errorText = '请输入当前登录邮箱以确认删除';
+                              errorText = l10n.confirmDeleteEmailError;
                             });
                             return;
                           }
@@ -226,7 +209,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           });
                           Navigator.of(context).pop(true);
                         },
-                  child: Text(isSubmitting ? '删除中...' : '确认删除'),
+                  child: Text(
+                    isSubmitting ? l10n.deleting : l10n.confirmDelete,
+                  ),
                 ),
               ],
             );
@@ -242,9 +227,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       await ref.read(userApiProvider).deleteAccount();
       await ref.read(sessionControllerProvider.notifier).logout();
       if (!mounted) return;
-      messenger.showSnackBar(
-        const SnackBar(content: Text('账号已删除。重新注册将创建新账号。')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.accountDeleted)));
       context.go('/encyclopedia');
     } catch (error) {
       if (!mounted) return;
@@ -268,6 +251,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     required ValueChanged<double> onVolumeChanged,
     required Widget Function(String selectedValue, double volume) stageBuilder,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -328,7 +312,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           width: double.infinity,
                           child: FilledButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('完成'),
+                            child: Text(l10n.done),
                           ),
                         ),
                       ],
@@ -349,10 +333,33 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     super.dispose();
   }
 
+  String _consentText(AppLocalizations l10n) {
+    return switch (_consentValue) {
+      'yes' => l10n.consentAgreed,
+      'no' => l10n.consentDeclined,
+      '' => l10n.consentNotSet,
+      null => l10n.consentUnavailable,
+      _ => l10n.consentNotSet,
+    };
+  }
+
+  Map<String, String> _padOptions(AppLocalizations l10n) => {
+    'liner': l10n.padLiner,
+    'day': l10n.padDay,
+    'night': l10n.padNight,
+    'pants': l10n.padPants,
+  };
+
+  Map<String, String> _tamponOptions(AppLocalizations l10n) => {
+    'mini': l10n.tamponMini,
+    'regular': l10n.tamponRegular,
+    'large': l10n.tamponLarge,
+    'super': l10n.tamponSuper,
+  };
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeState = ref.watch(localeControllerProvider);
     final userEmail = ref.watch(
       sessionControllerProvider.select((state) => state.user?.email),
     );
@@ -364,10 +371,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         (state) => state.user?.useTampon ?? true,
       ),
     );
+    final consentText = _consentText(l10n);
+    final padOptions = _padOptions(l10n);
+    final tamponOptions = _tamponOptions(l10n);
 
     return FlowPage(
       title: l10n.settingsTitle,
-      subtitle: '账号、隐私和记录偏好。',
+      subtitle: l10n.settingsSubtitle,
       children: [
         Container(
           padding: const EdgeInsets.all(24),
@@ -401,7 +411,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     Text(
                       userDisplayName?.isNotEmpty == true
                           ? userDisplayName!
-                          : '已登录账户',
+                          : l10n.signedInAccount,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 6),
@@ -411,8 +421,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        Chip(label: Text(useTampon ? '显示棉条记录' : '隐藏棉条记录')),
-                        Chip(label: Text('研究同意：$_consentText')),
+                        Chip(
+                          label: Text(
+                            useTampon
+                                ? l10n.showTamponRecords
+                                : l10n.hideTamponRecords,
+                          ),
+                        ),
+                        Chip(label: Text(l10n.researchConsent(consentText))),
                       ],
                     ),
                   ],
@@ -429,20 +445,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'PROFILE',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    letterSpacing: 0.8,
-                  ),
+                  l10n.accountSection,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: 6),
-                Text('账号', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Text(userEmail ?? l10n.unknown),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _displayNameController,
-                  decoration: const InputDecoration(labelText: '昵称'),
+                  decoration: InputDecoration(labelText: l10n.nickname),
                 ),
                 const SizedBox(height: 12),
                 FilledButton.tonal(
@@ -463,7 +474,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 .refreshSession();
                             if (!mounted) return;
                             messenger.showSnackBar(
-                              const SnackBar(content: Text('昵称已保存')),
+                              SnackBar(content: Text(l10n.nicknameSaved)),
                             );
                           } finally {
                             if (mounted) {
@@ -471,13 +482,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             }
                           }
                         },
-                  child: Text(_updatingProfile ? '保存中...' : '保存昵称'),
+                  child: Text(
+                    _updatingProfile ? l10n.saving : l10n.saveNickname,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('我习惯用卫生棉条'),
-                  subtitle: const Text('同步账号，并控制首页是否显示棉条'),
+                  title: Text(l10n.tamponHabit),
+                  subtitle: Text(l10n.tamponHabitHint),
                   value: useTampon,
                   onChanged: (value) async {
                     await ref
@@ -500,14 +513,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'PRIVACY',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    letterSpacing: 0.8,
-                  ),
+                  l10n.privacyLanguageSection,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: 6),
-                Text('隐私与语言', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
@@ -516,7 +524,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     color: const Color(0xFFF8F1EC),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Text('研究同意状态：$_consentText'),
+                  child: Text(l10n.researchConsentStatus(consentText)),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton(
@@ -527,26 +535,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     if (!context.mounted) return;
                     context.go('/onboarding?mode=edit');
                   },
-                  child: const Text('修改研究同意'),
+                  child: Text(l10n.editResearchConsent),
                 ),
                 const SizedBox(height: 16),
                 Text(l10n.language),
                 const SizedBox(height: 8),
-                SegmentedButton<String?>(
-                  segments: [
-                    ButtonSegment(
-                      value: null,
-                      label: Text(l10n.languageSystem),
-                    ),
-                    ButtonSegment(value: 'zh', label: Text(l10n.languageZh)),
-                    ButtonSegment(value: 'en', label: Text(l10n.languageEn)),
-                  ],
-                  selected: {localeState.locale?.languageCode},
-                  onSelectionChanged: (selection) {
-                    ref
-                        .read(localeControllerProvider.notifier)
-                        .setLocale(selection.firstOrNull);
-                  },
+                const LanguageSwitcher(
+                  variant: LanguageSwitcherVariant.segmented,
                 ),
                 const SizedBox(height: 16),
                 Text('${l10n.apiBaseUrl}: ${AppConfig.apiBaseUrl}'),
@@ -564,15 +559,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'PREFERENCES',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '记录展示',
+                        l10n.recordDisplaySection,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       if (_prefsStatusText != null) ...[
@@ -625,8 +612,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       const SizedBox(height: 12),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('显示卫生巾模块'),
-                        subtitle: const Text('只影响首页显示，不影响已记录数据'),
+                        title: Text(l10n.showPadModule),
+                        subtitle: Text(l10n.showPadModuleHint),
                         value: _showPad,
                         onChanged: _savingPrefs
                             ? null
@@ -636,14 +623,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 _runPrefsSave(
                                   persist: _saveVisibility,
                                   rollback: () => _showPad = previous,
-                                  successText: '显示设置已保存',
+                                  successText: l10n.displaySettingsSaved,
                                 );
                               },
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('显示实时血量'),
-                        subtitle: const Text('关闭后只隐藏汇总，不影响记录和分析'),
+                        title: Text(l10n.showRealtimeBleeding),
+                        subtitle: Text(l10n.showRealtimeBleedingHint),
                         value: _showBleeding,
                         onChanged: _savingPrefs
                             ? null
@@ -653,18 +640,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 _runPrefsSave(
                                   persist: _saveVisibility,
                                   rollback: () => _showBleeding = previous,
-                                  successText: '显示设置已保存',
+                                  successText: l10n.displaySettingsSaved,
                                 );
                               },
                       ),
                       const Divider(height: 28),
                       Text(
-                        '输入模式',
+                        l10n.inputMode,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '打开精确模式后，将采用拖拽滑杆的方式精确控制血量；关闭则使用点击快捷添加。',
+                        l10n.inputModeHint,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(
                             context,
@@ -674,9 +661,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       const SizedBox(height: 12),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('卫生巾精确模式'),
+                        title: Text(l10n.padPrecisionMode),
                         subtitle: Text(
-                          _padInputMode == 'drag' ? '拖动滑杆录入' : '点按钮快速添加',
+                          _padInputMode == 'drag'
+                              ? l10n.dragSliderInput
+                              : l10n.quickButtonInput,
                         ),
                         value: _padInputMode == 'drag',
                         onChanged: _savingPrefs
@@ -690,15 +679,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 _runPrefsSave(
                                   persist: _saveInputMode,
                                   rollback: () => _padInputMode = previous,
-                                  successText: '录入方式已保存',
+                                  successText: l10n.inputModeSaved,
                                 );
                               },
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('棉条精确模式'),
+                        title: Text(l10n.tamponPrecisionMode),
                         subtitle: Text(
-                          _tamponInputMode == 'drag' ? '拖动滑杆录入' : '点按钮快速添加',
+                          _tamponInputMode == 'drag'
+                              ? l10n.dragSliderInput
+                              : l10n.quickButtonInput,
                         ),
                         value: _tamponInputMode == 'drag',
                         onChanged: _savingPrefs
@@ -713,25 +704,26 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 _runPrefsSave(
                                   persist: _saveInputMode,
                                   rollback: () => _tamponInputMode = previous,
-                                  successText: '录入方式已保存',
+                                  successText: l10n.inputModeSaved,
                                 );
                               },
                       ),
                       const SizedBox(height: 12),
                       _PreviewActionTile(
-                        title: '卫生巾精确模式预览',
+                        previewLabel: l10n.preview,
+                        title: l10n.padPrecisionPreview,
                         subtitle: _padInputMode == 'drag'
-                            ? '点击查看规格与血量预览'
-                            : '点击预览开启后的效果',
+                            ? l10n.previewSpecifications
+                            : l10n.previewEnabledEffect,
                         onTap: () => _showPrecisionPreviewSheet(
-                          title: '卫生巾 · 精确模式预览',
+                          title: l10n.padPreviewTitle,
                           caption: _padInputMode == 'drag'
-                              ? '当前已开启精确录入，首页会显示同样的规格与滑杆逻辑。'
-                              : '当前是快捷模式；开启后首页会切换成拖拽录入。',
-                          options: _padOptions,
+                              ? l10n.precisionEnabledCaption
+                              : l10n.quickModeCaption,
+                          options: padOptions,
                           selectedValue: _padPreviewType,
                           volume: _padPreviewVolume,
-                          valueUnitLabel: 'mL / 片',
+                          valueUnitLabel: l10n.padUnit,
                           onSelected: (value) =>
                               setState(() => _padPreviewType = value),
                           onVolumeChanged: (value) =>
@@ -740,24 +732,26 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               _PadPrecisionStage(
                                 padType: selectedValue,
                                 volume: volume,
+                                l10n: l10n,
                               ),
                         ),
                       ),
                       const SizedBox(height: 12),
                       _PreviewActionTile(
-                        title: '卫生棉条精确模式预览',
+                        previewLabel: l10n.preview,
+                        title: l10n.tamponPrecisionPreview,
                         subtitle: _tamponInputMode == 'drag'
-                            ? '点击查看型号与浸润高度预览'
-                            : '点击预览开启后的效果',
+                            ? l10n.previewTamponHeight
+                            : l10n.previewEnabledEffect,
                         onTap: () => _showPrecisionPreviewSheet(
-                          title: '卫生棉条 · 精确模式预览',
+                          title: l10n.tamponPreviewTitle,
                           caption: _tamponInputMode == 'drag'
-                              ? '当前已开启精确录入，浸润高度会随着血量变化。'
-                              : '当前是快捷模式；开启后首页会切换成拖拽录入。',
-                          options: _tamponOptions,
+                              ? l10n.tamponPrecisionEnabledCaption
+                              : l10n.quickModeCaption,
+                          options: tamponOptions,
                           selectedValue: _tamponPreviewModel,
                           volume: _tamponPreviewVolume,
-                          valueUnitLabel: 'mL / 条',
+                          valueUnitLabel: l10n.tamponUnit,
                           onSelected: (value) =>
                               setState(() => _tamponPreviewModel = value),
                           onVolumeChanged: (value) =>
@@ -766,6 +760,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               _TamponPrecisionStage(
                                 model: selectedValue,
                                 volume: volume,
+                                l10n: l10n,
                               ),
                         ),
                       ),
@@ -781,18 +776,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'SUPPORT',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    letterSpacing: 0.8,
-                  ),
+                  l10n.supportFeedbackSection,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: 6),
-                Text('支持与反馈', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () => context.go('/feedback'),
-                  child: const Text('提交反馈'),
+                  child: Text(l10n.submitFeedback),
                 ),
                 const SizedBox(height: 12),
                 FilledButton.tonal(
@@ -813,7 +803,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.error,
                   ),
-                  child: Text(_deletingAccount ? '删除中...' : '删除账号'),
+                  child: Text(
+                    _deletingAccount ? l10n.deleting : l10n.deleteAccount,
+                  ),
                 ),
               ],
             ),
@@ -826,11 +818,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
 class _PreviewActionTile extends StatelessWidget {
   const _PreviewActionTile({
+    required this.previewLabel,
     required this.title,
     required this.subtitle,
     required this.onTap,
   });
 
+  final String previewLabel;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -873,7 +867,7 @@ class _PreviewActionTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              '预览',
+              previewLabel,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w800,
@@ -917,6 +911,7 @@ class _PrecisionPreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -961,7 +956,7 @@ class _PrecisionPreviewCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                '血量 ${volume.toStringAsFixed(1)}',
+                l10n.bleedingVolume(volume.toStringAsFixed(1)),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -984,12 +979,12 @@ class _PrecisionPreviewCard extends StatelessWidget {
             onChanged: onVolumeChanged,
           ),
           Row(
-            children: const [
-              _ScaleHint(label: '少', value: '3mL'),
-              Spacer(),
-              _ScaleHint(label: '中', value: '6mL'),
-              Spacer(),
-              _ScaleHint(label: '多', value: '10mL'),
+            children: [
+              _ScaleHint(label: l10n.volumeLow, value: '3mL'),
+              const Spacer(),
+              _ScaleHint(label: l10n.volumeMedium, value: '6mL'),
+              const Spacer(),
+              _ScaleHint(label: l10n.volumeHigh, value: '10mL'),
             ],
           ),
         ],
@@ -1006,14 +1001,18 @@ class _ScaleHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.onSurface.withValues(
-      alpha: 0.54,
-    );
+    final color = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.54);
     return Column(
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
         ),
         const SizedBox(height: 2),
         Text(value, style: TextStyle(fontSize: 11, color: color)),
@@ -1023,10 +1022,15 @@ class _ScaleHint extends StatelessWidget {
 }
 
 class _PadPrecisionStage extends StatelessWidget {
-  const _PadPrecisionStage({required this.padType, required this.volume});
+  const _PadPrecisionStage({
+    required this.padType,
+    required this.volume,
+    required this.l10n,
+  });
 
   final String padType;
   final double volume;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -1054,7 +1058,9 @@ class _PadPrecisionStage extends StatelessWidget {
               color: const Color(0xFF7F6056),
               fontWeight: FontWeight.w700,
             ),
-            child: Text('${_padTypeName(padType)} · ${volume.toStringAsFixed(1)}mL'),
+            child: Text(
+              '${_padTypeName(l10n, padType)} · ${volume.toStringAsFixed(1)}mL',
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -1170,10 +1176,15 @@ class _PadWing extends StatelessWidget {
 }
 
 class _TamponPrecisionStage extends StatelessWidget {
-  const _TamponPrecisionStage({required this.model, required this.volume});
+  const _TamponPrecisionStage({
+    required this.model,
+    required this.volume,
+    required this.l10n,
+  });
 
   final String model;
   final double volume;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -1195,7 +1206,7 @@ class _TamponPrecisionStage extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            '${_tamponModelName(model)} · ${volume.toStringAsFixed(1)}mL',
+            '${_tamponModelName(l10n, model)} · ${volume.toStringAsFixed(1)}mL',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: const Color(0xFF7F6056),
               fontWeight: FontWeight.w700,
@@ -1299,10 +1310,8 @@ class _TamponPrecisionStage extends StatelessWidget {
   }
 }
 
-({Color fill, Color outline}) _bloodPalette() => (
-  fill: const Color(0xFFC35A63),
-  outline: const Color(0xFF8C3745),
-);
+({Color fill, Color outline}) _bloodPalette() =>
+    (fill: const Color(0xFFC35A63), outline: const Color(0xFF8C3745));
 
 Size _padBodySize(String padType) {
   switch (padType) {
@@ -1348,10 +1357,22 @@ double _tamponBodyHeight(String model) {
   }
 }
 
-String _padTypeName(String value) {
-  return _SettingsPageState._padOptions[value] ?? '卫生巾';
+String _padTypeName(AppLocalizations l10n, String value) {
+  return switch (value) {
+    'liner' => l10n.padLiner,
+    'day' => l10n.padDay,
+    'night' => l10n.padNight,
+    'pants' => l10n.padPants,
+    _ => l10n.pad,
+  };
 }
 
-String _tamponModelName(String value) {
-  return _SettingsPageState._tamponOptions[value] ?? '卫生棉条';
+String _tamponModelName(AppLocalizations l10n, String value) {
+  return switch (value) {
+    'mini' => l10n.tamponMini,
+    'regular' => l10n.tamponRegular,
+    'large' => l10n.tamponLarge,
+    'super' => l10n.tamponSuper,
+    _ => l10n.tampon,
+  };
 }

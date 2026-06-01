@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/session/session_controller.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../shared/presentation/language_switcher.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -139,7 +140,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _LoginShowcase(codeStep: _codeStep),
+                            _LoginShowcase(codeStep: _codeStep, l10n: l10n),
                             const SizedBox(height: 24),
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 240),
@@ -186,6 +187,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   colors: [Color(0x30D9A79C), Color(0x00D9A79C)],
                 ),
               ),
+              const Positioned(top: 16, right: 16, child: LanguageSwitcher()),
             ],
           ),
         ),
@@ -210,7 +212,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _codeStep ? '验证邮箱' : '输入邮箱',
+                _codeStep ? l10n.verifyEmail : l10n.enterEmail,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -254,7 +256,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   _timer?.cancel();
                                   _emailFocusNode.requestFocus();
                                 },
-                          child: const Text('修改'),
+                          child: Text(l10n.editEmail),
                         )
                       : (_emailController.text.isEmpty
                             ? null
@@ -267,7 +269,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                         _emailFocusNode.requestFocus();
                                       },
                                 icon: const Icon(Icons.close),
-                                tooltip: '清空邮箱',
+                                tooltip: l10n.clearEmail,
                               )),
                 ),
               ),
@@ -311,7 +313,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '输入验证码',
+                                  l10n.enterCode,
                                   style: Theme.of(
                                     context,
                                   ).textTheme.titleMedium,
@@ -336,8 +338,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   },
                                   onSubmitted: (_) => _handlePrimaryAction(),
                                   decoration: InputDecoration(
-                                    labelText: '验证码',
-                                    hintText: '输入 6 位数字',
+                                    labelText: l10n.verificationCode,
+                                    hintText: l10n.codePlaceholder,
                                     errorText: codeError,
                                     suffixIcon: IconButton(
                                       onPressed: busy
@@ -346,7 +348,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       icon: const Icon(
                                         Icons.content_paste_go_outlined,
                                       ),
-                                      tooltip: '粘贴验证码',
+                                      tooltip: l10n.pasteCode,
                                     ),
                                   ),
                                 ),
@@ -354,15 +356,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   children: [
                                     Text(
                                       _cooldown > 0
-                                          ? '${_cooldown}s 后可重发'
-                                          : '可重新发送',
+                                          ? l10n.resendCountdown(_cooldown)
+                                          : l10n.resendAvailable,
                                     ),
                                     const Spacer(),
                                     TextButton(
                                       onPressed: busy || _cooldown > 0
                                           ? null
                                           : _resendCode,
-                                      child: const Text('重新发送'),
+                                      child: Text(l10n.resendCode),
                                     ),
                                   ],
                                 ),
@@ -385,7 +387,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               borderRadius: BorderRadius.circular(18),
             ),
             child: Text(
-              errorMessage,
+              _localizedError(l10n, errorMessage),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onErrorContainer,
                 fontWeight: FontWeight.w600,
@@ -405,7 +407,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('开发环境验证码', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.devCode,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   _devCode!,
@@ -419,16 +424,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     OutlinedButton(
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: _devCode!));
-                        _showSnack('验证码已复制');
+                        _showSnack(l10n.codeCopied);
                       },
-                      child: const Text('复制验证码'),
+                      child: Text(l10n.copyCode),
                     ),
                     FilledButton.tonal(
                       onPressed: () {
                         _codeController.text = _devCode!;
                         _onCodeChanged(_devCode!, busy);
                       },
-                      child: const Text('填入并登录'),
+                      child: Text(l10n.fillAndLogin),
                     ),
                   ],
                 ),
@@ -465,7 +470,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
             ),
-            child: const Text('浏览百科'),
+            child: Text(l10n.browseEncyclopedia),
           ),
         ],
       ],
@@ -504,6 +509,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _resendCode() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     if (!_isEmail(email)) return;
     try {
@@ -513,7 +519,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (!mounted) return;
       setState(() => _devCode = result.devMode ? result.code : null);
       _startCooldown();
-      _showSnack('验证码已重新发送');
+      _showSnack(l10n.codeResent);
     } catch (_) {}
   }
 
@@ -564,11 +570,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _pasteCodeFromClipboard() async {
+    final l10n = AppLocalizations.of(context)!;
     final data = await Clipboard.getData('text/plain');
     final raw = data?.text ?? '';
     final digits = raw.replaceAll(RegExp(r'\D'), '');
     if (digits.length < 6) {
-      _showSnack('剪贴板里没有 6 位验证码');
+      _showSnack(l10n.clipboardCodeMissing);
       return;
     }
     final code = digits.substring(0, 6);
@@ -597,12 +604,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void _showSnack(String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
+
+  String _localizedError(AppLocalizations l10n, String error) {
+    return switch (error) {
+      'Invalid email format' => l10n.invalidEmail,
+      'Failed to send verification code' ||
+      'Failed to send code' => l10n.sendCodeFailed,
+      'Invalid or expired verification code' => l10n.invalidOrExpiredCode,
+      'Login verification failed' || 'Login failed' => l10n.loginFailed,
+      'Unexpected error' => l10n.unexpectedError,
+      _ => l10n.unexpectedError,
+    };
+  }
 }
 
 class _LoginShowcase extends StatelessWidget {
-  const _LoginShowcase({required this.codeStep});
+  const _LoginShowcase({required this.codeStep, required this.l10n});
 
   final bool codeStep;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -655,7 +675,7 @@ class _LoginShowcase extends StatelessWidget {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            '月知会',
+            l10n.brandName,
             style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w900,
               letterSpacing: -1,
@@ -665,7 +685,7 @@ class _LoginShowcase extends StatelessWidget {
         const SizedBox(height: 6),
         Center(
           child: Text(
-            'FLOWSENSE',
+            l10n.brandWordmark,
             style: theme.textTheme.labelLarge?.copyWith(
               color: Theme.of(
                 context,
@@ -676,7 +696,7 @@ class _LoginShowcase extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          codeStep ? '输入验证码' : '邮箱验证码登录',
+          codeStep ? l10n.enterCode : l10n.emailCodeLogin,
           style: theme.textTheme.titleLarge?.copyWith(
             height: 1.2,
             fontWeight: FontWeight.w800,
@@ -685,7 +705,7 @@ class _LoginShowcase extends StatelessWidget {
         if (codeStep) ...[
           const SizedBox(height: 8),
           Text(
-            '6 位数字验证码已发送到邮箱。',
+            l10n.codeSentDescription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Theme.of(
                 context,
@@ -695,7 +715,7 @@ class _LoginShowcase extends StatelessWidget {
         ],
         if (!codeStep) ...[
           const SizedBox(height: 18),
-          _LoginProgress(codeStep: codeStep),
+          _LoginProgress(codeStep: codeStep, l10n: l10n),
         ],
       ],
     );
@@ -703,19 +723,20 @@ class _LoginShowcase extends StatelessWidget {
 }
 
 class _LoginProgress extends StatelessWidget {
-  const _LoginProgress({required this.codeStep});
+  const _LoginProgress({required this.codeStep, required this.l10n});
 
   final bool codeStep;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     return Row(
       children: [
-        const Expanded(
+        Expanded(
           child: _ProgressPill(
             active: true,
-            title: '邮箱',
+            title: l10n.email,
             icon: Icons.alternate_email_rounded,
           ),
         ),
@@ -723,7 +744,7 @@ class _LoginProgress extends StatelessWidget {
         Expanded(
           child: _ProgressPill(
             active: codeStep,
-            title: '验证',
+            title: l10n.verificationStep,
             icon: Icons.verified_user_rounded,
           ),
         ),

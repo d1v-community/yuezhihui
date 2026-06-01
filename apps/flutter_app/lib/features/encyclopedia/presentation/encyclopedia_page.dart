@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../shared/presentation/flow_page.dart';
 
 class EncyclopediaPage extends StatefulWidget {
@@ -21,89 +22,86 @@ class _EncyclopediaPageState extends State<EncyclopediaPage> {
     _expandedId = widget.initialCardId;
   }
 
-  static const _cards = <_KbCard>[
+  List<_KbCard> _cards(AppLocalizations l10n) => [
     _KbCard(
       id: 'vital-sign',
-      tag: '精细化管理',
-      title: '月经是一项“生命体征”',
-      lead: '周期、经量、颜色、痛感与出血模式，都是身体状态的信号。',
-      body: [
-        '把月经当成每月一次的健康快照，你会更早发现是否存在经量过多、贫血风险或长期疼痛问题。',
-        '记录的价值不在于记得更多，而在于把模糊感受变成可比较、可解释、可与医生沟通的数据。',
-      ],
-      bullets: [
-        '记录不是为了焦虑，而是为了更稳地掌控变化',
-        '异常往往是趋势，不是某一天的偶发波动',
-        '能说清变化，比单纯觉得不对劲更有帮助',
-      ],
+      tag: l10n.kbVitalTag,
+      title: l10n.kbVitalTitle,
+      lead: l10n.kbVitalLead,
+      body: [l10n.kbVitalBody1, l10n.kbVitalBody2],
+      bullets: [l10n.kbVitalBullet1, l10n.kbVitalBullet2, l10n.kbVitalBullet3],
       sources: [
         _Source(
-          'ACOG：月经是生命体征',
+          l10n.sourceAcogVital,
           'https://www.acog.org/womens-health/faqs/menstruation-in-girls-and-adolescents-using-the-menstrual-cycle-as-a-vital-sign',
         ),
         _Source(
-          'Mayo Clinic：月经周期基础',
+          l10n.sourceMayoCycle,
           'https://www.mayoclinic.org/healthy-lifestyle/womens-health/in-depth/menstrual-cycle/art-20047186',
         ),
       ],
     ),
     _KbCard(
       id: 'normal-range',
-      tag: '常识',
-      title: '了解正常范围，才更容易识别异常',
-      lead: '判断月经是否正常，不能只看“来没来”。',
-      body: ['周期、经期、总量、血块、颜色和疼痛都应该一起看，突然变化通常比单项偏高或偏低更值得关注。'],
+      tag: l10n.kbNormalTag,
+      title: l10n.kbNormalTitle,
+      lead: l10n.kbNormalLead,
+      body: [l10n.kbNormalBody],
       bullets: [
-        '周期 21-35 天常见，重点是你自己的规律',
-        '经期 3-8 天常见，超过 7 天且量多需要关注',
-        '总量 20-80mL/周期常见，明显超出可能提示风险',
-        '频繁大血块、明显头晕乏力、夜间漏血都值得记录',
+        l10n.kbNormalBullet1,
+        l10n.kbNormalBullet2,
+        l10n.kbNormalBullet3,
+        l10n.kbNormalBullet4,
       ],
       sources: [
         _Source(
-          'CDC：重度月经出血',
+          l10n.sourceCdcHeavy,
           'https://www.cdc.gov/heavy-menstrual-bleeding/index.html',
         ),
       ],
     ),
     _KbCard(
       id: 'hmb',
-      tag: '风险',
-      title: '经量过多是最容易被忽视的风险之一',
-      lead: '量大不等于体质好，也不应该靠硬扛。',
-      body: ['如果需要频繁更换用品、经期明显影响睡眠或工作、伴随头晕乏力，就不应简单视为个体差异。'],
+      isRisk: true,
+      tag: l10n.kbRiskTag,
+      title: l10n.kbRiskTitle,
+      lead: l10n.kbRiskLead,
+      body: [l10n.kbRiskBody],
       bullets: [],
       redFlags: [
-        '连续数小时每小时就浸透 1 片卫生巾/棉条',
-        '需要半夜起床更换，或不得不叠加使用多种用品',
-        '经期超过 7 天且明显影响生活',
-        '伴随贫血症状，如乏力、头晕、心慌、气短',
+        l10n.kbRiskFlag1,
+        l10n.kbRiskFlag2,
+        l10n.kbRiskFlag3,
+        l10n.kbRiskFlag4,
       ],
       sources: [
-        _Source('NHS：经量过多', 'https://www.nhs.uk/conditions/heavy-periods/'),
         _Source(
-          'Mayo Clinic：重度月经出血',
+          l10n.sourceNhsHeavy,
+          'https://www.nhs.uk/conditions/heavy-periods/',
+        ),
+        _Source(
+          l10n.sourceMayoHeavy,
           'https://www.mayoclinic.org/diseases-conditions/menorrhagia/symptoms-causes/syc-20351256',
         ),
       ],
     ),
     _KbCard(
       id: 'track',
-      tag: '自检',
-      title: '建议稳定记录的 6 个关键维度',
-      lead: '少而精，形成趋势就足够有价值。',
-      body: ['只要稳定记录以下维度，就足以支撑分析页的趋势判断和风险提示。'],
+      tag: l10n.kbTrackTag,
+      title: l10n.kbTrackTitle,
+      lead: l10n.kbTrackLead,
+      body: [l10n.kbTrackBody],
       bullets: [
-        '开始/结束日期与持续天数',
-        '每天经量或用品更换频率',
-        '颜色与血块',
-        '疼痛强度与是否用药',
-        '是否存在非经期出血',
-        '精力与睡眠变化',
+        l10n.kbTrackBullet1,
+        l10n.kbTrackBullet2,
+        l10n.kbTrackBullet3,
+        l10n.kbTrackBullet4,
+        l10n.kbTrackBullet5,
+        l10n.kbTrackBullet6,
       ],
       sources: [
         _Source(
-          'WHO：子宫内膜异位症',
+          l10n.sourceWhoEndometriosis,
           'https://www.who.int/news-room/fact-sheets/detail/endometriosis',
         ),
       ],
@@ -112,9 +110,10 @@ class _EncyclopediaPageState extends State<EncyclopediaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FlowPage(
-      title: '百科',
-      subtitle: '把月经量、风险和变化说清楚。',
+      title: l10n.encyclopediaTitle,
+      subtitle: l10n.encyclopediaSubtitle,
       children: [
         Container(
           padding: const EdgeInsets.all(24),
@@ -131,28 +130,31 @@ class _EncyclopediaPageState extends State<EncyclopediaPage> {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                'EDITORIAL NOTE',
-                style: TextStyle(
+                l10n.encyclopediaNote,
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.2,
                   color: Color(0xFF8C3B4D),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
-                '把月经量，说清楚',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+                l10n.encyclopediaHeroTitle,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-              SizedBox(height: 10),
-              Text('月经量不是主观感受，而是可以被理解、被估算、被判断的生理指标。'),
+              const SizedBox(height: 10),
+              Text(l10n.encyclopediaHeroBody),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        for (final card in _cards) ...[
+        for (final card in _cards(l10n)) ...[
           _ArticleCard(
             card: card,
             expanded: _expandedId == card.id,
@@ -170,9 +172,9 @@ class _EncyclopediaPageState extends State<EncyclopediaPage> {
   Future<void> _copyText(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('已复制链接')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.copiedLink)),
+    );
   }
 }
 
@@ -191,7 +193,8 @@ class _ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRisk = card.tag == '风险';
+    final l10n = AppLocalizations.of(context)!;
+    final isRisk = card.isRisk;
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(28),
@@ -220,7 +223,7 @@ class _ArticleCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Text(expanded ? '收起' : '展开'),
+                  Text(expanded ? l10n.collapse : l10n.expand),
                 ],
               ),
               const SizedBox(height: 14),
@@ -244,9 +247,9 @@ class _ArticleCard extends StatelessWidget {
                   const SizedBox(height: 10),
                 ],
                 if (card.bullets.isNotEmpty) ...[
-                  const Text(
-                    '要点',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                  Text(
+                    l10n.keyPoints,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
                   for (final bullet in card.bullets)
@@ -258,7 +261,7 @@ class _ArticleCard extends StatelessWidget {
                 if (card.redFlags.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   Text(
-                    '红旗信号',
+                    l10n.redFlags,
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       color: Theme.of(context).colorScheme.primary,
@@ -308,6 +311,7 @@ class _KbCard {
     required this.bullets,
     this.redFlags = const [],
     required this.sources,
+    this.isRisk = false,
   });
 
   final String id;
@@ -318,6 +322,7 @@ class _KbCard {
   final List<String> bullets;
   final List<String> redFlags;
   final List<_Source> sources;
+  final bool isRisk;
 }
 
 class _Source {

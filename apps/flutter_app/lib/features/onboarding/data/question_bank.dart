@@ -1,4 +1,251 @@
+import 'package:flutter/widgets.dart';
+
 typedef QuestionJson = Map<String, dynamic>;
+
+String localizedQuestionTitle(BuildContext context, String id) {
+  final original = questionDef(id)['title']?.toString() ?? id;
+  if (Localizations.localeOf(context).languageCode != 'en') return original;
+  return _englishQuestionTitles[id] ?? original;
+}
+
+String? localizedQuestionNote(BuildContext context, String id) {
+  final original = questionDef(id)['note']?.toString();
+  if (Localizations.localeOf(context).languageCode != 'en') return original;
+  return _englishQuestionNotes[id] ?? original;
+}
+
+String? localizedQuestionPlaceholder(BuildContext context, String id) {
+  final original = questionDef(id)['placeholder']?.toString();
+  if (Localizations.localeOf(context).languageCode != 'en') return original;
+  return original == null ? null : 'Enter details';
+}
+
+String? localizedQuestionOptionLabel(
+  BuildContext context,
+  String id,
+  Map<String, dynamic> option,
+) {
+  final original = option['label']?.toString();
+  if (original == null ||
+      Localizations.localeOf(context).languageCode != 'en') {
+    return original;
+  }
+  final value = option['value']?.toString() ?? '';
+  return _englishOptionLabels['$id:$value'] ??
+      _commonEnglishOptionLabels[value] ??
+      _englishValueLabels[value] ??
+      _humanizeOptionValue(value);
+}
+
+String _humanizeOptionValue(String value) {
+  if (value.isEmpty) return value;
+  final words = value.replaceAll('_', ' ');
+  return '${words[0].toUpperCase()}${words.substring(1)}';
+}
+
+const _englishQuestionTitles = <String, String>{
+  'A0_consent_research': 'Allow anonymized answers to be used for research?',
+  'B1_birth_date': 'What is your date of birth?',
+  'B2_region_level': 'What type of area do you live in?',
+  'C1_menarche_ever': 'Have you had your first period?',
+  'C6_menarche_age_band': 'About how old were you at your first period?',
+  'C3_menses_last_3m': 'Have you had menstrual bleeding in the past 3 months?',
+  'C5_amenorrhea_reason': 'What is the main reason for absent periods?',
+  'C4_amenorrhea_ever_3m': 'Have you ever missed periods for 3+ months?',
+  'C2_current_status': 'Which menstrual stage best describes you now?',
+  'D1_period_length_days': 'How many days does a period usually last?',
+  'D2_cycle_regularity': 'Are your cycles usually regular?',
+  'D3_cycle_length_days': 'What is your recent average cycle length?',
+  'D4_irregular_patterns': 'How are your cycles irregular?',
+  'D5_last_period_start': 'When did your last period start?',
+  'E1_products': 'Which menstrual products did you use most recently?',
+  'E1_pad_brand': 'Which pad brands do you usually use?',
+  'E1_pad_brand_other_text': 'Other pad brand',
+  'E1_tampon_brand': 'Which tampon brands do you usually use?',
+  'E1_tampon_brand_other_text': 'Other tampon brand',
+  'E1_cup_brand': 'Which cup brands do you usually use?',
+  'E1_cup_brand_other_text': 'Other cup brand',
+  'E1_disc_brand': 'Which disc brands do you usually use?',
+  'E1_disc_brand_other_text': 'Other disc brand',
+  'E1_period_underwear_brand': 'Which period-underwear brands do you use?',
+  'E1_period_underwear_brand_other_text': 'Other period-underwear brand',
+  'E1_other_product_text': 'Other menstrual product',
+  'E2_change_frequency_peak':
+      'On heavy days, how often do you change products?',
+  'E3_clots_leakage': 'Have you noticed clots or leakage?',
+  'F1_health_conditions': 'Do any of these health conditions apply?',
+  'F2_condition_source': 'How were these conditions identified?',
+  'F2_condition_source_unknown_text': 'Add context if helpful',
+  'M1_pregnancy_possible': 'Could you be pregnant?',
+  'M1_pregnancy_test': 'Have you taken a pregnancy test?',
+  'M2_iron_deficiency_confirm':
+      'Have you been told you have iron deficiency or anemia?',
+  'M3_iron_treatment': 'Are you receiving iron treatment?',
+  'G1_bleeding_history_multi':
+      'Have you experienced any of these bleeding patterns?',
+  'H1_contraception_methods': 'Which contraception methods do you use?',
+  'H2_pregnancy_history': 'Have you ever been pregnant?',
+  'H3_pregnancy_count_band': 'How many pregnancies have you had?',
+  'H4_birth_history': 'Have you given birth?',
+  'H5_abortion_history': 'Have you had a miscarriage or abortion?',
+  'I1_height_cm': 'What is your height in cm?',
+  'I2_weight_kg': 'What is your weight in kg?',
+  'J1_know_mbl': 'Do you know your menstrual blood volume?',
+  'J2_mbl_band': 'Which volume range fits best?',
+  'J3_mbl_subjective': 'How would you describe your usual flow?',
+};
+
+const _englishQuestionNotes = <String, String>{
+  'B1_birth_date':
+      'Choose an exact date, year and month, not sure, or prefer not to say.',
+  'D5_last_period_start': 'Used as the default tracking date after onboarding.',
+};
+
+const _commonEnglishOptionLabels = <String, String>{
+  'yes': 'Yes',
+  'no': 'No',
+  'unknown': 'Not sure',
+  'no_answer': 'Prefer not to say',
+  'other': 'Other',
+  'none': 'None',
+  'agree': 'Agree',
+  'disagree': 'Disagree',
+  'regular': 'Mostly regular',
+  'irregular': 'Irregular',
+  'pad': 'Pads / liners',
+  'tampon': 'Tampons',
+  'cup': 'Menstrual cup',
+  'disc': 'Menstrual disc',
+  'period_underwear': 'Period underwear',
+};
+
+const _englishOptionLabels = <String, String>{
+  'B2_region_level:tier1': 'Large city',
+  'B2_region_level:tier2': 'Medium city',
+  'B2_region_level:tier3': 'Small city / county',
+  'B2_region_level:rural': 'Town / rural area',
+  'B2_region_level:overseas': 'Outside China',
+  'C1_menarche_ever:yes': 'Yes',
+  'C1_menarche_ever:no': 'Not yet',
+  'C5_amenorrhea_reason:pregnancy': 'Pregnancy',
+  'C5_amenorrhea_reason:postpartum_lactation': 'Postpartum / breastfeeding',
+  'C5_amenorrhea_reason:hormone_medication':
+      'Hormonal medication / contraception',
+  'C5_amenorrhea_reason:surgery': 'Surgery / treatment',
+  'C5_amenorrhea_reason:disease': 'Health condition',
+  'C5_amenorrhea_reason:weight_stress': 'Weight change / stress / routine',
+  'C5_amenorrhea_reason:other_known': 'Other known reason',
+  'C2_current_status:menstruating': 'Still menstruating',
+  'C2_current_status:perimenopause': 'Perimenopause',
+  'C2_current_status:menopause': 'Menopause',
+  'D4_irregular_patterns:often_early': 'Often early',
+  'D4_irregular_patterns:often_late': 'Often late',
+  'D4_irregular_patterns:vary_a_lot': 'Cycle length varies a lot',
+  'D4_irregular_patterns:spotting': 'Spotting / irregular bleeding',
+  'D4_irregular_patterns:sometimes_amenorrhea_3m':
+      'Occasionally absent for 3+ months',
+  'D4_irregular_patterns:flow_varies': 'Flow varies a lot',
+  'E1_products:period_underwear': 'Period underwear',
+  'E2_change_frequency_peak:lt_1h': 'Less than 1 hour',
+  'E2_change_frequency_peak:1_2h': 'Every 1-2 hours',
+  'E2_change_frequency_peak:2_4h': 'Every 2-4 hours',
+  'E2_change_frequency_peak:gt_4h': 'More than 4 hours',
+  'J3_mbl_subjective:light': 'Light',
+  'J3_mbl_subjective:normal': 'Moderate',
+  'J3_mbl_subjective:heavy': 'Heavy',
+};
+
+const _englishValueLabels = <String, String>{
+  'sofy': 'SOFY',
+  'space7': 'Space7',
+  'whisper': 'Whisper',
+  'kotex': 'Kotex',
+  'freemore': 'FreeMore',
+  'laurier': 'Laurier',
+  'beishute': 'Beishute',
+  'jieting': 'Jieting',
+  'taotao': 'Taotao',
+  'nais_princess': 'Nais Princess',
+  'libresse': 'Libresse',
+  'various': 'Various / no fixed brand',
+  'tampax': 'TAMPAX',
+  'playtex': 'Playtex',
+  'bluetex': 'Bluetex',
+  'tmaxx': 'Tmaxx',
+  'femme': 'Femme',
+  'large_clots': 'Large clots',
+  'night_leak': 'Overnight leaks',
+  'double_protection': 'Needs double protection',
+  'fatigue_dizzy': 'Fatigue / dizziness',
+  'doctor_dx': 'Diagnosed by a clinician',
+  'doctor_suspect': 'Suggested by a clinician / under evaluation',
+  'self_judgement': 'Self-assessed',
+  'mixed': 'Mixed sources',
+  'possible': 'Possible',
+  'impossible': 'Unlikely',
+  'condom': 'Condom',
+  'coc': 'Combined oral contraceptive',
+  'progestin_only': 'Progestin-only method',
+  'iud': 'IUD',
+  'sterilization': 'Sterilization',
+  'never': 'Never',
+  'ever': 'Previously pregnant',
+  'pregnant_now': 'Currently pregnant',
+  'vaginal': 'Mainly vaginal birth',
+  'c_section': 'Mainly C-section',
+  'both': 'Both',
+  'spontaneous': 'Miscarriage',
+  'induced': 'Induced abortion',
+  'light': 'Light',
+  'normal': 'Moderate',
+  'heavy': 'Heavy',
+  '血友病家族史': 'Family history of hemophilia',
+  '月经过多': 'Heavy menstrual bleeding',
+  '月经过少': 'Light periods',
+  '子宫内膜异位症': 'Endometriosis',
+  '子宫肌瘤': 'Uterine fibroids',
+  '子宫腺肌症': 'Adenomyosis',
+  '痛经': 'Period pain',
+  '经前期综合征（PMS）': 'Premenstrual syndrome (PMS)',
+  '子宫息肉': 'Uterine polyps',
+  '子宫内膜增生': 'Endometrial hyperplasia',
+  '子宫畸形': 'Uterine anomaly',
+  '多囊卵巢综合征': 'PCOS',
+  '青春期排卵障碍': 'Adolescent ovulatory dysfunction',
+  '围绝经期排卵障碍': 'Perimenopausal ovulatory dysfunction',
+  '月经不规律': 'Irregular periods',
+  '经期过长': 'Long periods',
+  '经期过短': 'Short periods',
+  '月经频发': 'Frequent periods',
+  '月经稀发': 'Infrequent periods',
+  '非经期出血': 'Bleeding between periods',
+  '黄体功能不足': 'Luteal phase deficiency',
+  '功能性子宫出血': 'Dysfunctional uterine bleeding',
+  '卵巢早衰': 'Premature ovarian insufficiency',
+  '激素紊乱': 'Hormonal imbalance',
+  '甲亢或甲减': 'Thyroid disorder',
+  '糖尿病或胰岛素抵抗': 'Diabetes or insulin resistance',
+  '乳腺增生': 'Benign breast changes',
+  '乳腺癌、卵巢癌或子宫内膜癌': 'Breast, ovarian, or endometrial cancer',
+  '有激素相关肿瘤家族史': 'Family history of hormone-related cancer',
+  '盆腔炎': 'Pelvic inflammatory disease',
+  '子宫内膜炎': 'Endometritis',
+  '缺铁性贫血': 'Iron-deficiency anemia',
+  '地中海贫血': 'Thalassemia',
+  '血管性血友病家族史': 'Family history of von Willebrand disease',
+  '血小板减少': 'Thrombocytopenia',
+  '罕见凝血因子缺乏家族史': 'Family history of clotting-factor deficiency',
+  '其它': 'Other',
+  '鼻出血较频繁或一次持续较久（如 >10 分钟）': 'Frequent or prolonged nosebleeds',
+  '不明原因淤青较多或面积较大': 'Frequent or large unexplained bruises',
+  '小伤口出血时间明显较长': 'Prolonged bleeding from small cuts',
+  '刷牙/口腔出血较频繁': 'Frequent gum or mouth bleeding',
+  '拔牙后出血较久或需要就医处理': 'Prolonged bleeding after dental work',
+  '手术/外伤后出血较多或需要额外止血处理': 'Heavy bleeding after surgery or injury',
+  '分娩后出血偏多或需要医疗处理': 'Heavy bleeding after delivery',
+  '都没有': 'None',
+  '不确定': 'Not sure',
+};
 
 const onboardingQuestionOrder = [
   "A0_consent_research",

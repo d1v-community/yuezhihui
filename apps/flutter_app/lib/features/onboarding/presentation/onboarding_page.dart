@@ -266,8 +266,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   }
 
   String _formatAnswer(String id) {
+    final l10n = AppLocalizations.of(context)!;
     final answer = asStringMap(_answers[id]);
-    if (answer == null) return '未填写';
+    if (answer == null) return l10n.unknown;
     final type = answer['type'];
     if (type == 'single') {
       final value = answer['value']?.toString();
@@ -275,7 +276,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         (item) => item['value'] == value,
         orElse: () => <String, dynamic>{},
       );
-      return option['label']?.toString() ?? value ?? '未填写';
+      return localizedQuestionOptionLabel(context, id, option) ??
+          value ??
+          l10n.unknown;
     }
     if (type == 'multi') {
       final values = List<String>.from(
@@ -286,31 +289,36 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             (value) => questionOptions(id).firstWhere(
               (item) => item['value'] == value,
               orElse: () => {'label': value},
-            )['label'],
+            ),
           )
-          .join('、');
-      return labels.isEmpty ? '未填写' : labels;
+          .map(
+            (option) =>
+                localizedQuestionOptionLabel(context, id, option) ??
+                option['label'],
+          )
+          .join(', ');
+      return labels.isEmpty ? l10n.unknown : labels;
     }
     if (type == 'object') {
       final value = asStringMapOrEmpty(answer['value']);
       switch (value['mode']) {
         case 'unknown':
-          return '不确定/记不清';
+          return l10n.uncertainOrForgot;
         case 'no_answer':
-          return '不愿透露';
+          return l10n.preferNotToSay;
         case 'year_month':
-          return value['yearMonth']?.toString() ?? '未填写';
+          return value['yearMonth']?.toString() ?? l10n.unknown;
         default:
-          return value['exactDate']?.toString() ?? '未填写';
+          return value['exactDate']?.toString() ?? l10n.unknown;
       }
     }
     if (asStringMapOrEmpty(answer['meta'])['unknown'] == true) {
-      return '不确定/记不清';
+      return l10n.uncertainOrForgot;
     }
     if (asStringMapOrEmpty(answer['meta'])['no_answer'] == true) {
-      return '不愿透露';
+      return l10n.preferNotToSay;
     }
-    return answer['value']?.toString() ?? '未填写';
+    return answer['value']?.toString() ?? l10n.unknown;
   }
 
   @override
@@ -335,7 +343,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
-              Text('提交前确认', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                l10n.reviewBeforeSubmit,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 16),
               Card(
                 child: Padding(
@@ -346,7 +357,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            questionDef(id)['title']?.toString() ?? id,
+                            localizedQuestionTitle(context, id),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
@@ -359,7 +370,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       ],
                       FilledButton(
                         onPressed: _submitting ? null : _finalize,
-                        child: Text('提交并开始记录'),
+                        child: Text(l10n.submitAndStart),
                       ),
                     ],
                   ),
@@ -390,7 +401,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             const SizedBox(height: 12),
             LinearProgressIndicator(value: ratio),
             const SizedBox(height: 8),
-            Text('已完成 ${idx < 0 ? 0 : idx + 1}/${visible.length}'),
+            Text(l10n.completedProgress(idx < 0 ? 0 : idx + 1, visible.length)),
             const SizedBox(height: 18),
             Card(
               child: Padding(
@@ -399,12 +410,12 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      def['title']?.toString() ?? '',
+                      localizedQuestionTitle(context, _currentId!),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     if (def['note'] != null) ...[
                       const SizedBox(height: 8),
-                      Text(def['note'].toString()),
+                      Text(localizedQuestionNote(context, _currentId!) ?? ''),
                     ],
                     const SizedBox(height: 16),
                     _QuestionEditor(
@@ -421,12 +432,12 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       children: [
                         OutlinedButton(
                           onPressed: _submitting || idx <= 0 ? null : _goPrev,
-                          child: const Text('上一题'),
+                          child: Text(l10n.previousQuestion),
                         ),
                         const SizedBox(width: 12),
                         OutlinedButton(
                           onPressed: _submitting ? null : _skipCurrent,
-                          child: const Text('跳过'),
+                          child: Text(l10n.skip),
                         ),
                         const Spacer(),
                         AbsorbPointer(
@@ -459,6 +470,7 @@ class _NextButtonContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
       switchInCurve: Curves.easeOutCubic,
@@ -475,13 +487,13 @@ class _NextButtonContent extends StatelessWidget {
       },
       child: submitting
           ? const _WaveLoadingLabel(key: ValueKey('wave'))
-          : const Row(
+          : Row(
               key: ValueKey('idle'),
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('下一题'),
-                SizedBox(width: 6),
-                Icon(Icons.arrow_forward_rounded, size: 18),
+                Text(l10n.nextQuestion),
+                const SizedBox(width: 6),
+                const Icon(Icons.arrow_forward_rounded, size: 18),
               ],
             ),
     );
@@ -537,8 +549,8 @@ class _WaveLoadingLabelState extends State<_WaveLoadingLabel>
               ],
             );
           },
-          child: const Text(
-            '提交中',
+          child: Text(
+            AppLocalizations.of(context)!.submittingShort,
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
           ),
         ),
@@ -649,6 +661,7 @@ class _QuestionEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (def['type']) {
       case 'single':
         return Wrap(
@@ -657,7 +670,10 @@ class _QuestionEditor extends StatelessWidget {
           children: [
             for (final option in questionOptions(questionId))
               ChoiceChip(
-                label: Text(option['label'].toString()),
+                label: Text(
+                  localizedQuestionOptionLabel(context, questionId, option) ??
+                      option['label'].toString(),
+                ),
                 selected: draft['value'] == option['value'],
                 onSelected: (_) =>
                     onChanged({...draft, 'value': option['value']}),
@@ -669,7 +685,10 @@ class _QuestionEditor extends StatelessWidget {
             .where(
               (option) =>
                   search.trim().isEmpty ||
-                  option['label'].toString().contains(search.trim()),
+                  (localizedQuestionOptionLabel(context, questionId, option) ??
+                          option['label'].toString())
+                      .toLowerCase()
+                      .contains(search.trim().toLowerCase()),
             )
             .toList();
         final values = List<String>.from(
@@ -680,7 +699,7 @@ class _QuestionEditor extends StatelessWidget {
           children: [
             if (_isTaggy)
               TextField(
-                decoration: const InputDecoration(hintText: '搜索并选择'),
+                decoration: InputDecoration(hintText: l10n.searchAndSelect),
                 onChanged: onSearchChanged,
               ),
             if (_isTaggy) const SizedBox(height: 12),
@@ -690,7 +709,14 @@ class _QuestionEditor extends StatelessWidget {
               children: [
                 for (final option in options)
                   FilterChip(
-                    label: Text(option['label'].toString()),
+                    label: Text(
+                      localizedQuestionOptionLabel(
+                            context,
+                            questionId,
+                            option,
+                          ) ??
+                          option['label'].toString(),
+                    ),
                     selected: values.contains(option['value']),
                     onSelected: (_) {
                       final next = [...values];
@@ -736,7 +762,7 @@ class _QuestionEditor extends StatelessWidget {
               children: [
                 if (def['allowUnknown'] == true)
                   ChoiceChip(
-                    label: const Text('不确定'),
+                    label: Text(l10n.uncertain),
                     selected: meta['unknown'] == true,
                     onSelected: (_) => onChanged({
                       ...draft,
@@ -745,7 +771,7 @@ class _QuestionEditor extends StatelessWidget {
                   ),
                 if (def['allowNoAnswer'] == true)
                   ChoiceChip(
-                    label: const Text('不愿透露'),
+                    label: Text(l10n.preferNotToSay),
                     selected: meta['no_answer'] == true,
                     onSelected: (_) => onChanged({
                       ...draft,
@@ -783,7 +809,7 @@ class _QuestionEditor extends StatelessWidget {
               child: Text(
                 draft['value']?.toString().isNotEmpty == true
                     ? draft['value'].toString()
-                    : '选择日期',
+                    : l10n.selectDate,
               ),
             ),
             const SizedBox(height: 8),
@@ -792,7 +818,7 @@ class _QuestionEditor extends StatelessWidget {
               children: [
                 if (def['allowUnknown'] == true)
                   ChoiceChip(
-                    label: const Text('不确定'),
+                    label: Text(l10n.uncertain),
                     selected: meta['unknown'] == true,
                     onSelected: (_) => onChanged({
                       ...draft,
@@ -801,7 +827,7 @@ class _QuestionEditor extends StatelessWidget {
                   ),
                 if (def['allowNoAnswer'] == true)
                   ChoiceChip(
-                    label: const Text('不愿透露'),
+                    label: Text(l10n.preferNotToSay),
                     selected: meta['no_answer'] == true,
                     onSelected: (_) => onChanged({
                       ...draft,
@@ -824,7 +850,7 @@ class _QuestionEditor extends StatelessWidget {
               onChanged: (value) =>
                   onChanged({...draft, 'value': value, 'meta': {}}),
               decoration: InputDecoration(
-                hintText: def['placeholder']?.toString(),
+                hintText: localizedQuestionPlaceholder(context, questionId),
               ),
             ),
             const SizedBox(height: 8),
@@ -833,7 +859,7 @@ class _QuestionEditor extends StatelessWidget {
               children: [
                 if (def['allowUnknown'] == true)
                   ChoiceChip(
-                    label: const Text('不确定'),
+                    label: Text(l10n.uncertain),
                     selected: meta['unknown'] == true,
                     onSelected: (_) => onChanged({
                       ...draft,
@@ -842,7 +868,7 @@ class _QuestionEditor extends StatelessWidget {
                   ),
                 if (def['allowNoAnswer'] == true)
                   ChoiceChip(
-                    label: const Text('不愿透露'),
+                    label: Text(l10n.preferNotToSay),
                     selected: meta['no_answer'] == true,
                     onSelected: (_) => onChanged({
                       ...draft,
@@ -862,24 +888,24 @@ class _QuestionEditor extends StatelessWidget {
               spacing: 8,
               children: [
                 ChoiceChip(
-                  label: const Text('具体日期'),
+                  label: Text(l10n.exactDate),
                   selected: mode == 'exact_date',
                   onSelected: (_) =>
                       onChanged({...draft, 'mode': 'exact_date'}),
                 ),
                 ChoiceChip(
-                  label: const Text('只记得年月'),
+                  label: Text(l10n.yearMonthOnly),
                   selected: mode == 'year_month',
                   onSelected: (_) =>
                       onChanged({...draft, 'mode': 'year_month'}),
                 ),
                 ChoiceChip(
-                  label: const Text('不确定'),
+                  label: Text(l10n.uncertain),
                   selected: mode == 'unknown',
                   onSelected: (_) => onChanged({...draft, 'mode': 'unknown'}),
                 ),
                 ChoiceChip(
-                  label: const Text('不愿透露'),
+                  label: Text(l10n.preferNotToSay),
                   selected: mode == 'no_answer',
                   onSelected: (_) => onChanged({...draft, 'mode': 'no_answer'}),
                 ),
@@ -900,7 +926,7 @@ class _QuestionEditor extends StatelessWidget {
                   if (selected == null) return;
                   onChanged({...draft, 'exactDate': ymdFromDate(selected)});
                 },
-                child: Text(draft['exactDate']?.toString() ?? '选择日期'),
+                child: Text(draft['exactDate']?.toString() ?? l10n.selectDate),
               ),
             if (mode == 'year_month')
               Row(
@@ -910,7 +936,7 @@ class _QuestionEditor extends StatelessWidget {
                       syncKey: '$questionId:year',
                       value: draft['year']?.toString() ?? '',
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: '年'),
+                      decoration: InputDecoration(labelText: l10n.year),
                       onChanged: (value) =>
                           onChanged({...draft, 'year': value}),
                     ),
@@ -921,7 +947,7 @@ class _QuestionEditor extends StatelessWidget {
                       syncKey: '$questionId:month',
                       value: draft['month']?.toString() ?? '',
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: '月'),
+                      decoration: InputDecoration(labelText: l10n.month),
                       onChanged: (value) =>
                           onChanged({...draft, 'month': value.padLeft(2, '0')}),
                     ),

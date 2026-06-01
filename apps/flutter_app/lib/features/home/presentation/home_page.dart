@@ -102,9 +102,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         storage.getString(AppKeys.dailyFirstGuideShown) != '1') {
       await storage.setString(AppKeys.dailyFirstGuideShown, '1');
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('已定位到最近一次开始日，建议先补这一天。')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.firstDayGuide)),
+      );
     }
 
     if (mounted) {
@@ -250,9 +250,15 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
     if (target == _selectedDate) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(offset < 0 ? '已到最早日期' : '已是今天')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            offset < 0
+                ? AppLocalizations.of(context)!.earliestDateReached
+                : AppLocalizations.of(context)!.todayReached,
+          ),
+        ),
+      );
       return;
     }
     await _changeDate(target);
@@ -291,6 +297,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _removeEventWithUndo(_LocalEvent event) async {
+    final l10n = AppLocalizations.of(context)!;
     final index = _events.indexWhere((item) => item.id == event.id);
     if (index < 0) return;
     _removeEvent(event.id);
@@ -299,9 +306,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     messenger.hideCurrentSnackBar();
     final controller = messenger.showSnackBar(
       SnackBar(
-        content: Text('已删除${_formatDeleteTarget(event)}'),
+        content: Text(l10n.deletedEvent(_formatDeleteTarget(l10n, event))),
         action: SnackBarAction(
-          label: '撤销',
+          label: l10n.undo,
           onPressed: () {
             _setStateAndDraft(() {
               final safeIndex = index.clamp(0, _events.length);
@@ -321,6 +328,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _editEvent(_LocalEvent event) async {
+    final l10n = AppLocalizations.of(context)!;
     String? productType = event.productType;
     String? model = event.model;
     String color = event.color ?? _dayColor;
@@ -345,7 +353,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('编辑事件', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    l10n.editEvent,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 16),
                   if (!isSymptom) ...[
                     DropdownButtonFormField<String>(
@@ -355,18 +366,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                       items: [
                         for (final entry
                             in (event.eventType == 'pad'
-                                    ? const {
-                                        'liner': '护垫',
-                                        'day': '日用',
-                                        'night': '夜用',
-                                        'pants': '安睡裤',
-                                      }
-                                    : const {
-                                        'mini': '迷你',
-                                        'regular': '常规',
-                                        'large': '大号',
-                                        'super': '超大',
-                                      })
+                                    ? _padOptions(l10n)
+                                    : _tamponOptions(l10n))
                                 .entries)
                           DropdownMenuItem(
                             value: entry.key,
@@ -383,12 +384,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                         });
                       },
                       decoration: InputDecoration(
-                        labelText: event.eventType == 'pad' ? '卫生巾类型' : '棉条型号',
+                        labelText: event.eventType == 'pad'
+                            ? l10n.padType
+                            : l10n.tamponModel,
                         border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text('血量 ${volumeMl.toStringAsFixed(0)}mL'),
+                    Text(l10n.bleedingVolume(volumeMl.toStringAsFixed(0))),
                     Slider(
                       value: volumeMl.clamp(1, 20),
                       min: 1,
@@ -405,7 +408,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       children: [
                         for (final option in _colors)
                           ChoiceChip(
-                            label: Text(_colorLabel(option)),
+                            label: Text(_colorLabel(l10n, option)),
                             selected: color == option,
                             onSelected: (_) =>
                                 setSheetState(() => color = option),
@@ -414,7 +417,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                   ] else ...[
                     Text(
-                      '血块类型',
+                      l10n.clotType,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
@@ -422,7 +425,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       spacing: 8,
                       children: [
                         ChoiceChip(
-                          label: const Text('小血块'),
+                          label: Text(l10n.smallClot),
                           selected: symptomName == '小血块',
                           onSelected: (_) => setSheetState(() {
                             symptomName = '小血块';
@@ -430,7 +433,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           }),
                         ),
                         ChoiceChip(
-                          label: const Text('大血块'),
+                          label: Text(l10n.largeClot),
                           selected: symptomName == '大血块',
                           onSelected: (_) => setSheetState(() {
                             symptomName = '大血块';
@@ -446,12 +449,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                       TextButton(
                         onPressed: () =>
                             Navigator.of(context).pop(_EventSheetAction.delete),
-                        child: const Text('删除'),
+                        child: Text(l10n.delete),
                       ),
                       const Spacer(),
                       OutlinedButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('取消'),
+                        child: Text(l10n.cancel),
                       ),
                       const SizedBox(width: 12),
                       FilledButton(
@@ -471,7 +474,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           });
                           Navigator.of(context).pop(_EventSheetAction.save);
                         },
-                        child: const Text('保存修改'),
+                        child: Text(l10n.saveChanges),
                       ),
                     ],
                   ),
@@ -501,24 +504,24 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
     try {
       await _menstrualApi.putDailyByDate(
-            _selectedDate,
-            MenstrualDailyInput(
-              hasBleeding: _totalMl > 0,
-              events: _events
-                  .map(
-                    (event) => MenstrualEventInput(
-                      eventTime: event.eventTime,
-                      eventType: event.eventType,
-                      productType: event.productType,
-                      model: event.model,
-                      color: event.color,
-                      volumeMl: event.volumeMl,
-                      symptomName: event.symptomName,
-                    ),
-                  )
-                  .toList(),
-            ),
-          );
+        _selectedDate,
+        MenstrualDailyInput(
+          hasBleeding: _totalMl > 0,
+          events: _events
+              .map(
+                (event) => MenstrualEventInput(
+                  eventTime: event.eventTime,
+                  eventType: event.eventType,
+                  productType: event.productType,
+                  model: event.model,
+                  color: event.color,
+                  volumeMl: event.volumeMl,
+                  symptomName: event.symptomName,
+                ),
+              )
+              .toList(),
+        ),
+      );
       final storage = await _storageFuture;
       await storage.remove('${AppKeys.dailyDraftPrefix}$_selectedDate');
       if (storage.getString(AppKeys.dailyFirstCompletedAt) == null) {
@@ -534,12 +537,16 @@ class _HomePageState extends ConsumerState<HomePage> {
         _serverSavedAt = DateTime.now();
         _saveErrorText = null;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('已保存记录')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.recordSaved)),
+      );
     } catch (_) {
       if (mounted) {
-        setState(() => _saveErrorText = '提交失败，当前修改仍保留在本地草稿');
+        setState(
+          () => _saveErrorText = AppLocalizations.of(
+            context,
+          )!.recordSaveFailedDraftKept,
+        );
       }
       rethrow;
     } finally {
@@ -562,7 +569,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return FlowPage(
       title: l10n.homeTitle,
-      subtitle: '按天记录，草稿会自动保存。',
+      subtitle: l10n.homeSubtitleActive,
       actions: [
         IconButton(
           onPressed: () async {
@@ -597,7 +604,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 Row(
                   children: [
                     Text(
-                      '最近 14 天',
+                      l10n.recentDays,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const Spacer(),
@@ -620,7 +627,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '点日期切换；圆点看颜色，数字看总量。',
+                  l10n.dateStripHint,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(
                       context,
@@ -635,7 +642,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           ? null
                           : () => _stepDate(-1),
                       icon: const Icon(Icons.chevron_left),
-                      tooltip: '前一天',
+                      tooltip: l10n.previousDay,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -662,7 +669,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           ? null
                           : () => _stepDate(1),
                       icon: const Icon(Icons.chevron_right),
-                      tooltip: '后一天',
+                      tooltip: l10n.nextDay,
                     ),
                   ],
                 ),
@@ -676,11 +683,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                           ? null
                           : () => _changeDate(todayYmd()),
                       icon: const Icon(Icons.today_outlined),
-                      label: const Text('今天'),
+                      label: Text(l10n.today),
                     ),
-                    if (_loadingDetail) const Chip(label: Text('切换中')),
-                    if (!_canGoPrev) const Chip(label: Text('已到最早日期')),
-                    if (!_canGoNext) const Chip(label: Text('已到今天')),
+                    if (_loadingDetail) Chip(label: Text(l10n.switching)),
+                    if (!_canGoPrev)
+                      Chip(label: Text(l10n.earliestDateReached)),
+                    if (!_canGoNext) Chip(label: Text(l10n.todayLimit)),
                   ],
                 ),
                 if (_hasPendingDraft) ...[
@@ -705,13 +713,16 @@ class _HomePageState extends ConsumerState<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '标记颜色与血块',
+                  l10n.markColorAndClots,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text('颜色与症状', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  l10n.colorAndSymptoms,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
@@ -719,7 +730,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   children: [
                     for (final color in _colors)
                       ChoiceChip(
-                        label: Text(_colorLabel(color)),
+                        label: Text(_colorLabel(l10n, color)),
                         selected: _dayColor == color,
                         onSelected: (_) => _setStateAndDraft(() {
                           _dayColor = color;
@@ -741,7 +752,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         symptomName: '小血块',
                         volumeMl: 2,
                       ),
-                      child: const Text('+ 小血块'),
+                      child: Text(l10n.addSmallClot),
                     ),
                     OutlinedButton(
                       onPressed: () => _addEvent(
@@ -749,7 +760,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         symptomName: '大血块',
                         volumeMl: 4,
                       ),
-                      child: const Text('+ 大血块'),
+                      child: Text(l10n.addLargeClot),
                     ),
                   ],
                 ),
@@ -760,15 +771,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         const SizedBox(height: 16),
         if (_showPad) ...[
           _ProductInputCard(
-            title: '卫生巾',
+            title: l10n.pad,
             kind: _ProductVisualKind.pad,
             selectedValue: _padType,
-            options: const {
-              'liner': '护垫',
-              'day': '日用',
-              'night': '夜用',
-              'pants': '安睡裤',
-            },
+            options: _padOptions(l10n),
             inputMode: _padInputMode,
             volume: _padVolume,
             onValueChanged: (value) => setState(() => _padType = value),
@@ -789,15 +795,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         ],
         if (showTampon) ...[
           _ProductInputCard(
-            title: '卫生棉条',
+            title: l10n.tampon,
             kind: _ProductVisualKind.tampon,
             selectedValue: _tamponModel,
-            options: const {
-              'mini': '迷你',
-              'regular': '常规',
-              'large': '大号',
-              'super': '超大',
-            },
+            options: _tamponOptions(l10n),
             inputMode: _tamponInputMode,
             volume: _tamponVolume,
             onValueChanged: (value) => setState(() => _tamponModel = value),
@@ -823,7 +824,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '已记录项目',
+                  l10n.recordedItems,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -831,13 +832,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text('今日记录', style: Theme.of(context).textTheme.titleLarge),
+                    Text(
+                      l10n.todayRecords,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                     const Spacer(),
-                    if (_loadingDetail) const Text('加载中...'),
+                    if (_loadingDetail) Text(l10n.loading),
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (_events.isEmpty) const Text('今天还没记录。'),
+                if (_events.isEmpty) Text(l10n.noRecordsToday),
                 if (_events.isNotEmpty)
                   Wrap(
                     spacing: 8,
@@ -845,7 +849,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     children: [
                       for (final event in _events)
                         InputChip(
-                          label: Text(_formatEvent(event)),
+                          label: Text(_formatEvent(l10n, event)),
                           onPressed: () => _editEvent(event),
                           onDeleted: () => _removeEventWithUndo(event),
                         ),
@@ -862,10 +866,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                             : _save,
                         child: Text(
                           _saving
-                              ? '保存中...'
+                              ? l10n.saving
                               : _hasPendingDraft
-                              ? '保存记录'
-                              : '已同步',
+                              ? l10n.saveRecord
+                              : l10n.synced,
                         ),
                       ),
                     ),
@@ -886,46 +890,59 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  String _formatEvent(_LocalEvent event) {
+  String _formatEvent(AppLocalizations l10n, _LocalEvent event) {
     if (event.eventType == 'symptom') {
-      return '症状 · ${event.symptomName}';
+      return l10n.symptomEvent(event.symptomName ?? l10n.symptom);
     }
     if (event.eventType == 'pad') {
-      return '卫生巾 · ${_padTypeLabel(event.productType)} · ${event.volumeMl.toStringAsFixed(0)}mL';
+      return l10n.padEvent(
+        _padTypeLabel(l10n, event.productType),
+        event.volumeMl.toStringAsFixed(0),
+      );
     }
-    return '棉条 · ${_tamponLabel(event.model)} · ${event.volumeMl.toStringAsFixed(0)}mL';
+    return l10n.tamponEvent(
+      _tamponLabel(l10n, event.model),
+      event.volumeMl.toStringAsFixed(0),
+    );
   }
 
-  String _formatDeleteTarget(_LocalEvent event) {
+  String _formatDeleteTarget(AppLocalizations l10n, _LocalEvent event) {
     if (event.eventType == 'symptom') {
-      return '「${event.symptomName ?? '症状'}」';
+      return l10n.quotedEvent(event.symptomName ?? l10n.symptom);
     }
     if (event.eventType == 'pad') {
-      return '卫生巾记录';
+      return l10n.padRecord;
     }
-    return '棉条记录';
+    return l10n.tamponRecord;
   }
 
-  String _padTypeLabel(String? type) =>
-      const {'liner': '护垫', 'day': '日用', 'night': '夜用', 'pants': '安睡裤'}[type] ??
-      '卫生巾';
+  Map<String, String> _padOptions(AppLocalizations l10n) => {
+    'liner': l10n.padLiner,
+    'day': l10n.padDay,
+    'night': l10n.padNight,
+    'pants': l10n.padPants,
+  };
 
-  String _tamponLabel(String? value) =>
-      const {
-        'mini': '迷你',
-        'regular': '常规',
-        'large': '大号',
-        'super': '超大',
-      }[value] ??
-      '棉条';
+  Map<String, String> _tamponOptions(AppLocalizations l10n) => {
+    'mini': l10n.tamponMini,
+    'regular': l10n.tamponRegular,
+    'large': l10n.tamponLarge,
+    'super': l10n.tamponSuper,
+  };
 
-  String _colorLabel(String value) =>
-      const {
-        'pink': '粉',
-        'red': '红',
-        'rust': '锈红',
-        'dark': '深红',
-        'brown': '棕',
+  String _padTypeLabel(AppLocalizations l10n, String? type) =>
+      _padOptions(l10n)[type] ?? l10n.pad;
+
+  String _tamponLabel(AppLocalizations l10n, String? value) =>
+      _tamponOptions(l10n)[value] ?? l10n.tampon;
+
+  String _colorLabel(AppLocalizations l10n, String value) =>
+      {
+        'pink': l10n.colorPink,
+        'red': l10n.colorRed,
+        'rust': l10n.colorRust,
+        'dark': l10n.colorDark,
+        'brown': l10n.colorBrown,
       }[value] ??
       value;
 }
@@ -960,6 +977,7 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -1003,8 +1021,8 @@ class _SummaryCard extends StatelessWidget {
               ),
               const Spacer(),
               if (dirty)
-                const Chip(
-                  label: Text('草稿未提交'),
+                Chip(
+                  label: Text(l10n.draftPending),
                   visualDensity: VisualDensity.compact,
                   labelStyle: TextStyle(
                     color: Colors.white,
@@ -1025,7 +1043,9 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            showBleeding ? '今日总量 ${totalMl.toStringAsFixed(1)}mL' : '实时血量已隐藏',
+            showBleeding
+                ? l10n.todayTotal(totalMl.toStringAsFixed(1))
+                : l10n.realtimeVolumeHidden,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: Colors.white.withValues(alpha: 0.82),
             ),
@@ -1055,7 +1075,7 @@ class _SummaryCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _MiniMetric(
-                    label: '卫生巾',
+                    label: l10n.pad,
                     value: '${padMl.toStringAsFixed(1)}mL',
                     inverse: true,
                   ),
@@ -1063,7 +1083,7 @@ class _SummaryCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _MiniMetric(
-                    label: '棉条',
+                    label: l10n.tampon,
                     value: '${tamponMl.toStringAsFixed(1)}mL',
                     inverse: true,
                   ),
@@ -1071,7 +1091,7 @@ class _SummaryCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _MiniMetric(
-                    label: '血块估算',
+                    label: l10n.clotEstimate,
                     value: '${clotMl.toStringAsFixed(1)}mL',
                     inverse: true,
                   ),
@@ -1105,12 +1125,13 @@ class _SaveStatePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     String text;
     Color bg;
     Color fg;
 
     if (saving) {
-      text = '正在同步';
+      text = l10n.syncing;
       bg = colorScheme.primaryContainer;
       fg = colorScheme.onPrimaryContainer;
     } else if (saveErrorText != null) {
@@ -1118,15 +1139,15 @@ class _SaveStatePill extends StatelessWidget {
       bg = colorScheme.errorContainer;
       fg = colorScheme.onErrorContainer;
     } else if (dirty && draftSavedAt != null) {
-      text = '草稿已保存 ${_formatTime(draftSavedAt!)}';
+      text = l10n.draftSavedAt(_formatTime(draftSavedAt!));
       bg = const Color(0xFFF6E7D8);
       fg = const Color(0xFF6F4B2A);
     } else if (serverSavedAt != null) {
-      text = '已同步 ${_formatTime(serverSavedAt!)}';
+      text = l10n.syncedAt(_formatTime(serverSavedAt!));
       bg = const Color(0xFFE3F2E7);
       fg = const Color(0xFF245B34);
     } else {
-      text = '当前为云端记录';
+      text = l10n.cloudRecord;
       bg = const Color(0xFFECE9E7);
       fg = const Color(0xFF534846);
     }
@@ -1307,6 +1328,7 @@ class _ProductInputCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -1319,7 +1341,9 @@ class _ProductInputCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title == '卫生巾' ? '快速录入' : '补充录入',
+                      kind == _ProductVisualKind.pad
+                          ? l10n.quickInput
+                          : l10n.additionalInput,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -1333,13 +1357,15 @@ class _ProductInputCard extends StatelessWidget {
                   TextButton.icon(
                     onPressed: onUndo,
                     icon: const Icon(Icons.undo, size: 18),
-                    label: const Text('撤销'),
+                    label: Text(l10n.undo),
                   ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              inputMode == 'drag' ? '拖拽选择更精确的 mL 值。' : '点击预设值即可快速添加。',
+              inputMode == 'drag'
+                  ? l10n.precisionInputHint
+                  : l10n.quickInputHint,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(
                   context,
@@ -1376,18 +1402,18 @@ class _ProductInputCard extends StatelessWidget {
                 onChanged: onVolumeChanged,
               ),
               Row(
-                children: const [
-                  _MiniScaleHint(label: '少', value: '3mL'),
-                  Spacer(),
-                  _MiniScaleHint(label: '中', value: '6mL'),
-                  Spacer(),
-                  _MiniScaleHint(label: '多', value: '10mL'),
+                children: [
+                  _MiniScaleHint(label: l10n.volumeLow, value: '3mL'),
+                  const Spacer(),
+                  _MiniScaleHint(label: l10n.volumeMedium, value: '6mL'),
+                  const Spacer(),
+                  _MiniScaleHint(label: l10n.volumeHigh, value: '10mL'),
                 ],
               ),
               const SizedBox(height: 10),
               FilledButton.tonal(
                 onPressed: onSliderAdd,
-                child: Text('添加 ${volume.toStringAsFixed(1)}mL'),
+                child: Text(l10n.addVolume(volume.toStringAsFixed(1))),
               ),
             ] else ...[
               SizedBox(
@@ -1434,6 +1460,7 @@ class _QuickVolumeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: onTap,
@@ -1449,17 +1476,17 @@ class _QuickVolumeCard extends StatelessWidget {
           children: [
             Text(
               '${volume.toStringAsFixed(0)}mL',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(
-                  alpha: 0.6,
-                ),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 10),
@@ -1486,8 +1513,8 @@ class _QuickVolumeCard extends StatelessWidget {
                 color: const Color(0xFF5C313B),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const Text(
-                '点按添加',
+              child: Text(
+                l10n.tapToAdd,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
@@ -1511,14 +1538,18 @@ class _MiniScaleHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.onSurface.withValues(
-      alpha: 0.54,
-    );
+    final color = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.54);
     return Column(
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
         ),
         const SizedBox(height: 2),
         Text(value, style: TextStyle(fontSize: 11, color: color)),
@@ -1641,7 +1672,9 @@ class _HomePadPrecisionStage extends StatelessWidget {
               color: palette.fill.withValues(alpha: stain.opacity),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: palette.outline.withValues(alpha: stain.opacity.clamp(0.16, 0.42)),
+                color: palette.outline.withValues(
+                  alpha: stain.opacity.clamp(0.16, 0.42),
+                ),
               ),
             ),
           ),
@@ -1714,7 +1747,8 @@ class _HomeTamponPrecisionStage extends StatelessWidget {
                   duration: const Duration(milliseconds: 260),
                   curve: Curves.easeOutCubic,
                   width: double.infinity,
-                  height: (compact ? bodyHeight * 0.72 : bodyHeight) * wetPercent,
+                  height:
+                      (compact ? bodyHeight * 0.72 : bodyHeight) * wetPercent,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
@@ -1768,10 +1802,8 @@ class _HomeTamponPrecisionStage extends StatelessWidget {
   }
 }
 
-({Color fill, Color outline}) _homeBloodPalette() => (
-  fill: const Color(0xFFC35A63),
-  outline: const Color(0xFF8C3745),
-);
+({Color fill, Color outline}) _homeBloodPalette() =>
+    (fill: const Color(0xFFC35A63), outline: const Color(0xFF8C3745));
 
 Size _homePadBodySize(String padType) {
   switch (padType) {

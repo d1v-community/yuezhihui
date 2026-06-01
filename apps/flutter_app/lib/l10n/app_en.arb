@@ -2,6 +2,7 @@
   "@@locale": "en",
   "appTitle": "FlowSense",
   "brandName": "FlowSense",
+  "brandWordmark": "FLOWSENSE",
   "brandTagline": "Email sign-in, onboarding, and daily tracking.",
   "connecting": "Connecting...",
   "continueAction": "Continue",
@@ -13,6 +14,36 @@
   "verificationCode": "Verification code",
   "verifyAndLogin": "Verify and sign in",
   "resendCode": "Resend",
+  "verifyEmail": "Verify email",
+  "enterEmail": "Enter email",
+  "editEmail": "Edit",
+  "clearEmail": "Clear email",
+  "enterCode": "Enter verification code",
+  "codePlaceholder": "Enter the 6-digit code",
+  "pasteCode": "Paste code",
+  "resendAvailable": "You can resend the code",
+  "resendCountdown": "Resend in {seconds}s",
+  "@resendCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "devCode": "Development verification code",
+  "codeCopied": "Verification code copied",
+  "copyCode": "Copy code",
+  "fillAndLogin": "Fill and sign in",
+  "browseEncyclopedia": "Browse encyclopedia",
+  "codeResent": "A new verification code has been sent",
+  "clipboardCodeMissing": "The clipboard does not contain a 6-digit code",
+  "emailCodeLogin": "Sign in with email code",
+  "codeSentDescription": "A 6-digit verification code has been sent to your email.",
+  "verificationStep": "Verify",
+  "sendCodeFailed": "Unable to send the verification code. Please try again.",
+  "invalidOrExpiredCode": "The verification code is invalid or has expired.",
+  "loginFailed": "Unable to sign in. Please try again.",
+  "unexpectedError": "Something went wrong. Please try again.",
   "codeSentHint": "A code has been sent to this email.",
   "marketingHint": "We do not send marketing email.",
   "invalidEmail": "Enter a valid email address.",
@@ -20,6 +51,7 @@
   "loadFailed": "Unable to load. Please try again.",
   "homeTab": "Daily",
   "analysisTab": "Analysis",
+  "encyclopediaTab": "Encyclopedia",
   "settingsTab": "Settings",
   "homeTitle": "Daily Tracking",
   "homeSubtitle": "Keeps the light card layout and soft background from the Taro app.",
@@ -34,7 +66,89 @@
   "cycleCount": "Cycle count",
   "trend": "Trend",
   "settingsTitle": "Settings",
-  "settingsSubtitle": "Account, language, and basic preferences.",
+  "settingsSubtitle": "Account, privacy, and tracking preferences.",
+  "signedInAccount": "Signed-in account",
+  "accountSection": "Account",
+  "privacyLanguageSection": "Privacy and language",
+  "recordDisplaySection": "Tracking display",
+  "supportFeedbackSection": "Support and feedback",
+  "nickname": "Nickname",
+  "nicknameSaved": "Nickname saved",
+  "saving": "Saving...",
+  "saveNickname": "Save nickname",
+  "tamponHabit": "I use tampons",
+  "tamponHabitHint": "Syncs your account and controls whether tampon tracking appears on the home page",
+  "showTamponRecords": "Show tampon tracking",
+  "hideTamponRecords": "Hide tampon tracking",
+  "researchConsent": "Research consent: {status}",
+  "researchConsentStatus": "Research consent status: {status}",
+  "consentAgreed": "Agreed",
+  "consentDeclined": "Declined",
+  "consentNotSet": "Not set",
+  "consentUnavailable": "Unavailable",
+  "editResearchConsent": "Edit research consent",
+  "savingPreferences": "Saving preferences...",
+  "preferencesSaveFailed": "Unable to save. Previous settings restored.",
+  "displaySettingsSaved": "Display settings saved",
+  "inputModeSaved": "Input method saved",
+  "showPadModule": "Show sanitary pad module",
+  "showPadModuleHint": "Only affects the home page display, not saved records",
+  "showRealtimeBleeding": "Show real-time bleeding volume",
+  "showRealtimeBleedingHint": "Hides the summary only, without affecting records or analysis",
+  "inputMode": "Input mode",
+  "inputModeHint": "Precision mode uses a slider to control bleeding volume. Quick mode uses tap-to-add buttons.",
+  "padPrecisionMode": "Sanitary pad precision mode",
+  "tamponPrecisionMode": "Tampon precision mode",
+  "dragSliderInput": "Drag the slider to record",
+  "quickButtonInput": "Tap a button to add quickly",
+  "padPrecisionPreview": "Sanitary pad precision mode preview",
+  "tamponPrecisionPreview": "Tampon precision mode preview",
+  "previewSpecifications": "View specifications and volume preview",
+  "previewTamponHeight": "View model and saturation height preview",
+  "previewEnabledEffect": "Preview the enabled mode",
+  "padPreviewTitle": "Sanitary pad · Precision mode preview",
+  "tamponPreviewTitle": "Tampon · Precision mode preview",
+  "precisionEnabledCaption": "Precision input is enabled. The home page uses the same specification and slider controls.",
+  "tamponPrecisionEnabledCaption": "Precision input is enabled. Saturation height changes with bleeding volume.",
+  "quickModeCaption": "Quick mode is active. Enable precision mode to use slider input on the home page.",
+  "padUnit": "mL / pad",
+  "tamponUnit": "mL / tampon",
+  "padLiner": "Liner",
+  "padDay": "Day",
+  "padNight": "Night",
+  "padPants": "Period underwear",
+  "tamponMini": "Mini",
+  "tamponRegular": "Regular",
+  "tamponLarge": "Large",
+  "tamponSuper": "Super",
+  "pad": "Sanitary pad",
+  "tampon": "Tampon",
+  "bleedingVolume": "Volume {volume}",
+  "volumeLow": "Low",
+  "volumeMedium": "Medium",
+  "volumeHigh": "High",
+  "preview": "Preview",
+  "done": "Done",
+  "submitFeedback": "Submit feedback",
+  "deleteAccount": "Delete account",
+  "deleteAccountDescription": "Deleting your account signs you out immediately. Registering again with the same email creates a new account and does not restore current data.",
+  "confirmCurrentEmail": "Enter your current email to confirm deletion:",
+  "confirmEmail": "Confirm email",
+  "deletingAccountState": "Deleting your account and clearing the current session...",
+  "cancel": "Cancel",
+  "deleting": "Deleting...",
+  "confirmDelete": "Confirm deletion",
+  "confirmDeleteEmailError": "Enter the current signed-in email to confirm deletion",
+  "accountDeleted": "Account deleted. Registering again creates a new account.",
+  "guestBanner": "Guest mode: encyclopedia content is available, but tracking and analysis require sign-in.",
+  "goToLogin": "Sign in",
+  "continueAfterLogin": "Continue after signing in",
+  "loginRequired": "Sign in to use this feature.",
+  "loginBenefitDescription": "Sign in to save daily records, view analysis, and sync data across devices.",
+  "loginBenefitRecords": "Keep your records safe",
+  "loginBenefitAnalysis": "Generate cycle analysis automatically",
+  "loginBenefitSync": "Sync across devices",
+  "browseFirst": "Browse first",
   "language": "Language",
   "languageSystem": "System",
   "languageZh": "Chinese",
@@ -52,4 +166,185 @@
   "refresh": "Refresh",
   "loading": "Loading...",
   "retry": "Retry"
+  ,"guestGateTitle": "Sign-in required"
+  ,"guestGateDescription": "Encyclopedia content is public. Tracking, analysis, and settings require sign-in."
+  ,"backToEncyclopedia": "Back to encyclopedia"
+  ,"feedbackTitle": "Feedback"
+  ,"feedbackType": "Issue type"
+  ,"feedbackBug": "Bug"
+  ,"feedbackExperience": "Usability"
+  ,"feedbackFeature": "Feature request"
+  ,"feedbackContent": "Content"
+  ,"feedbackOther": "Other"
+  ,"feedbackSubmitted": "Submitted"
+  ,"feedbackDraftRestored": "Previous draft restored"
+  ,"feedbackDraftHint": "Draft saves automatically"
+  ,"feedbackDraftSaved": "Draft saved {time}"
+  ,"feedbackDescription": "Description"
+  ,"feedbackDescriptionHint": "Describe what you did, expected, and saw"
+  ,"feedbackSpecificHint": "Specific details help us investigate"
+  ,"feedbackMinimumHint": "Enter at least 5 characters"
+  ,"feedbackContact": "Contact (optional)"
+  ,"feedbackContactHint": "Email / WeChat / phone"
+  ,"submitting": "Submitting..."
+  ,"cycleDetail": "Cycle details"
+  ,"cycleShareCopied": "Cycle share path copied"
+  ,"cycleSummaryCopied": "Cycle summary copied"
+  ,"copyCycleSummary": "Copy cycle summary"
+  ,"explanationLinkCopied": "Explanation link copied"
+  ,"dailyDetails": "Daily details"
+  ,"noBleedingDays": "No bleeding days recorded for this cycle."
+  ,"productSettlement": "Product summary"
+  ,"cycleLoadFailed": "Unable to load cycle details"
+  ,"daysAndVolume": "{days} days · {volume}mL"
+  ,"dayDetails": "Color {color} · clots {clot} · symptoms {symptoms}"
+  ,"notRecorded": "Not recorded"
+  ,"level": "Level"
+  ,"distribution": "Distribution"
+  ,"color": "Color"
+  ,"clot": "Clots"
+  ,"distributionAbnormal": "Distribution flagged"
+  ,"colorAbnormal": "Color flagged"
+  ,"clotAbnormal": "Clots flagged"
+  ,"trendStable": "Overall trend is stable"
+  ,"summaryHighlights": "Highlights: {highlights}"
+  ,"encyclopediaTitle": "Encyclopedia"
+  ,"encyclopediaSubtitle": "Understand volume, risk, and changes."
+  ,"encyclopediaNote": "HEALTH NOTE"
+  ,"encyclopediaHeroTitle": "Make menstrual volume clear"
+  ,"encyclopediaHeroBody": "Volume is not just a feeling. It is a measurable health signal."
+  ,"copiedLink": "Link copied"
+  ,"collapse": "Collapse"
+  ,"expand": "Expand"
+  ,"keyPoints": "Key points"
+  ,"redFlags": "Red flags"
+  ,"kbVitalTag": "Tracking"
+  ,"kbVitalTitle": "Menstruation is a vital sign"
+  ,"kbVitalLead": "Cycle timing, volume, color, pain, and bleeding patterns all carry signals."
+  ,"kbVitalBody1": "Treat each period as a monthly health snapshot to spot heavy bleeding, anemia risk, or persistent pain earlier."
+  ,"kbVitalBody2": "Consistent records turn vague symptoms into comparable data you can discuss with a clinician."
+  ,"kbVitalBullet1": "Track changes for clarity, not anxiety"
+  ,"kbVitalBullet2": "Patterns matter more than a single unusual day"
+  ,"kbVitalBullet3": "Clear descriptions support better decisions"
+  ,"kbNormalTag": "Basics"
+  ,"kbNormalTitle": "Know the usual range to spot changes"
+  ,"kbNormalLead": "A period is more than whether it arrives."
+  ,"kbNormalBody": "Review timing, duration, volume, clots, color, and pain together. Sudden changes deserve attention."
+  ,"kbNormalBullet1": "Cycles of 21-35 days are common; your own pattern matters"
+  ,"kbNormalBullet2": "Periods often last 3-8 days; heavy bleeding beyond 7 days needs attention"
+  ,"kbNormalBullet3": "20-80mL per cycle is common; much more may signal risk"
+  ,"kbNormalBullet4": "Frequent large clots, fatigue, dizziness, or overnight leaks are worth recording"
+  ,"kbRiskTag": "Risk"
+  ,"kbRiskTitle": "Heavy bleeding is easy to overlook"
+  ,"kbRiskLead": "Heavy flow is not a sign of better health and should not be ignored."
+  ,"kbRiskBody": "Pay attention if products need frequent changing, sleep or work is disrupted, or fatigue and dizziness appear."
+  ,"kbRiskFlag1": "Soaking a pad or tampon every hour for several hours"
+  ,"kbRiskFlag2": "Changing products overnight or combining multiple products"
+  ,"kbRiskFlag3": "Bleeding beyond 7 days that disrupts daily life"
+  ,"kbRiskFlag4": "Fatigue, dizziness, palpitations, or shortness of breath"
+  ,"kbTrackTag": "Checklist"
+  ,"kbTrackTitle": "Track 6 useful dimensions"
+  ,"kbTrackLead": "A small, consistent set of records is enough."
+  ,"kbTrackBody": "These dimensions support trend analysis and risk prompts."
+  ,"kbTrackBullet1": "Start date, end date, and duration"
+  ,"kbTrackBullet2": "Daily volume or product-change frequency"
+  ,"kbTrackBullet3": "Color and clots"
+  ,"kbTrackBullet4": "Pain level and medication use"
+  ,"kbTrackBullet5": "Bleeding outside the period"
+  ,"kbTrackBullet6": "Energy and sleep changes"
+  ,"homeSubtitleActive": "Track daily. Drafts save automatically."
+  ,"firstDayGuide": "Jumped to your latest start date. Record this day first."
+  ,"earliestDateReached": "Earliest date reached"
+  ,"todayReached": "Already on today"
+  ,"deletedEvent": "Deleted {target}"
+  ,"undo": "Undo"
+  ,"editEvent": "Edit event"
+  ,"padType": "Pad type"
+  ,"tamponModel": "Tampon model"
+  ,"clotType": "Clot type"
+  ,"smallClot": "Small clot"
+  ,"largeClot": "Large clot"
+  ,"delete": "Delete"
+  ,"saveChanges": "Save changes"
+  ,"recordSaved": "Record saved"
+  ,"recordSaveFailedDraftKept": "Unable to submit. Changes remain in your local draft."
+  ,"recentDays": "Last 14 days"
+  ,"dateStripHint": "Tap a date to switch. Dots show color; numbers show volume."
+  ,"previousDay": "Previous day"
+  ,"nextDay": "Next day"
+  ,"today": "Today"
+  ,"switching": "Switching"
+  ,"todayLimit": "Today reached"
+  ,"markColorAndClots": "Mark color and clots"
+  ,"colorAndSymptoms": "Color and symptoms"
+  ,"addSmallClot": "+ Small clot"
+  ,"addLargeClot": "+ Large clot"
+  ,"recordedItems": "Recorded items"
+  ,"todayRecords": "Today's records"
+  ,"noRecordsToday": "No records yet today."
+  ,"saveRecord": "Save record"
+  ,"synced": "Synced"
+  ,"symptomEvent": "Symptom · {name}"
+  ,"padEvent": "Pad · {type} · {volume}mL"
+  ,"tamponEvent": "Tampon · {model} · {volume}mL"
+  ,"quotedEvent": "\"{name}\""
+  ,"symptom": "Symptom"
+  ,"padRecord": "Pad record"
+  ,"tamponRecord": "Tampon record"
+  ,"colorPink": "Pink"
+  ,"colorRed": "Red"
+  ,"colorRust": "Rust"
+  ,"colorDark": "Dark red"
+  ,"colorBrown": "Brown"
+  ,"draftPending": "Draft pending"
+  ,"todayTotal": "Today's total {volume}mL"
+  ,"realtimeVolumeHidden": "Real-time volume hidden"
+  ,"clotEstimate": "Clot estimate"
+  ,"syncing": "Syncing"
+  ,"draftSavedAt": "Draft saved {time}"
+  ,"syncedAt": "Synced {time}"
+  ,"cloudRecord": "Cloud record"
+  ,"quickInput": "Quick add"
+  ,"additionalInput": "Add more"
+  ,"precisionInputHint": "Drag to choose a precise mL value."
+  ,"quickInputHint": "Tap a preset to add quickly."
+  ,"addVolume": "Add {volume}mL"
+  ,"tapToAdd": "Tap to add"
+  ,"reviewBeforeSubmit": "Review before submitting"
+  ,"submitAndStart": "Submit and start tracking"
+  ,"completedProgress": "Completed {current}/{total}"
+  ,"previousQuestion": "Previous"
+  ,"skip": "Skip"
+  ,"nextQuestion": "Next"
+  ,"submittingShort": "Submitting"
+  ,"searchAndSelect": "Search and select"
+  ,"uncertain": "Not sure"
+  ,"uncertainOrForgot": "Not sure / cannot recall"
+  ,"preferNotToSay": "Prefer not to say"
+  ,"selectDate": "Select date"
+  ,"exactDate": "Exact date"
+  ,"yearMonthOnly": "Year and month only"
+  ,"year": "Year"
+  ,"month": "Month"
+  ,"analysisSubtitleActive": "Review risks and cycle changes."
+  ,"loadFailedWithError": "Unable to load: {error}"
+  ,"priorityRisks": "Priority risks"
+  ,"allCycles": "All cycles"
+  ,"cycles": "Cycles"
+  ,"noCycles": "No cycles available for analysis yet."
+  ,"moreCycles": "More cycles"
+  ,"riskLinkCopied": "Reference link copied"
+  ,"sharing": "Sharing..."
+  ,"share": "Share"
+  ,"scoreUnit": "pts"
+  ,"regularity": "Regularity"
+  ,"recentCycle": "Recent cycle"
+  ,"cycleTimelineItem": "{start} · {days} days · {volume}mL{interval}"
+  ,"cycleInterval": " · {days}-day interval"
+  ,"sourceAcogVital": "ACOG: Menstrual cycle as a vital sign"
+  ,"sourceMayoCycle": "Mayo Clinic: Menstrual cycle basics"
+  ,"sourceCdcHeavy": "CDC: Heavy menstrual bleeding"
+  ,"sourceNhsHeavy": "NHS: Heavy periods"
+  ,"sourceMayoHeavy": "Mayo Clinic: Heavy menstrual bleeding"
+  ,"sourceWhoEndometriosis": "WHO: Endometriosis"
 }

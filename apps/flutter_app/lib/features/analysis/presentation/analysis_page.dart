@@ -83,9 +83,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
       final share = await ref.read(shareApiProvider).createOverview();
       await Clipboard.setData(ClipboardData(text: share.path));
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('链接已复制')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.copiedLink)),
+      );
     } finally {
       if (mounted) setState(() => _sharing = false);
     }
@@ -97,7 +97,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
     return FlowPage(
       title: l10n.analysisTitle,
-      subtitle: '看风险和周期变化。',
+      subtitle: l10n.analysisSubtitleActive,
       actions: [
         AnimatedRotation(
           turns: _loading ? 1 : 0,
@@ -127,7 +127,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Text('加载失败：$_error'),
+                child: Text(l10n.loadFailedWithError(_error!)),
               ),
             ),
           ),
@@ -143,13 +143,16 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '先看这些',
+                      l10n.priorityRisks,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text('风险', style: Theme.of(context).textTheme.titleLarge),
+                    Text(
+                      l10n.priorityRisks,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                     const SizedBox(height: 12),
                     for (final risk in _overview!.risks.take(5)) ...[
                       InkWell(
@@ -160,7 +163,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                           );
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('说明链接已复制')),
+                            SnackBar(content: Text(l10n.riskLinkCopied)),
                           );
                         },
                         child: AnimatedContainer(
@@ -199,12 +202,21 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                       ).textTheme.titleMedium,
                                     ),
                                     const SizedBox(height: 6),
-                                    Text(risk.triggerText),
+                                    Text(
+                                      _localizedAnalysisText(
+                                        context,
+                                        risk.triggerText,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Chip(label: Text(risk.level)),
+                              Chip(
+                                label: Text(
+                                  _localizedAnalysisText(context, risk.level),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -227,7 +239,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '所有周期',
+                    l10n.allCycles,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                     ),
@@ -235,7 +247,10 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text('周期', style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        l10n.cycles,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const Spacer(),
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 240),
@@ -247,7 +262,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  if (_cycles.isEmpty && !_loading) const Text('还没有可分析的周期。'),
+                  if (_cycles.isEmpty && !_loading) Text(l10n.noCycles),
                   for (var index = 0; index < _cycles.length; index++)
                     _CycleListItem(item: _cycles[index], delay: index * 35),
                   if (_cycles.length < _total) ...[
@@ -259,7 +274,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 220),
                         child: Text(
-                          _loadingMore ? '加载中' : '更多周期',
+                          _loadingMore ? l10n.loading : l10n.moreCycles,
                           key: ValueKey(_loadingMore),
                         ),
                       ),
@@ -427,6 +442,7 @@ class _CycleListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return _AnimatedSection(
       delay: delay,
       child: InkWell(
@@ -463,7 +479,10 @@ class _CycleListItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${item.daysCount}天 · ${item.totalVolumeMl.toStringAsFixed(0)}mL',
+                      l10n.daysAndVolume(
+                        item.daysCount,
+                        item.totalVolumeMl.toStringAsFixed(0),
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -471,15 +490,20 @@ class _CycleListItem extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         _CycleTag(
-                          text: item.levelStatus,
+                          text: _localizedAnalysisText(
+                            context,
+                            item.levelStatus,
+                          ),
                           emphasis: item.levelStatus.contains('偏'),
                         ),
                         _CycleTag(
-                          text: '分布·${item.distributionStatus}',
+                          text:
+                              '${l10n.distribution} · ${_localizedAnalysisText(context, item.distributionStatus)}',
                           emphasis: item.distributionStatus == '异常',
                         ),
                         _CycleTag(
-                          text: '颜色·${item.colorStatus}',
+                          text:
+                              '${l10n.color} · ${_localizedAnalysisText(context, item.colorStatus)}',
                           emphasis: item.colorStatus == '异常',
                         ),
                       ],
@@ -511,6 +535,7 @@ class _OverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -534,7 +559,7 @@ class _OverviewCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Health Score',
+                l10n.healthScore,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: Colors.white.withValues(alpha: 0.72),
                   letterSpacing: 0.6,
@@ -548,7 +573,7 @@ class _OverviewCard extends StatelessWidget {
                   side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                   backgroundColor: Colors.white.withValues(alpha: 0.08),
                 ),
-                child: Text(sharing ? '分享中...' : '分享'),
+                child: Text(sharing ? l10n.sharing : l10n.share),
               ),
             ],
           ),
@@ -567,7 +592,7 @@ class _OverviewCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
-                  '分',
+                  l10n.scoreUnit,
                   style: theme.textTheme.titleLarge?.copyWith(
                     color: Colors.white,
                   ),
@@ -581,17 +606,20 @@ class _OverviewCard extends StatelessWidget {
             runSpacing: 10,
             children: [
               _MetricPill(
-                label: '趋势',
-                value: overview.trendStatus,
+                label: l10n.trend,
+                value: _localizedAnalysisText(context, overview.trendStatus),
                 inverse: true,
               ),
               _MetricPill(
-                label: '规律性',
-                value: overview.regularityStatus,
+                label: l10n.regularity,
+                value: _localizedAnalysisText(
+                  context,
+                  overview.regularityStatus,
+                ),
                 inverse: true,
               ),
               _MetricPill(
-                label: '周期数',
+                label: l10n.cycleCount,
                 value: '${overview.cycleCount}',
                 inverse: true,
               ),
@@ -600,7 +628,7 @@ class _OverviewCard extends StatelessWidget {
           if (overview.timeline.isNotEmpty) ...[
             const SizedBox(height: 20),
             Text(
-              '最近周期',
+              l10n.recentCycle,
               style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
             ),
             const SizedBox(height: 10),
@@ -608,8 +636,14 @@ class _OverviewCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
-                  '${item.startLabel} · ${item.menstrualDays}天 · ${item.totalVolumeMl.toStringAsFixed(0)}mL'
-                  '${item.intervalDays == null ? '' : ' · 间隔${item.intervalDays}天'}',
+                  l10n.cycleTimelineItem(
+                    item.startLabel,
+                    item.menstrualDays,
+                    item.totalVolumeMl.toStringAsFixed(0),
+                    item.intervalDays == null
+                        ? ''
+                        : l10n.cycleInterval(item.intervalDays!),
+                  ),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white.withValues(alpha: 0.82),
                   ),
@@ -667,6 +701,26 @@ class _MetricPill extends StatelessWidget {
       ),
     );
   }
+}
+
+String _localizedAnalysisText(BuildContext context, String value) {
+  if (Localizations.localeOf(context).languageCode != 'en') return value;
+  return const {
+        '异常': 'Flagged',
+        '正常': 'Normal',
+        '偏高': 'High',
+        '较高': 'Elevated',
+        '偏低': 'Low',
+        '平稳': 'Stable',
+        '规律': 'Regular',
+        '不规律': 'Irregular',
+        '经量偏多': 'Heavy flow',
+        '经量偏少': 'Light flow',
+        '分布异常': 'Distribution flagged',
+        '颜色异常': 'Color flagged',
+        '血块异常': 'Clots flagged',
+      }[value] ??
+      value;
 }
 
 class _CycleTag extends StatelessWidget {
