@@ -8,8 +8,9 @@ node_modules
 !.env.*.example
 .vercel
 /local_notes
-
+.agents
 # Taro build outputs (generated during `pnpm -C apps/app build:h5`)
 /public/app
 /apps/app/dist
 /.taro-home
+skills-lock.json
