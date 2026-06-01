@@ -10,6 +10,13 @@ import 'theme.dart';
 class FlowSenseApp extends ConsumerWidget {
   const FlowSenseApp({super.key});
 
+  Locale? _resolveLocale(Locale? locale) {
+    if (locale == null) return const Locale('en');
+    if (locale.languageCode == 'zh') return const Locale('zh');
+    if (locale.languageCode == 'en') return const Locale('en');
+    return const Locale('en');
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localeState = ref.watch(localeControllerProvider);
@@ -21,6 +28,7 @@ class FlowSenseApp extends ConsumerWidget {
       theme: buildAppTheme(),
       routerConfig: router,
       locale: localeState.locale,
+      localeResolutionCallback: (locale, _) => _resolveLocale(locale),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,

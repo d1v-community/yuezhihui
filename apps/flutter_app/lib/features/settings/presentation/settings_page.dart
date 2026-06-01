@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/storage/app_keys.dart';
 import '../../../core/utils/json_utils.dart';
@@ -543,8 +542,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 const LanguageSwitcher(
                   variant: LanguageSwitcherVariant.segmented,
                 ),
-                const SizedBox(height: 16),
-                Text('${l10n.apiBaseUrl}: ${AppConfig.apiBaseUrl}'),
               ],
             ),
           ),
