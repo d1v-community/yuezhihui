@@ -290,7 +290,7 @@ export default function Index() {
                     从今天开始，记录你的身体节律。
                   </h2>
                   <p className="mt-4 text-base leading-relaxed text-brand-muted">
-                    如果男性有经期，它早就被量化了。现在，轮到我们把自己的身体变成可理解的数据。
+                    轮到我们把自己的身体变成可理解的数据。
                   </p>
                   <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                     <Link
